@@ -1,0 +1,70 @@
+import HttpService from "./htttp.service";
+
+class AuthService {
+  // authEndpoint = process.env.API_URL;
+
+  login = async (payload) => {
+    try {
+      console.log('Intentando login con payload:', payload); // Debug log
+      const response = await HttpService.post("pos/login", {
+        email: payload.data.attributes.email,
+        password: payload.data.attributes.password
+      });
+      
+      console.log('Respuesta del servidor:', response); // Debug log
+      
+      if (response.access_token) {
+        const userData = {
+          access_token: response.access_token,
+          refresh_token: response.refresh_token,
+          user: response.user
+        };
+        console.log('Datos del usuario preparados para el contexto:', userData); // Debug log
+        return userData;
+      } else {
+        throw {
+          message: "Error de autenticación",
+          errors: [{ detail: "Credenciales incorrectas" }]
+        };
+      }
+    } catch (error) {
+      console.error("Error en login:", error);
+      throw {
+        message: error.message || "Error de autenticación",
+        errors: error.errors || [{ detail: "Credenciales incorrectas" }]
+      };
+    }
+  };
+
+  register = async (credentials) => {
+    const registerEndpoint = 'register';
+    return await HttpService.post(registerEndpoint, credentials);
+  };
+
+  logout = async () => {
+    const logoutEndpoint = 'logout';
+    return await HttpService.post(logoutEndpoint);
+  };
+
+  forgotPassword = async (payload) => {
+    const forgotPassword = 'password-forgot';
+    return await HttpService.post(forgotPassword, payload);
+  }
+
+  resetPassword = async (credentials) => {
+    const resetPassword = 'password-reset';
+    return await HttpService.post(resetPassword, credentials);
+  }
+
+  getProfile = async() => {
+    const getProfile = 'me';
+    return await HttpService.get(getProfile);
+  }
+
+  updateProfile = async (newInfo) => {
+    const updateProfile = "me";
+    return await HttpService.patch(updateProfile, newInfo);
+  }
+}
+
+export default new AuthService();
