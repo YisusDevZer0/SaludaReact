@@ -37,38 +37,10 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
-import Tables from "layouts/tables";
-import Billing from "layouts/billing";
-import RTL from "layouts/rtl";
-import Notifications from "layouts/notifications";
-
-import SignIn from "layouts/authentication/sign-in";
-import SignUp from "layouts/authentication/sign-up";
-import Profile from "layouts/profile";
-import UserProfile from "layouts/user-profile";
-import UserManagement from "layouts/user-management";
-
-import Login from "auth/login";
-import Register from "auth/register";
-import ForgotPassword from "auth/forgot-password";
-import ResetPassword from "auth/reset-password";
-
-// Vistas de administrador
-import AdminSales from "./layouts/admin/Sales";
-import AdminInventory from "./layouts/admin/Inventory";
-import AdminAppointments from "./layouts/admin/Appointments";
 import AdminCalendar from "./layouts/admin/Calendar";
 import AdminProfile from "layouts/admin/profile";
-// Nuevas vistas de administrador basadas en la imagen
-import AdminInventarios from "./layouts/admin/Inventarios";
-import AdminAlmacen from "./layouts/admin/Almacen";
-import AdminCompras from "./layouts/admin/Compras";
-import AdminTraspasos from "./layouts/admin/Traspasos";
-import AdminPersonal from "./layouts/admin/Personal";
-import AdminConfiguracion from "./layouts/admin/Configuracion";
-
-// Vistas de vendedor
 import SellerPOS from "./layouts/seller/POS";
+import AdminBranches from "./layouts/admin/Branches";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -82,7 +54,22 @@ const routes = [
     route: "/dashboard",
     component: <Dashboard />,
   },
-  // Menú principal de administrador
+  {
+    type: "collapse",
+    name: "Perfil",
+    key: "profile",
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/profile",
+    component: <AdminProfile />,
+  },
+  {
+    type: "collapse",
+    name: "Sucursales",
+    key: "branches",
+    icon: <Icon fontSize="small">store</Icon>,
+    route: "/branches",
+    component: <AdminBranches />,
+  },
   {
     type: "collapse",
     name: "Calendario",
@@ -93,189 +80,11 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Ventas",
-    key: "sales",
-    icon: <Icon fontSize="small">point_of_sale</Icon>,
-    route: "/sales",
-    component: <AdminSales />,
-  },
-  {
-    type: "collapse",
-    name: "Inventario",
-    key: "inventory",
-    icon: <Icon fontSize="small">inventory</Icon>,
-    route: "/inventory",
-    component: <AdminInventory />,
-  },
-  {
-    type: "collapse",
-    name: "Citas",
-    key: "appointments",
-    icon: <Icon fontSize="small">event</Icon>,
-    route: "/appointments",
-    component: <AdminAppointments />,
-  },
-  // Nuevas opciones para administrador
-  {
-    type: "collapse",
-    name: "Almacén",
-    key: "almacen",
-    icon: <Icon fontSize="small">warehouse</Icon>,
-    route: "/almacen",
-    component: <AdminAlmacen />,
-  },
-  {
-    type: "collapse",
-    name: "Compras",
-    key: "compras",
-    icon: <Icon fontSize="small">shopping_cart</Icon>,
-    route: "/compras",
-    component: <AdminCompras />,
-  },
-  {
-    type: "collapse",
-    name: "Traspasos",
-    key: "traspasos",
-    icon: <Icon fontSize="small">swap_horiz</Icon>,
-    route: "/traspasos",
-    component: <AdminTraspasos />,
-  },
-  {
-    type: "collapse",
-    name: "Inventarios",
-    key: "inventarios",
-    icon: <Icon fontSize="small">list_alt</Icon>,
-    route: "/inventarios",
-    component: <AdminInventarios />,
-  },
-  {
-    type: "collapse",
-    name: "Personal",
-    key: "personal",
-    icon: <Icon fontSize="small">people</Icon>,
-    route: "/personal",
-    component: <AdminPersonal />,
-  },
-  {
-    type: "collapse",
-    name: "Configuración",
-    key: "configuracion",
-    icon: <Icon fontSize="small">settings</Icon>,
-    route: "/configuracion",
-    component: <AdminConfiguracion />,
-  },
-  // Vista de vendedor
-  {
-    type: "collapse",
     name: "Punto de Venta",
     key: "pos",
     icon: <Icon fontSize="small">point_of_sale</Icon>,
     route: "/pos",
     component: <SellerPOS />,
-  },
-  {
-    type: "collapse",
-    name: "Tables",
-    key: "tables",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    component: <Tables />,
-  },
-  {
-    type: "collapse",
-    name: "Billing",
-    key: "billing",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/billing",
-    component: <Billing />,
-  },
-  {
-    type: "collapse",
-    name: "RTL",
-    key: "rtl",
-    icon: <Icon fontSize="small">format_textdirection_r_to_l</Icon>,
-    route: "/rtl",
-    component: <RTL />,
-  },
-  {
-    type: "collapse",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    component: <Notifications />,
-  },
-  {
-    type: "collapse",
-    name: "Profile",
-    key: "profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/profile",
-    component: <AdminProfile />,
-  },
-  {
-    type: "collapse",
-    name: "Sign In",
-    key: "sign-in",
-    icon: <Icon fontSize="small">login</Icon>,
-    route: "/authentication/sign-in",
-    component: <SignIn />,
-  },
-  {
-    type: "examples",
-    name: "User Profile",
-    key: "user-profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/user-profile",
-    component: <UserProfile />,
-  },
-  {
-    type: "examples",
-    name: "User Management",
-    key: "user-management",
-    icon: <Icon fontSize="small">list</Icon>,
-    route: "/user-management",
-    component: <UserManagement />,
-  },
-  {
-    type: "collapse",
-    name: "Sign Up",
-    key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/authentication/sign-up",
-    component: <SignUp />,
-  },
-  {
-    type: "auth",
-    name: "Login",
-    key: "login",
-    icon: <Icon fontSize="small">login</Icon>,
-    route: "/auth/login",
-    component: <Login />,
-  },
-  {
-    type: "auth",
-    name: "Register",
-    key: "register",
-    icon: <Icon fontSize="small">reigster</Icon>,
-    route: "/auth/register",
-    component: <Register />,
-  },
-  {
-    type: "auth",
-    name: "Forgot Password",
-    key: "forgot-password",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/auth/forgot-password",
-    component: <ForgotPassword />,
-  },
-  {
-    type: "auth",
-    name: "Reset Password",
-    key: "reset-password",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/auth/reset-password",
-    component: <ResetPassword />,
   },
 ];
 

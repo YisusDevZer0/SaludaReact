@@ -14,7 +14,8 @@
         "laravel/framework": "^11.0",
         "laravel/passport": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.7"
+        "laravel/tinker": "^2.7",
+        "yajra/laravel-datatables-oracle": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

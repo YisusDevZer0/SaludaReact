@@ -24,6 +24,9 @@ import { createContext, useContext, useReducer, useMemo, useState, useEffect } f
 import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 
+// Services
+import PreferencesService from "services/preferences-service";
+
 // Material Dashboard 2 React main context
 const MaterialUI = createContext();
 
@@ -33,6 +36,7 @@ export const AuthContext = createContext({
   userRole: null,
   userData: null,
   userPermissions: null,
+  isLoading: true,
   login: () => {},
   register: () => {},
   logout: () => {},
@@ -43,53 +47,67 @@ const AuthContextProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userPermissions, setUserPermissions] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = localStorage.getItem("token");
-  const storedRole = localStorage.getItem("userRole");
-  const storedUserData = localStorage.getItem("userData");
-  const storedPermissions = localStorage.getItem("userPermissions");
-
+  // Verificar autenticación al cargar la aplicación
   useEffect(() => {
-    if (!token) return;
+    const checkAuthentication = () => {
+      const token = localStorage.getItem("token");
+      const storedRole = localStorage.getItem("userRole");
+      const storedUserData = localStorage.getItem("userData");
+      const storedPermissions = localStorage.getItem("userPermissions");
 
-    if (storedRole) {
-      console.log('Rol almacenado:', storedRole); // Debug log
-      setUserRole(storedRole);
-    }
-    if (storedUserData) {
-      try {
-        const parsedData = JSON.parse(storedUserData);
-        console.log('Datos del usuario parseados:', parsedData); // Debug log
-        setUserData(parsedData);
-        // Extraer permisos del rol
-        if (parsedData.role && parsedData.role.Permisos) {
-          setUserPermissions(parsedData.role.Permisos);
-          localStorage.setItem("userPermissions", parsedData.role.Permisos);
+      if (token && storedUserData) {
+        try {
+          const parsedData = JSON.parse(storedUserData);
+          console.log('Restaurando sesión:', parsedData);
+          
+          setIsAuthenticated(true);
+          setUserRole(storedRole);
+          setUserData(parsedData);
+          
+          // Restaurar permisos
+          if (parsedData.role && parsedData.role.Permisos) {
+            setUserPermissions(parsedData.role.Permisos);
+          } else if (storedPermissions) {
+            setUserPermissions(storedPermissions);
+          }
+          
+          // Si está en login, redirigir al dashboard
+          if (location.pathname === '/auth/login' || location.pathname === '/') {
+            navigate("/dashboard");
+          }
+        } catch (e) {
+          console.error("Error parsing user data from localStorage", e);
+          // Si hay error, limpiar localStorage
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("userRole");
+          localStorage.removeItem("userData");
+          localStorage.removeItem("userPermissions");
+          navigate("/auth/login");
         }
-      } catch (e) {
-        console.error("Error parsing user data from localStorage", e);
+      } else {
+        // No hay token válido, redirigir a login si no está ya ahí
+        if (!location.pathname.startsWith('/auth/')) {
+          navigate("/auth/login");
+        }
       }
-    }
+      
+      setIsLoading(false);
+    };
 
-    setIsAuthenticated(true);
-    navigate(location.pathname);
-  }, []);
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/auth/login");
-      return;
-    }
-
-    setIsAuthenticated(isAuthenticated);
-    navigate(location.pathname);
-  }, [isAuthenticated]);
+    checkAuthentication();
+  }, []); // Solo ejecutar una vez al montar el componente
 
   const login = (token, refreshToken, user = {}) => {
     console.log('Datos del usuario recibidos en login:', user); // Debug log
+    console.log('Token recibido en login:', token?.substring(0, 20) + '...'); // Debug token
+    console.log('Token length:', token?.length); // Debug token length
+    
     localStorage.setItem("token", token);
     localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("userRole", user.role?.Nombre_rol || 'user');
@@ -99,9 +117,15 @@ const AuthContextProvider = ({ children }) => {
       setUserPermissions(user.role.Permisos);
     }
     
+    // Verificar que el token se guardó correctamente
+    const savedToken = localStorage.getItem("token");
+    console.log('Token guardado en localStorage:', savedToken?.substring(0, 20) + '...');
+    console.log('Tokens coinciden:', token === savedToken);
+    
     setIsAuthenticated(true);
     setUserRole(user.role?.Nombre_rol || 'user');
     setUserData(user);
+    setIsLoading(false);
     
     // Redirigir según el rol
     if (user.role?.Nombre_rol === 'Administrador') {
@@ -122,9 +146,39 @@ const AuthContextProvider = ({ children }) => {
     setUserRole(null);
     setUserData(null);
     setUserPermissions(null);
+    setIsLoading(false);
     
     navigate("/auth/login");
   };
+
+  // Mostrar loading mientras verifica autenticación
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column' 
+      }}>
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #1976d2',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{ marginTop: '20px', color: '#666' }}>Cargando...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ 
@@ -132,6 +186,7 @@ const AuthContextProvider = ({ children }) => {
       userRole, 
       userData, 
       userPermissions, 
+      isLoading,
       login, 
       logout 
     }}>
@@ -176,6 +231,12 @@ function reducer(state, action) {
     case "DARKMODE": {
       return { ...state, darkMode: action.value };
     }
+    case "LOAD_PREFERENCES": {
+      return { ...state, ...action.preferences };
+    }
+    case "TABLE_HEADER_COLOR": {
+      return { ...state, tableHeaderColor: action.value };
+    }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
@@ -195,9 +256,86 @@ function MaterialUIControllerProvider({ children }) {
     direction: "ltr",
     layout: "dashboard",
     darkMode: false,
+    tableHeaderColor: "azulSereno", // Color por defecto para headers de tabla
   };
 
   const [controller, dispatch] = useReducer(reducer, initialState);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
+  // Cargar preferencias del usuario al inicializar
+  useEffect(() => {
+    const loadUserPreferences = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const userData = localStorage.getItem("userData");
+        
+        // Solo cargar preferencias si hay token Y datos de usuario
+        if (token && userData) {
+          console.log("Cargando preferencias del usuario...");
+          const preferences = await PreferencesService.getUserPreferences();
+          if (preferences && preferences.ui) {
+            console.log("Preferencias cargadas, aplicando al contexto...");
+            dispatch({ type: "LOAD_PREFERENCES", preferences: preferences.ui });
+          }
+        } else {
+          console.log("No hay token o userData, usando valores por defecto");
+        }
+      } catch (error) {
+        console.log("Error loading preferences, using defaults:", error);
+      } finally {
+        setPreferencesLoaded(true);
+      }
+    };
+
+    // Esperar un poco para asegurar que el AuthContext se haya cargado
+    const timeoutId = setTimeout(loadUserPreferences, 500);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Función para guardar preferencias automáticamente cuando cambian
+  const savePreferences = async (newState) => {
+    try {
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("userData");
+      
+      // Solo guardar si hay token, userData y las preferencias ya se cargaron
+      if (token && userData && preferencesLoaded) {
+        console.log("Guardando preferencias automáticamente...");
+        const preferences = {
+          ui: {
+            miniSidenav: newState.miniSidenav,
+            transparentSidenav: newState.transparentSidenav,
+            whiteSidenav: newState.whiteSidenav,
+            sidenavColor: newState.sidenavColor,
+            transparentNavbar: newState.transparentNavbar,
+            fixedNavbar: newState.fixedNavbar,
+            darkMode: newState.darkMode,
+            direction: newState.direction,
+            layout: newState.layout,
+            tableHeaderColor: newState.tableHeaderColor
+          }
+        };
+        
+        const result = await PreferencesService.updateUserPreferences(preferences);
+        console.log("Resultado del guardado:", result);
+      } else {
+        console.log("No se puede guardar: token=" + !!token + ", userData=" + !!userData + ", loaded=" + preferencesLoaded);
+      }
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+    }
+  };
+
+  // Auto-guardar cuando el estado cambia
+  useEffect(() => {
+    if (preferencesLoaded) {
+      const timeoutId = setTimeout(() => {
+        savePreferences(controller);
+      }, 1000); // Debounce de 1 segundo
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [controller, preferencesLoaded]);
 
   const value = useMemo(() => [controller, dispatch], [controller, dispatch]);
 
@@ -233,6 +371,7 @@ const setOpenConfigurator = (dispatch, value) => dispatch({ type: "OPEN_CONFIGUR
 const setDirection = (dispatch, value) => dispatch({ type: "DIRECTION", value });
 const setLayout = (dispatch, value) => dispatch({ type: "LAYOUT", value });
 const setDarkMode = (dispatch, value) => dispatch({ type: "DARKMODE", value });
+const setTableHeaderColor = (dispatch, value) => dispatch({ type: "TABLE_HEADER_COLOR", value });
 
 export {
   AuthContextProvider,
@@ -248,4 +387,6 @@ export {
   setDirection,
   setLayout,
   setDarkMode,
+  setTableHeaderColor,
+  PreferencesService,
 };

@@ -636,10 +636,10 @@ function Dashboard() {
             <MDBox p={3} display="flex" alignItems="center">
               <MDBox mr={2}>
                 <MDAvatar
-                  src={userData?.avatar || ""}
+                  src={userData?.avatar_url || defaultAvatar}
                   alt={userData?.Nombre_Apellidos || "Usuario"}
                   size="lg"
-                  bgColor={userData?.avatar ? "transparent" : "info"}
+                  bgColor={userData?.avatar_url ? "transparent" : "info"}
                 />
               </MDBox>
               <MDBox>

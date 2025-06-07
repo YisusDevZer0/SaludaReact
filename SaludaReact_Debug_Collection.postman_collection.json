@@ -1,0 +1,225 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-1234567890ab",
+		"name": "SaludaReact - Debug Collection",
+		"description": "Colección para debuggear el sistema de preferencias de SaludaReact",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔧 Debug - Test Save Preferences",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 3|1749268737|e69585627009c42eb4d98b1d094344e42153970122229aef6a2d76e66371dc2d",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ui\": {\n    \"darkMode\": true,\n    \"sidenavColor\": \"info\",\n    \"transparentNavbar\": true,\n    \"fixedNavbar\": true,\n    \"tableHeaderColor\": \"azulSereno\",\n    \"miniSidenav\": false,\n    \"transparentSidenav\": false,\n    \"whiteSidenav\": false,\n    \"direction\": \"ltr\",\n    \"layout\": \"dashboard\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/debug/test-save-preferences",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"debug",
+						"test-save-preferences"
+					]
+				},
+				"description": "Prueba el guardado de preferencias con debug completo"
+			}
+		},
+		{
+			"name": "🔍 Debug - Check User 3 Token",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/debug/check-user3-token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"debug",
+						"check-user3-token"
+					]
+				},
+				"description": "Verifica si el token del usuario 3 coincide con el de la BD"
+			}
+		},
+		{
+			"name": "📋 Debug - All Tokens",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/debug/tokens",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"debug",
+						"tokens"
+					]
+				},
+				"description": "Ver todos los tokens activos en la base de datos"
+			}
+		},
+		{
+			"name": "👤 Debug - User 3 Info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/debug/user/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"debug",
+						"user",
+						"3"
+					]
+				},
+				"description": "Información específica del usuario ID 3"
+			}
+		},
+		{
+			"name": "🌐 Debug - Headers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 3|1749268737|e69585627009c42eb4d98b1d094344e42153970122229aef6a2d76e66371dc2d",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/debug/headers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"debug",
+						"headers"
+					]
+				},
+				"description": "Ver todos los headers enviados al servidor"
+			}
+		},
+		{
+			"name": "✅ Get User Preferences (Normal)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 3|1749268737|e69585627009c42eb4d98b1d094344e42153970122229aef6a2d76e66371dc2d",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/api/user/preferences",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"preferences"
+					]
+				},
+				"description": "Obtener preferencias del usuario (endpoint normal)"
+			}
+		},
+		{
+			"name": "💾 Save User Preferences (Normal)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer 3|1749268737|e69585627009c42eb4d98b1d094344e42153970122229aef6a2d76e66371dc2d",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ui\": {\n    \"darkMode\": false,\n    \"sidenavColor\": \"success\",\n    \"transparentNavbar\": true,\n    \"fixedNavbar\": true,\n    \"tableHeaderColor\": \"verdeAmable\",\n    \"miniSidenav\": false,\n    \"transparentSidenav\": false,\n    \"whiteSidenav\": false,\n    \"direction\": \"ltr\",\n    \"layout\": \"dashboard\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/user/preferences",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"preferences"
+					]
+				},
+				"description": "Guardar preferencias del usuario (endpoint normal)"
+			}
+		}
+	]
+} 

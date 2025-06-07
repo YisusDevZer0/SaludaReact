@@ -336,11 +336,13 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       {userData && (
         <MDBox p={2} textAlign="center">
           <MDBox mb={1} display="flex" justifyContent="center">
+            {/* Mostrar la URL del avatar para depuración */}
+            {console.log('Avatar URL Sidenav:', userData.avatar_url)}
             <MDAvatar
-              src={userData.avatar}
+              src={userData.avatar_url || defaultAvatar}
               alt={userData.name}
               size="lg"
-              bgColor={userData?.avatar ? "transparent" : "info"}
+              bgColor={userData?.avatar_url ? "transparent" : "info"}
               sx={{ border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}` }}
             />
           </MDBox>
