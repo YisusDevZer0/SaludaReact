@@ -4,11 +4,35 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import { getDataTablesConfig } from "utils/dataTablesLanguage";
 import { useMaterialUIController } from "context";
+import usePantoneColors from "hooks/usePantoneColors";
 
 const SucursalesTable = () => {
   const tableRef = useRef();
   const [controller] = useMaterialUIController();
   const { tableHeaderColor, darkMode } = controller;
+  const { sucursalesTable } = usePantoneColors();
+
+  // Inyectar CSS dinámico para header y texto de celdas
+  useEffect(() => {
+    const styleId = "datatable-sucursales-style";
+    let styleTag = document.getElementById(styleId);
+    if (styleTag) styleTag.remove();
+    styleTag = document.createElement("style");
+    styleTag.id = styleId;
+    styleTag.innerHTML = `
+      table.dataTable thead th {
+        background-color: ${sucursalesTable.header} !important;
+        color: ${sucursalesTable.headerText} !important;
+      }
+      table.dataTable tbody td {
+        color: ${sucursalesTable.cellText} !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
+    return () => {
+      if (styleTag) styleTag.remove();
+    };
+  }, [sucursalesTable.header, sucursalesTable.headerText, sucursalesTable.cellText]);
 
   useEffect(() => {
     // Configuración de columnas
@@ -18,7 +42,17 @@ const SucursalesTable = () => {
       { data: "Direccion", title: "Dirección" },
       { data: "Telefono", title: "Teléfono" },
       { data: "Correo", title: "Correo" },
-      { data: "Sucursal_Activa", title: "Activa" },
+      {
+        data: "Sucursal_Activa",
+        title: "Activa",
+        render: function (data) {
+          if (data === true || data === 1 || data === "1") {
+            return `<span style="color:${sucursalesTable.activeIcon};font-size:1.5em;">&#10003;</span>`;
+          } else {
+            return `<span style="color:${sucursalesTable.inactiveIcon};font-size:1.5em;">&#10007;</span>`;
+          }
+        }
+      },
       { data: "created_at", title: "Creado" }
     ];
 

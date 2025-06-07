@@ -237,6 +237,21 @@ function reducer(state, action) {
     case "TABLE_HEADER_COLOR": {
       return { ...state, tableHeaderColor: action.value };
     }
+    case "SUCURSALES_TABLE_HEADER_COLOR": {
+      return { ...state, sucursalesTableHeaderColor: action.value };
+    }
+    case "SUCURSALES_TABLE_HEADER_TEXT": {
+      return { ...state, sucursalesTableHeaderText: action.value };
+    }
+    case "SUCURSALES_TABLE_CELL_TEXT": {
+      return { ...state, sucursalesTableCellText: action.value };
+    }
+    case "SUCURSALES_TABLE_ACTIVE_ICON": {
+      return { ...state, sucursalesTableActiveIcon: action.value };
+    }
+    case "SUCURSALES_TABLE_INACTIVE_ICON": {
+      return { ...state, sucursalesTableInactiveIcon: action.value };
+    }
     default: {
       throw new Error(`Unhandled action type: ${action.type}`);
     }
@@ -312,7 +327,12 @@ function MaterialUIControllerProvider({ children }) {
             darkMode: newState.darkMode,
             direction: newState.direction,
             layout: newState.layout,
-            tableHeaderColor: newState.tableHeaderColor
+            tableHeaderColor: newState.tableHeaderColor,
+            sucursalesTableHeaderColor: newState.sucursalesTableHeaderColor,
+            sucursalesTableHeaderText: newState.sucursalesTableHeaderText,
+            sucursalesTableCellText: newState.sucursalesTableCellText,
+            sucursalesTableActiveIcon: newState.sucursalesTableActiveIcon,
+            sucursalesTableInactiveIcon: newState.sucursalesTableInactiveIcon
           }
         };
         
@@ -373,6 +393,13 @@ const setLayout = (dispatch, value) => dispatch({ type: "LAYOUT", value });
 const setDarkMode = (dispatch, value) => dispatch({ type: "DARKMODE", value });
 const setTableHeaderColor = (dispatch, value) => dispatch({ type: "TABLE_HEADER_COLOR", value });
 
+// Funciones para actualizar colores de la tabla de sucursales
+const setSucursalesTableHeaderColor = (dispatch, value) => dispatch({ type: "SUCURSALES_TABLE_HEADER_COLOR", value });
+const setSucursalesTableHeaderText = (dispatch, value) => dispatch({ type: "SUCURSALES_TABLE_HEADER_TEXT", value });
+const setSucursalesTableCellText = (dispatch, value) => dispatch({ type: "SUCURSALES_TABLE_CELL_TEXT", value });
+const setSucursalesTableActiveIcon = (dispatch, value) => dispatch({ type: "SUCURSALES_TABLE_ACTIVE_ICON", value });
+const setSucursalesTableInactiveIcon = (dispatch, value) => dispatch({ type: "SUCURSALES_TABLE_INACTIVE_ICON", value });
+
 export {
   AuthContextProvider,
   MaterialUIControllerProvider,
@@ -388,5 +415,10 @@ export {
   setLayout,
   setDarkMode,
   setTableHeaderColor,
+  setSucursalesTableHeaderColor,
+  setSucursalesTableHeaderText,
+  setSucursalesTableCellText,
+  setSucursalesTableActiveIcon,
+  setSucursalesTableInactiveIcon,
   PreferencesService,
 };

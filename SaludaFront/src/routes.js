@@ -41,6 +41,7 @@ import AdminCalendar from "./layouts/admin/Calendar";
 import AdminProfile from "layouts/admin/profile";
 import SellerPOS from "./layouts/seller/POS";
 import AdminBranches from "./layouts/admin/Branches";
+import AdminConfiguracion from "layouts/admin/Configuracion";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -85,6 +86,16 @@ const routes = [
     icon: <Icon fontSize="small">point_of_sale</Icon>,
     route: "/pos",
     component: <SellerPOS />,
+  },
+  {
+    type: "collapse",
+    name: "Configuración",
+    key: "configuracion",
+    icon: <Icon fontSize="small">settings</Icon>,
+    route: "/admin/configuracion",
+    component: <AdminConfiguracion />,
+    protected: true,
+    adminOnly: true,
   },
 ];
 

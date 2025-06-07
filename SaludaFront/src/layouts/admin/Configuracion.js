@@ -30,6 +30,16 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
+// Material Dashboard 2 React context
+import {
+  useMaterialUIController,
+  setSucursalesTableHeaderColor,
+  setSucursalesTableHeaderText,
+  setSucursalesTableCellText,
+  setSucursalesTableActiveIcon,
+  setSucursalesTableInactiveIcon
+} from "context";
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -48,6 +58,7 @@ function TabPanel(props) {
 
 function Configuracion() {
   const [tabValue, setTabValue] = useState(0);
+  const [controller, dispatch] = useMaterialUIController();
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -330,6 +341,58 @@ function Configuracion() {
     ]
   };
 
+  // Bloque de selección de colores para la tabla de sucursales
+  const SucursalesColorPanel = () => (
+    <Card sx={{ mb: 3 }}>
+      <MDBox p={3}>
+        <MDTypography variant="h6" fontWeight="medium" mb={3}>
+          Colores de la Tabla de Sucursales
+        </MDTypography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <MDBox mb={2}>
+              <MDTypography variant="button" display="block" mb={1}>
+                Color de fondo del header
+              </MDTypography>
+              <input type="color" value={controller.sucursalesTableHeaderColor || "#0057B8"}
+                onChange={e => setSucursalesTableHeaderColor(dispatch, e.target.value)} />
+            </MDBox>
+            <MDBox mb={2}>
+              <MDTypography variant="button" display="block" mb={1}>
+                Color de texto del header
+              </MDTypography>
+              <input type="color" value={controller.sucursalesTableHeaderText || "#ffffff"}
+                onChange={e => setSucursalesTableHeaderText(dispatch, e.target.value)} />
+            </MDBox>
+            <MDBox mb={2}>
+              <MDTypography variant="button" display="block" mb={1}>
+                Color de texto de celdas
+              </MDTypography>
+              <input type="color" value={controller.sucursalesTableCellText || "#333333"}
+                onChange={e => setSucursalesTableCellText(dispatch, e.target.value)} />
+            </MDBox>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <MDBox mb={2}>
+              <MDTypography variant="button" display="block" mb={1}>
+                Color del ícono activo
+              </MDTypography>
+              <input type="color" value={controller.sucursalesTableActiveIcon || "#00C7B1"}
+                onChange={e => setSucursalesTableActiveIcon(dispatch, e.target.value)} />
+            </MDBox>
+            <MDBox mb={2}>
+              <MDTypography variant="button" display="block" mb={1}>
+                Color del ícono inactivo
+              </MDTypography>
+              <input type="color" value={controller.sucursalesTableInactiveIcon || "#C00096"}
+                onChange={e => setSucursalesTableInactiveIcon(dispatch, e.target.value)} />
+            </MDBox>
+          </Grid>
+        </Grid>
+      </MDBox>
+    </Card>
+  );
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -573,6 +636,8 @@ function Configuracion() {
                     </Grid>
                   </MDBox>
                 </Card>
+
+                <SucursalesColorPanel />
 
                 <MDBox mt={3} display="flex" justifyContent="flex-end">
                   <MDButton variant="gradient" color="info">

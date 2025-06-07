@@ -75,7 +75,12 @@ export const usePantoneColors = () => {
       header: getCurrentHeaderColor(),
       headerText: darkMode ? "#333333" : "#ffffff",
       border: getColorWithAlpha(tableHeaderColor || "azulSereno", 0.1),
-      hover: getColorWithAlpha(tableHeaderColor || "azulSereno", 0.05)
+      hover: getColorWithAlpha(tableHeaderColor || "azulSereno", 0.05),
+      cellText: darkMode ? pantoneColors.blancoEsteril.hex : "#333333",
+      activeIcon: getColor("verdeAmable"),
+      inactiveIcon: getColor("jarabe"),
+      rowText: darkMode ? pantoneColors.blancoEsteril.hex : "#333333",
+      rowTextInactive: "#aaaaaa"
     },
     
     // Paleta completa para Material-UI
@@ -106,7 +111,17 @@ export const usePantoneColors = () => {
         main: getColor("verdeAmable"),
         light: getColorWithAlpha("verdeAmable", 0.1)
       }
-    }
+    },
+
+    // Configuración específica para la tabla de sucursales
+    sucursalesTable: {
+      header: controller.sucursalesTableHeaderColor || getColor("azulSereno"),
+      headerText: controller.sucursalesTableHeaderText || "#ffffff",
+      cellText: controller.sucursalesTableCellText || (darkMode ? pantoneColors.blancoEsteril.hex : "#333333"),
+      activeIcon: controller.sucursalesTableActiveIcon || getColor("verdeAmable"),
+      inactiveIcon: controller.sucursalesTableInactiveIcon || getColor("jarabe"),
+      // Puedes agregar más configuraciones específicas aquí
+    },
   };
 };
 
