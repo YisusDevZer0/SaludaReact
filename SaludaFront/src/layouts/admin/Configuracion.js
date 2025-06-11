@@ -13,6 +13,15 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Switch from "@mui/material/Switch";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 
 // React components
 import { useState, useEffect } from "react";
@@ -61,9 +70,104 @@ function Configuracion() {
   const [controller, dispatch] = useMaterialUIController();
   const [rolesTableData, setRolesTableData] = useState({ columns: [], rows: [] });
   const [loadingRoles, setLoadingRoles] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
+  const [nuevoRol, setNuevoRol] = useState({
+    nombre: "",
+    descripcion: "",
+    permisos: {
+      pacientes: false,
+      citas: false,
+      inventario: false,
+      facturacion: false,
+      reportes: false,
+      configuracion: false
+    }
+  });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+  };
+
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+
+  const handleChangePermiso = (permiso) => (event) => {
+    setNuevoRol({
+      ...nuevoRol,
+      permisos: {
+        ...nuevoRol.permisos,
+        [permiso]: event.target.checked
+      }
+    });
+  };
+
+  const handleSubmitRol = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const id_hod = userData?.ID_H_O_D;
+      
+      const response = await fetch("http://localhost:8000/api/roles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...nuevoRol,
+          id_hod,
+          Sistema: JSON.stringify(nuevoRol.permisos)
+        }),
+      });
+
+      if (response.ok) {
+        // Recargar la tabla de roles
+        const rolesResponse = await fetch(`http://localhost:8000/api/roles-puestos?id_hod=${id_hod}`);
+        const rolesData = await rolesResponse.json();
+        
+        const columns = [
+          { Header: "Rol", accessor: "rol" },
+          { Header: "Descripción", accessor: "descripcion" },
+          { Header: "Usuarios", accessor: "usuarios" },
+          { Header: "Permisos", accessor: "permisos" },
+          { Header: "Último Cambio", accessor: "ultimoCambio" },
+          { Header: "Acciones", accessor: "acciones" },
+        ];
+        
+        const rows = (rolesData || []).map(rol => ({
+          rol: rol.Nombre_rol,
+          descripcion: rol.Descripcion || "-",
+          usuarios: rol.Usuarios || "-",
+          permisos: (
+            <MDTypography variant="caption" color="info" fontWeight="medium">
+              {rol.Sistema ? Object.keys(JSON.parse(rol.Sistema)).join(", ") : "-"}
+            </MDTypography>
+          ),
+          ultimoCambio: rol.updated_at ? rol.updated_at.split("T")[0] : "-",
+          acciones: (
+            <MDBox display="flex" alignItems="center">
+              <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
+              <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
+            </MDBox>
+          ),
+        }));
+        
+        setRolesTableData({ columns, rows });
+        handleCloseModal();
+        setNuevoRol({
+          nombre: "",
+          descripcion: "",
+          permisos: {
+            pacientes: false,
+            citas: false,
+            inventario: false,
+            facturacion: false,
+            reportes: false,
+            configuracion: false
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error al crear el rol:", error);
+    }
   };
 
   useEffect(() => {
@@ -394,7 +498,12 @@ function Configuracion() {
             <TabPanel value={tabValue} index={0}>
               <MDBox p={3}>
                 <MDBox mb={3} display="flex" justifyContent="flex-end">
-                  <MDButton variant="gradient" color="success" startIcon={<Icon>add</Icon>}>
+                  <MDButton 
+                    variant="gradient" 
+                    color="success" 
+                    startIcon={<Icon>add</Icon>}
+                    onClick={handleOpenModal}
+                  >
                     Nuevo Rol
                   </MDButton>
                 </MDBox>
@@ -601,6 +710,118 @@ function Configuracion() {
         </Card>
       </MDBox>
       <Footer />
+
+      {/* Modal para nuevo rol */}
+      <Dialog 
+        open={openModal} 
+        onClose={handleCloseModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <MDTypography variant="h5" fontWeight="medium">
+            Crear Nuevo Rol
+          </MDTypography>
+        </DialogTitle>
+        <DialogContent>
+          <MDBox pt={2} pb={3}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <MDInput
+                  label="Nombre del Rol"
+                  fullWidth
+                  value={nuevoRol.nombre}
+                  onChange={(e) => setNuevoRol({ ...nuevoRol, nombre: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <MDInput
+                  label="Descripción"
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={nuevoRol.descripcion}
+                  onChange={(e) => setNuevoRol({ ...nuevoRol, descripcion: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl component="fieldset">
+                  <FormLabel component="legend">Permisos del Rol</FormLabel>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.pacientes}
+                          onChange={handleChangePermiso("pacientes")}
+                        />
+                      }
+                      label="Pacientes"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.citas}
+                          onChange={handleChangePermiso("citas")}
+                        />
+                      }
+                      label="Citas"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.inventario}
+                          onChange={handleChangePermiso("inventario")}
+                        />
+                      }
+                      label="Inventario"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.facturacion}
+                          onChange={handleChangePermiso("facturacion")}
+                        />
+                      }
+                      label="Facturación"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.reportes}
+                          onChange={handleChangePermiso("reportes")}
+                        />
+                      }
+                      label="Reportes"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={nuevoRol.permisos.configuracion}
+                          onChange={handleChangePermiso("configuracion")}
+                        />
+                      }
+                      label="Configuración"
+                    />
+                  </FormGroup>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </MDBox>
+        </DialogContent>
+        <DialogActions>
+          <MDButton onClick={handleCloseModal} color="secondary">
+            Cancelar
+          </MDButton>
+          <MDButton 
+            onClick={handleSubmitRol} 
+            variant="gradient" 
+            color="success"
+            disabled={!nuevoRol.nombre.trim()}
+          >
+            Crear Rol
+          </MDButton>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }
