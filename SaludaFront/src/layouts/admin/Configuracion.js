@@ -15,7 +15,7 @@ import Box from "@mui/material/Box";
 import Switch from "@mui/material/Switch";
 
 // React components
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -59,109 +59,56 @@ function TabPanel(props) {
 function Configuracion() {
   const [tabValue, setTabValue] = useState(0);
   const [controller, dispatch] = useMaterialUIController();
+  const [rolesTableData, setRolesTableData] = useState({ columns: [], rows: [] });
+  const [loadingRoles, setLoadingRoles] = useState(true);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // Datos simulados para la tabla de roles y permisos
-  const rolesTableData = {
-    columns: [
-      { Header: "Rol", accessor: "rol" },
-      { Header: "Descripción", accessor: "descripcion" },
-      { Header: "Usuarios", accessor: "usuarios" },
-      { Header: "Permisos", accessor: "permisos" },
-      { Header: "Último Cambio", accessor: "ultimoCambio" },
-      { Header: "Acciones", accessor: "acciones" },
-    ],
-    rows: [
-      {
-        rol: "Administrador",
-        descripcion: "Control total del sistema",
-        usuarios: "5",
-        permisos: (
-          <MDTypography variant="caption" color="success" fontWeight="medium">
-            Todos los permisos
-          </MDTypography>
-        ),
-        ultimoCambio: "10/05/2023",
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        rol: "Doctor",
-        descripcion: "Gestión médica y citas",
-        usuarios: "12",
-        permisos: (
-          <MDTypography variant="caption" color="info" fontWeight="medium">
-            Citas, Pacientes, Inventario (lectura)
-          </MDTypography>
-        ),
-        ultimoCambio: "15/05/2023",
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        rol: "Enfermero",
-        descripcion: "Atención y control de pacientes",
-        usuarios: "8",
-        permisos: (
-          <MDTypography variant="caption" color="info" fontWeight="medium">
-            Citas, Pacientes, Inventario (parcial)
-          </MDTypography>
-        ),
-        ultimoCambio: "18/05/2023",
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        rol: "Vendedor",
-        descripcion: "Gestión de ventas y punto de venta",
-        usuarios: "10",
-        permisos: (
-          <MDTypography variant="caption" color="info" fontWeight="medium">
-            Ventas, Inventario (lectura), Clientes
-          </MDTypography>
-        ),
-        ultimoCambio: "20/05/2023",
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        rol: "Farmacéutico",
-        descripcion: "Gestión de medicamentos e inventario",
-        usuarios: "6",
-        permisos: (
-          <MDTypography variant="caption" color="info" fontWeight="medium">
-            Inventario, Ventas (parcial)
-          </MDTypography>
-        ),
-        ultimoCambio: "25/05/2023",
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
-          </MDBox>
-        ),
-      },
-    ]
-  };
+  useEffect(() => {
+    // Obtener userData del usuario logueado
+    let userData = null;
+    try {
+      userData = JSON.parse(localStorage.getItem("userData"));
+    } catch (e) {}
+    const id_hod = userData?.ID_H_O_D;
+    if (!id_hod) return;
+    setLoadingRoles(true);
+    fetch(`http://localhost:8000/api/roles-puestos?id_hod=${id_hod}`)
+      .then(res => res.json())
+      .then(data => {
+        // Mapear los datos a las columnas y filas esperadas
+        const columns = [
+          { Header: "Rol", accessor: "rol" },
+          { Header: "Descripción", accessor: "descripcion" },
+          { Header: "Usuarios", accessor: "usuarios" },
+          { Header: "Permisos", accessor: "permisos" },
+          { Header: "Último Cambio", accessor: "ultimoCambio" },
+          { Header: "Acciones", accessor: "acciones" },
+        ];
+        const rows = (data || []).map(rol => ({
+          rol: rol.Nombre_rol,
+          descripcion: rol.Descripcion || "-",
+          usuarios: rol.Usuarios || "-",
+          permisos: (
+            <MDTypography variant="caption" color="info" fontWeight="medium">
+              {rol.Sistema ? Object.keys(JSON.parse(rol.Sistema)).join(", ") : "-"}
+            </MDTypography>
+          ),
+          ultimoCambio: rol.updated_at ? rol.updated_at.split("T")[0] : "-",
+          acciones: (
+            <MDBox display="flex" alignItems="center">
+              <Icon sx={{ cursor: "pointer", color: "info.main" }}>edit</Icon>
+              <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>security</Icon>
+            </MDBox>
+          ),
+        }));
+        setRolesTableData({ columns, rows });
+        setLoadingRoles(false);
+      })
+      .catch(() => setLoadingRoles(false));
+  }, []);
 
   // Datos simulados para la tabla de sucursales
   const sucursalesTableData = {
@@ -451,16 +398,20 @@ function Configuracion() {
                     Nuevo Rol
                   </MDButton>
                 </MDBox>
-                <DataTable
-                  table={rolesTableData}
-                  isSorted={false}
-                  entriesPerPage={{
-                    defaultValue: 5,
-                    entries: [5, 10, 15, 20, 25],
-                  }}
-                  showTotalEntries={true}
-                  noEndBorder
-                />
+                {loadingRoles ? (
+                  <MDTypography variant="body2">Cargando roles...</MDTypography>
+                ) : (
+                  <DataTable
+                    table={rolesTableData}
+                    isSorted={false}
+                    entriesPerPage={{
+                      defaultValue: 5,
+                      entries: [5, 10, 15, 20, 25],
+                    }}
+                    showTotalEntries={true}
+                    noEndBorder
+                  />
+                )}
               </MDBox>
             </TabPanel>
             

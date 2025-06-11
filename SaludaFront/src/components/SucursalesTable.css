@@ -1,0 +1,103 @@
+/* Estilos profesionales para la tabla de sucursales */
+.dataTable {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #fff;
+}
+
+.dataTable thead th {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 12px 8px;
+}
+
+.dataTable tbody tr {
+  transition: background 0.2s;
+}
+
+.dataTable tbody tr:hover {
+  background: #f5f7fa;
+}
+
+.dataTable tbody td {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 10px 8px;
+}
+
+/* Responsive básico */
+@media (max-width: 768px) {
+  .dataTable, .dataTable thead, .dataTable tbody, .dataTable th, .dataTable td, .dataTable tr {
+    display: block;
+  }
+  .dataTable thead {
+    display: none;
+  }
+  .dataTable td {
+    position: relative;
+    padding-left: 50%;
+  }
+  .dataTable td:before {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    white-space: nowrap;
+    font-weight: bold;
+    content: attr(data-label);
+  }
+}
+
+.sucursal-action-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin: 0 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  vertical-align: middle;
+  outline: none;
+}
+.sucursal-action-btn.editar {
+  color: #1976d2;
+}
+.sucursal-action-btn.eliminar {
+  color: #d32f2f;
+}
+.sucursal-action-btn:hover {
+  background: rgba(25, 118, 210, 0.08);
+}
+.sucursal-action-btn.eliminar:hover {
+  background: rgba(211, 47, 47, 0.08);
+}
+
+.datatable-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.datatable-toolbar .dataTables_length {
+  order: 1;
+}
+.datatable-toolbar .dataTables_filter {
+  order: 2;
+  margin-left: auto;
+}
+.datatable-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.datatable-footer .dataTables_info {
+  order: 1;
+}
+.datatable-footer .dataTables_paginate {
+  order: 2;
+  margin-left: auto;
+} 

@@ -21,6 +21,9 @@ const SALUDA_COLORS = {
   light: "#f8f9fa"
 };
 
+import PillLoader from "../PillLoader";
+import "../PillLoader.css";
+
 function MDLoader({ open, message, fullScreen }) {
   const [progress, setProgress] = useState(0);
   const [randomMessage, setRandomMessage] = useState("");
@@ -71,70 +74,7 @@ function MDLoader({ open, message, fullScreen }) {
           transition: "all 0.3s ease",
         }}
       >
-        <Box 
-          sx={{
-            width: 200, 
-            height: 200, 
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-          }}
-        >
-          <CircularProgress
-            variant="determinate"
-            value={progress}
-            size={100}
-            thickness={4}
-            sx={{
-              color: SALUDA_COLORS.primary,
-              position: "absolute",
-              zIndex: 1,
-            }}
-          />
-          <CircularProgress
-            variant="determinate"
-            value={progress + 10 > 100 ? 100 : progress + 10}
-            size={100}
-            thickness={4}
-            sx={{
-              color: SALUDA_COLORS.secondary,
-              position: "absolute",
-              zIndex: 0,
-              opacity: 0.7,
-            }}
-          />
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-            }}
-          >
-            <Typography variant="h6" component="div" color={fullScreen ? "white" : SALUDA_COLORS.primary} fontWeight="bold">
-              SALUDA
-            </Typography>
-          </Box>
-        </Box>
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            mt: 2, 
-            color: fullScreen ? "white" : SALUDA_COLORS.text,
-            maxWidth: "80%",
-            textAlign: "center",
-            fontStyle: "italic",
-          }}
-        >
-          {randomMessage}
-        </Typography>
+        <PillLoader message={randomMessage} />
       </Box>
     </Fade>
   );

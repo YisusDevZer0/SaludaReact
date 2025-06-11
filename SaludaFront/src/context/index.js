@@ -26,6 +26,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // Services
 import PreferencesService from "services/preferences-service";
+import PillLoader from "../components/PillLoader";
+import "../components/PillLoader.css";
 
 // Material Dashboard 2 React main context
 const MaterialUI = createContext();
@@ -161,21 +163,7 @@ const AuthContextProvider = ({ children }) => {
         height: '100vh',
         flexDirection: 'column' 
       }}>
-        <div style={{ 
-          width: '40px', 
-          height: '40px', 
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #1976d2',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <p style={{ marginTop: '20px', color: '#666' }}>Cargando...</p>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
+        <PillLoader message="Cargando..." />
       </div>
     );
   }

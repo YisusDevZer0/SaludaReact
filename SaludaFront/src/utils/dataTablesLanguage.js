@@ -155,7 +155,7 @@ export const getDataTablesConfig = (url, columns, additionalOptions = {}, header
   injectDataTableStyles(headerColor, isDarkMode);
 
   const defaultConfig = {
-    processing: true,
+    processing: false,
     serverSide: true,
     ajax: {
       url: url,
@@ -166,14 +166,14 @@ export const getDataTablesConfig = (url, columns, additionalOptions = {}, header
       }
     },
     columns: columns,
-    language: getDataTablesSpanishLanguage(),
+    language: { ...getDataTablesSpanishLanguage(), processing: "", sProcessing: "", sLoadingRecords: "" },
     responsive: true,
     autoWidth: false,
     pageLength: 10,
     lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
     order: [[0, 'asc']],
     // Clases CSS personalizadas
-    dom: '<"top"lf>rt<"bottom"ip><"clear">',
+    dom: '<"datatable-toolbar"lfr>t<"datatable-footer"ip>',
     className: 'pantone-datatable'
   };
 

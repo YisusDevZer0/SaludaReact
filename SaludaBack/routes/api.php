@@ -14,6 +14,7 @@ use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserPreferencesController;
+use App\Http\Controllers\RolesPuestosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -165,3 +166,5 @@ Route::get('/debug/headers', function(Request $request) {
         'has_auth' => $request->hasHeader('Authorization')
     ]);
 });
+
+Route::get('/roles-puestos', [RolesPuestosController::class, 'index']);
