@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 
 // react-router components
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -49,6 +49,78 @@ import UserProfile from "layouts/user-profile";
 import UserManagement from "layouts/user-management";
 import { Helmet } from "react-helmet";
 import MDLoader from "components/MDLoader";
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error capturado por ErrorBoundary:", error);
+    console.error("Error info:", errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          flexDirection: 'column',
+          padding: '20px',
+          textAlign: 'center'
+        }}>
+          <h2>Algo salió mal</h2>
+          <p>Ha ocurrido un error inesperado. Por favor, recarga la página.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#C80096',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Recargar página
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Global error handler
+const handleGlobalError = (event) => {
+  console.error("Error global capturado:", event.error);
+  console.error("Error details:", {
+    message: event.error?.message,
+    stack: event.error?.stack,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  });
+  
+  // Prevenir que el error se muestre como [object Object]
+  event.preventDefault();
+};
+
+// Global unhandled rejection handler
+const handleUnhandledRejection = (event) => {
+  console.error("Promesa rechazada no manejada:", event.reason);
+  event.preventDefault();
+};
 
 export default function App() {
   const authContext = useContext(AuthContext);
@@ -110,6 +182,17 @@ export default function App() {
     setIsDemo(process.env.REACT_APP_IS_DEMO === "true");
   }, []);
 
+  // Configurar manejadores globales de errores
+  useEffect(() => {
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
   // Setting the dir attribute for the body element
   useEffect(() => {
     document.body.setAttribute("dir", direction);
@@ -169,68 +252,97 @@ export default function App() {
   );
 
   return (
-    <>
-      {isDemo && (
-        <Helmet>
-          <meta
-            name="keywords"
-            content="creative tim, updivision, material, laravel json:api, html dashboard, laravel, react, api admin, react laravel, html css dashboard laravel, material dashboard laravel, laravel api, react material dashboard, material admin, react dashboard, react admin, web dashboard, bootstrap 5 dashboard laravel, bootstrap 5, css3 dashboard, bootstrap 5 admin laravel, material dashboard bootstrap 5 laravel, frontend, api dashboard, responsive bootstrap 5 dashboard, api, material dashboard, material laravel bootstrap 5 dashboard, json:api"
-          />
-          <meta
-            name="description"
-            content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
-          />
-          <meta
-            itemProp="name"
-            content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
-          />
-          <meta
-            itemProp="description"
-            content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
-          />
-          <meta
-            itemProp="image"
-            content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
-          />
-          <meta name="twitter:card" content="product" />
-          <meta name="twitter:site" content="@creativetim" />
-          <meta
-            name="twitter:title"
-            content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
-          />
-          <meta
-            name="twitter:description"
-            content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
-          />
-          <meta name="twitter:creator" content="@creativetim" />
-          <meta
-            name="twitter:image"
-            content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
-          />
-          <meta property="fb:app_id" content="655968634437471" />
-          <meta
-            property="og:title"
-            content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
-          />
-          <meta property="og:type" content="article" />
-          <meta
-            property="og:url"
-            content="https://www.creative-tim.com/live/material-dashboard-react-laravel/"
-          />
-          <meta
-            property="og:image"
-            content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
-          />
-          <meta
-            property="og:description"
-            content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
-          />
-          <meta property="og:site_name" content="Creative Tim" />
-        </Helmet>
-      )}
-      {direction === "rtl" ? (
-        <CacheProvider value={rtlCache}>
-          <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+    <ErrorBoundary>
+      <>
+        {isDemo && (
+          <Helmet>
+            <meta
+              name="keywords"
+              content="creative tim, updivision, material, laravel json:api, html dashboard, laravel, react, api admin, react laravel, html css dashboard laravel, material dashboard laravel, laravel api, react material dashboard, material admin, react dashboard, react admin, web dashboard, bootstrap 5 dashboard laravel, bootstrap 5, css3 dashboard, bootstrap 5 admin laravel, material dashboard bootstrap 5 laravel, frontend, api dashboard, responsive bootstrap 5 dashboard, api, material dashboard, material laravel bootstrap 5 dashboard, json:api"
+            />
+            <meta
+              name="description"
+              content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
+            />
+            <meta
+              itemProp="name"
+              content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
+            />
+            <meta
+              itemProp="description"
+              content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
+            />
+            <meta
+              itemProp="image"
+              content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
+            />
+            <meta name="twitter:card" content="product" />
+            <meta name="twitter:site" content="@creativetim" />
+            <meta
+              name="twitter:title"
+              content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
+            />
+            <meta
+              name="twitter:description"
+              content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
+            />
+            <meta name="twitter:creator" content="@creativetim" />
+            <meta
+              name="twitter:image"
+              content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
+            />
+            <meta property="fb:app_id" content="655968634437471" />
+            <meta
+              property="og:title"
+              content="React Material Dashboard Laravel by Creative Tim & UPDIVISION"
+            />
+            <meta property="og:type" content="article" />
+            <meta
+              property="og:url"
+              content="https://www.creative-tim.com/live/material-dashboard-react-laravel/"
+            />
+            <meta
+              property="og:image"
+              content="https://s3.amazonaws.com/creativetim_bucket/products/686/original/react-material-dashboard-laravel.jpg?1664783836"
+            />
+            <meta
+              property="og:description"
+              content="A free full stack app powered by MUI component library, React and Laravel, featuring dozens of handcrafted UI elements"
+            />
+            <meta property="og:site_name" content="Creative Tim" />
+          </Helmet>
+        )}
+        {direction === "rtl" ? (
+          <CacheProvider value={rtlCache}>
+            <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
+              <CssBaseline />
+              {layout === "dashboard" && authContext.isAuthenticated && (
+                <>
+                  <Sidenav
+                    color={sidenavColor}
+                    brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+                    brandName="Material Dashboard 2"
+                    routes={routes}
+                    onMouseEnter={handleOnMouseEnter}
+                    onMouseLeave={handleOnMouseLeave}
+                  />
+                  <Configurator />
+                  {configsButton}
+                </>
+              )}
+              {layout === "vr" && <Configurator />}
+              <Routes>
+                <Route path="login" element={<Navigate to="/auth/login" />} />
+                <Route path="register" element={<Navigate to="/auth/register" />} />
+                <Route path="forgot-password" element={<Navigate to="/auth/forgot-password" />} />
+                {getRoutes(routes)}
+                <Route path="*" element={<Navigate to="/dashboard" />} />
+              </Routes>
+              <MDLoader open={false} />
+            </ThemeProvider>
+          </CacheProvider>
+        ) : (
+          <ThemeProvider theme={darkMode ? themeDark : theme}>
             <CssBaseline />
             {layout === "dashboard" && authContext.isAuthenticated && (
               <>
@@ -248,64 +360,37 @@ export default function App() {
             )}
             {layout === "vr" && <Configurator />}
             <Routes>
-              <Route path="login" element={<Navigate to="/auth/login" />} />
-              <Route path="register" element={<Navigate to="/auth/register" />} />
-              <Route path="forgot-password" element={<Navigate to="/auth/forgot-password" />} />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/register" element={<Register />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route
+                exact
+                path="user-profile"
+                element={
+                  <ProtectedRoute isAuthenticated={authContext.isAuthenticated}>
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+                key="user-profile"
+              />
+              <Route
+                exact
+                path="user-management"
+                element={
+                  <ProtectedRoute isAuthenticated={authContext.isAuthenticated}>
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+                key="user-management"
+              />
               {getRoutes(routes)}
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
             <MDLoader open={false} />
           </ThemeProvider>
-        </CacheProvider>
-      ) : (
-        <ThemeProvider theme={darkMode ? themeDark : theme}>
-          <CssBaseline />
-          {layout === "dashboard" && authContext.isAuthenticated && (
-            <>
-              <Sidenav
-                color={sidenavColor}
-                brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-                brandName="Material Dashboard 2"
-                routes={routes}
-                onMouseEnter={handleOnMouseEnter}
-                onMouseLeave={handleOnMouseLeave}
-              />
-              <Configurator />
-              {configsButton}
-            </>
-          )}
-          {layout === "vr" && <Configurator />}
-          <Routes>
-            <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/register" element={<Register />} />
-            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route
-              exact
-              path="user-profile"
-              element={
-                <ProtectedRoute isAuthenticated={authContext.isAuthenticated}>
-                  <UserProfile />
-                </ProtectedRoute>
-              }
-              key="user-profile"
-            />
-            <Route
-              exact
-              path="user-management"
-              element={
-                <ProtectedRoute isAuthenticated={authContext.isAuthenticated}>
-                  <UserManagement />
-                </ProtectedRoute>
-              }
-              key="user-management"
-            />
-            {getRoutes(routes)}
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
-          <MDLoader open={false} />
-        </ThemeProvider>
-      )}
-    </>
+        )}
+      </>
+    </ErrorBoundary>
   );
 }

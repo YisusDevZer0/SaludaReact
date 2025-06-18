@@ -42,8 +42,17 @@ class AuthService {
   };
 
   logout = async () => {
-    const logoutEndpoint = 'logout';
-    return await HttpService.post(logoutEndpoint);
+    try {
+      const logoutEndpoint = 'logout';
+      const response = await HttpService.post(logoutEndpoint);
+      console.log('Logout exitoso:', response);
+      return response;
+    } catch (error) {
+      console.error("Error en logout:", error);
+      // No lanzar el error, solo registrarlo
+      // El logout local se manejará independientemente
+      return { success: false, error: error.message };
+    }
   };
 
   forgotPassword = async (payload) => {

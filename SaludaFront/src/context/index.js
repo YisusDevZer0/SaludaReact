@@ -138,19 +138,31 @@ const AuthContextProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userData");
-    localStorage.removeItem("userPermissions");
-    
-    setIsAuthenticated(false);
-    setUserRole(null);
-    setUserData(null);
-    setUserPermissions(null);
-    setIsLoading(false);
-    
-    navigate("/auth/login");
+    try {
+      // Limpiar localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("userPermissions");
+      localStorage.removeItem("token_expires_at");
+      
+      // Limpiar estado
+      setIsAuthenticated(false);
+      setUserRole(null);
+      setUserData(null);
+      setUserPermissions(null);
+      setIsLoading(false);
+      
+      console.log("Logout completado exitosamente");
+      
+      // Redirigir a login
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+      // Asegurar que al menos se redirija al login
+      navigate("/auth/login");
+    }
   };
 
   // Mostrar loading mientras verifica autenticación
