@@ -22,6 +22,11 @@ import FormLabel from "@mui/material/FormLabel";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import Autocomplete from "@mui/material/Autocomplete";
 
 // React components
 import { useState, useEffect } from "react";
@@ -81,8 +86,17 @@ function Configuracion() {
       facturacion: false,
       reportes: false,
       configuracion: false
-    }
+    },
+    estado: "Vigente"
   });
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success", // 'success', 'error', 'warning', 'info'
+    autoHideDuration: 6000
+  });
+  const [permisosDisponibles, setPermisosDisponibles] = useState([]);
+  const [permisosSeleccionados, setPermisosSeleccionados] = useState([]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -101,24 +115,45 @@ function Configuracion() {
     });
   };
 
+  const handleCloseNotification = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setNotification(prev => ({ ...prev, open: false }));
+  };
+
+  const showNotification = (message, severity = "success") => {
+    setNotification({
+      open: true,
+      message,
+      severity,
+      autoHideDuration: 6000
+    });
+  };
+
   const handleSubmitRol = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem("userData"));
       const id_hod = userData?.ID_H_O_D;
       
-      const response = await fetch("http://localhost:8000/api/roles", {
+      const response = await fetch("http://localhost:8000/api/roles-puestos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...nuevoRol,
+          nombre: nuevoRol.nombre,
+          descripcion: nuevoRol.descripcion,
           id_hod,
-          Sistema: JSON.stringify(nuevoRol.permisos)
+          Sistema: JSON.stringify(nuevoRol.permisos),
+          Estado: nuevoRol.estado
         }),
       });
 
       if (response.ok) {
+        const data = await response.json();
+        showNotification("Rol creado exitosamente", "success");
+        
         // Recargar la tabla de roles
         const rolesResponse = await fetch(`http://localhost:8000/api/roles-puestos?id_hod=${id_hod}`);
         const rolesData = await rolesResponse.json();
@@ -162,11 +197,22 @@ function Configuracion() {
             facturacion: false,
             reportes: false,
             configuracion: false
-          }
+          },
+          estado: "Vigente"
         });
+      } else {
+        const errorData = await response.json();
+        showNotification(
+          `Error al crear el rol: ${errorData.message || 'Error desconocido'}`,
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error al crear el rol:", error);
+      showNotification(
+        "Error al crear el rol. Por favor, intente nuevamente.",
+        "error"
+      );
     }
   };
 
@@ -213,6 +259,24 @@ function Configuracion() {
       })
       .catch(() => setLoadingRoles(false));
   }, []);
+
+  useEffect(() => {
+    // Obtener permisos desde la API
+    fetch("http://localhost:8000/api/permisos")
+      .then(res => res.json())
+      .then(data => {
+        setPermisosDisponibles(data.filter(p => p.activo));
+      });
+  }, []);
+
+  // Actualizar nuevoRol.permisos cuando cambian los seleccionados
+  useEffect(() => {
+    const permisosObj = {};
+    permisosDisponibles.forEach(p => {
+      permisosObj[p.nombre] = permisosSeleccionados.some(sel => sel.nombre === p.nombre);
+    });
+    setNuevoRol(prev => ({ ...prev, permisos: permisosObj }));
+  }, [permisosSeleccionados, permisosDisponibles]);
 
   // Datos simulados para la tabla de sucursales
   const sucursalesTableData = {
@@ -745,65 +809,32 @@ function Configuracion() {
                 />
               </Grid>
               <Grid item xs={12}>
-                <FormControl component="fieldset">
-                  <FormLabel component="legend">Permisos del Rol</FormLabel>
-                  <FormGroup>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.pacientes}
-                          onChange={handleChangePermiso("pacientes")}
-                        />
-                      }
-                      label="Pacientes"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.citas}
-                          onChange={handleChangePermiso("citas")}
-                        />
-                      }
-                      label="Citas"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.inventario}
-                          onChange={handleChangePermiso("inventario")}
-                        />
-                      }
-                      label="Inventario"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.facturacion}
-                          onChange={handleChangePermiso("facturacion")}
-                        />
-                      }
-                      label="Facturación"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.reportes}
-                          onChange={handleChangePermiso("reportes")}
-                        />
-                      }
-                      label="Reportes"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={nuevoRol.permisos.configuracion}
-                          onChange={handleChangePermiso("configuracion")}
-                        />
-                      }
-                      label="Configuración"
-                    />
-                  </FormGroup>
-                </FormControl>
+                <MDBox display="flex" alignItems="center">
+                  <MDTypography variant="button" mr={2}>
+                    Vigente
+                  </MDTypography>
+                  <Switch
+                    checked={nuevoRol.estado === "Vigente"}
+                    onChange={e => setNuevoRol({ ...nuevoRol, estado: e.target.checked ? "Vigente" : "Baja" })}
+                    color="success"
+                  />
+                  <MDTypography variant="caption" ml={2} color={nuevoRol.estado === "Vigente" ? "success.main" : "error.main"}>
+                    {nuevoRol.estado === "Vigente" ? "Vigente" : "Baja"}
+                  </MDTypography>
+                </MDBox>
+              </Grid>
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  options={permisosDisponibles}
+                  getOptionLabel={(option) => option.descripcion ? `${option.descripcion} (${option.nombre})` : option.nombre}
+                  value={permisosDisponibles.filter(p => nuevoRol.permisos[p.nombre])}
+                  onChange={(event, newValue) => setPermisosSeleccionados(newValue)}
+                  renderInput={(params) => (
+                    <MDInput {...params} label="Permisos del Rol" placeholder="Selecciona permisos" fullWidth />
+                  )}
+                  isOptionEqualToValue={(option, value) => option.nombre === value.nombre}
+                />
               </Grid>
             </Grid>
           </MDBox>
@@ -822,6 +853,33 @@ function Configuracion() {
           </MDButton>
         </DialogActions>
       </Dialog>
+
+      {/* Notificación Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={notification.autoHideDuration}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+          action={
+            <IconButton
+              size="small"
+              aria-label="close"
+              color="inherit"
+              onClick={handleCloseNotification}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          }
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </DashboardLayout>
   );
 }

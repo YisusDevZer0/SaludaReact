@@ -175,10 +175,18 @@ function DashboardNavbar({ absolute, light, isMini }) {
   };
 
   const confirmLogout = async () => {
-    await AuthService.logout();
-    authContext.logout();
-    setLogoutModalOpen(false);
-    navigate("/auth/login", { replace: true });
+    try {
+      // Intentar hacer logout en el servidor
+      await AuthService.logout();
+    } catch (error) {
+      console.error("Error al hacer logout en el servidor:", error);
+      // Continuar con el logout local aunque falle en el servidor
+    } finally {
+      // Siempre hacer logout local y limpiar el estado
+      authContext.logout();
+      setLogoutModalOpen(false);
+      navigate("/auth/login", { replace: true });
+    }
   };
 
   const cancelLogout = () => {

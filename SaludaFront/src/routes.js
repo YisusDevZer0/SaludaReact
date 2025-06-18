@@ -42,6 +42,7 @@ import AdminProfile from "layouts/admin/profile";
 import SellerPOS from "./layouts/seller/POS";
 import AdminBranches from "./layouts/admin/Branches";
 import AdminConfiguracion from "layouts/admin/Configuracion";
+import AdminTimeClock from "./layouts/admin/TimeClock";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -96,6 +97,14 @@ const routes = [
     component: <AdminConfiguracion />,
     protected: true,
     adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Reloj Checador",
+    key: "timeclock",
+    icon: <Icon fontSize="small">store</Icon>,
+    route: "/time-clock",
+    component: <AdminTimeClock />,
   },
 ];
 

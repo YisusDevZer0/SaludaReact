@@ -15,7 +15,9 @@ use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserPreferencesController;
 use App\Http\Controllers\RolesPuestosController;
-
+use App\Http\Controllers\PermisosController;
+use App\Http\Controllers\HuellasController;
+use App\Http\Controllers\AsistenciaController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -168,3 +170,46 @@ Route::get('/debug/headers', function(Request $request) {
 });
 
 Route::get('/roles-puestos', [RolesPuestosController::class, 'index']);
+Route::post('/roles-puestos', [RolesPuestosController::class, 'store']);
+Route::post('/permisos/masivo', [PermisosController::class, 'storeMasivo']); 
+Route::get('/permisos', [PermisosController::class, 'index']); 
+
+// Rutas para probar las conexiones de base de datos duales
+Route::prefix('dual-db')->group(function () {
+    Route::get('/test', [App\Http\Controllers\DualDatabaseController::class, 'index']);
+    Route::post('/transaction', [App\Http\Controllers\DualDatabaseController::class, 'transactionExample']);
+    Route::get('/combined', [App\Http\Controllers\DualDatabaseController::class, 'combinedData']);
+});
+
+// Rutas para el manejo de huellas (base de datos secundaria)
+Route::prefix('huellas')->group(function () {
+    Route::get('/', [HuellasController::class, 'index']);
+    Route::get('/test-connection', [HuellasController::class, 'testConnection']);
+    Route::get('/{id}', [HuellasController::class, 'show']);
+    Route::post('/', [HuellasController::class, 'store']);
+    Route::put('/{id}', [HuellasController::class, 'update']);
+    Route::delete('/{id}', [HuellasController::class, 'destroy']);
+    Route::get('/usuario/{userId}', [HuellasController::class, 'getByUser']);
+});
+
+// Rutas para el manejo de asistencia (base de datos secundaria)
+Route::prefix('asistencia')->group(function () {
+    Route::get('/hoy', [AsistenciaController::class, 'getAsistenciaHoy']);
+    Route::get('/por-fecha', [AsistenciaController::class, 'getAsistenciaPorFecha']);
+    Route::get('/por-rango', [AsistenciaController::class, 'getAsistenciaPorRango']);
+    Route::get('/por-empleado', [AsistenciaController::class, 'getAsistenciaPorEmpleado']);
+    Route::get('/resumen-hoy', [AsistenciaController::class, 'getResumenAsistenciaHoy']);
+    Route::get('/sin-asistencia-hoy', [AsistenciaController::class, 'getEmpleadosSinAsistenciaHoy']);
+    Route::get('/test-connection', [AsistenciaController::class, 'testConnection']);
+});
+
+// Rutas para el manejo de asistencia usando Eloquent (base de datos secundaria)
+Route::prefix('asistencia-eloquent')->group(function () {
+    Route::get('/hoy', [App\Http\Controllers\AsistenciaEloquentController::class, 'getAsistenciaHoy']);
+    Route::get('/por-fecha', [App\Http\Controllers\AsistenciaEloquentController::class, 'getAsistenciaPorFecha']);
+    Route::get('/por-rango', [App\Http\Controllers\AsistenciaEloquentController::class, 'getAsistenciaPorRango']);
+    Route::get('/por-empleado', [App\Http\Controllers\AsistenciaEloquentController::class, 'getAsistenciaPorEmpleado']);
+    Route::get('/resumen-hoy', [App\Http\Controllers\AsistenciaEloquentController::class, 'getResumenAsistenciaHoy']);
+    Route::get('/resumen-por-rango', [App\Http\Controllers\AsistenciaEloquentController::class, 'getResumenAsistenciaPorRango']);
+    Route::get('/sin-asistencia-hoy', [App\Http\Controllers\AsistenciaEloquentController::class, 'getEmpleadosSinAsistenciaHoy']);
+}); 
