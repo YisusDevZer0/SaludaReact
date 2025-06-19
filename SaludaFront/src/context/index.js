@@ -61,11 +61,13 @@ const AuthContextProvider = ({ children }) => {
       const storedRole = localStorage.getItem("userRole");
       const storedUserData = localStorage.getItem("userData");
       const storedPermissions = localStorage.getItem("userPermissions");
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
 
       if (token && storedUserData) {
         try {
           const parsedData = JSON.parse(storedUserData);
           console.log('Restaurando sesión:', parsedData);
+          console.log('Recordarme activado:', rememberMe);
           
           setIsAuthenticated(true);
           setUserRole(storedRole);
@@ -80,7 +82,14 @@ const AuthContextProvider = ({ children }) => {
           
           // Si está en login, redirigir al dashboard
           if (location.pathname === '/auth/login' || location.pathname === '/') {
-            navigate("/dashboard");
+            // Redirigir según el rol
+            if (storedRole === 'Administrador') {
+              navigate("/dashboard");
+            } else if (storedRole === 'RH' || storedRole === 'Desarrollo Humano') {
+              navigate("/rh-dashboard");
+            } else {
+              navigate("/dashboard");
+            }
           }
         } catch (e) {
           console.error("Error parsing user data from localStorage", e);
@@ -110,9 +119,12 @@ const AuthContextProvider = ({ children }) => {
     console.log('Token recibido en login:', token?.substring(0, 20) + '...'); // Debug token
     console.log('Token length:', token?.length); // Debug token length
     
+    const userRole = user.role?.Nombre_rol || 'user';
+    console.log('Rol del usuario a guardar:', userRole); // Debug log del rol
+    
     localStorage.setItem("token", token);
     localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("userRole", user.role?.Nombre_rol || 'user');
+    localStorage.setItem("userRole", userRole);
     localStorage.setItem("userData", JSON.stringify(user));
     if (user.role?.Permisos) {
       localStorage.setItem("userPermissions", user.role.Permisos);
@@ -121,17 +133,22 @@ const AuthContextProvider = ({ children }) => {
     
     // Verificar que el token se guardó correctamente
     const savedToken = localStorage.getItem("token");
+    const savedRole = localStorage.getItem("userRole");
     console.log('Token guardado en localStorage:', savedToken?.substring(0, 20) + '...');
+    console.log('Rol guardado en localStorage:', savedRole);
     console.log('Tokens coinciden:', token === savedToken);
+    console.log('Roles coinciden:', userRole === savedRole);
     
     setIsAuthenticated(true);
-    setUserRole(user.role?.Nombre_rol || 'user');
+    setUserRole(userRole);
     setUserData(user);
     setIsLoading(false);
     
     // Redirigir según el rol
-    if (user.role?.Nombre_rol === 'Administrador') {
+    if (userRole === 'Administrador') {
       navigate("/dashboard");
+    } else if (userRole === 'RH' || userRole === 'Desarrollo Humano') {
+      navigate("/rh-dashboard");
     } else {
       navigate("/dashboard");
     }
@@ -139,13 +156,28 @@ const AuthContextProvider = ({ children }) => {
 
   const logout = () => {
     try {
-      // Limpiar localStorage
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("userData");
-      localStorage.removeItem("userPermissions");
-      localStorage.removeItem("token_expires_at");
+      const rememberMe = localStorage.getItem("rememberMe") === "true";
+      
+      // Si "Recordarme" está activado, solo limpiar datos de sesión pero mantener email
+      if (rememberMe) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userPermissions");
+        localStorage.removeItem("token_expires_at");
+        // Mantener rememberMe y savedEmail
+      } else {
+        // Si "Recordarme" no está activado, limpiar todo
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userPermissions");
+        localStorage.removeItem("token_expires_at");
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("savedEmail");
+      }
       
       // Limpiar estado
       setIsAuthenticated(false);
@@ -155,6 +187,7 @@ const AuthContextProvider = ({ children }) => {
       setIsLoading(false);
       
       console.log("Logout completado exitosamente");
+      console.log("Recordarme mantenido:", rememberMe);
       
       // Redirigir a login
       navigate("/auth/login");

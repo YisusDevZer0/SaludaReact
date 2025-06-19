@@ -18,6 +18,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "App";
 import { AuthContextProvider } from "context";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Material Dashboard 2 React Context  Provider
 import { MaterialUIControllerProvider } from "context";
@@ -25,11 +26,15 @@ import { MaterialUIControllerProvider } from "context";
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
+const theme = createTheme();
+
 root.render(
   <BrowserRouter>
     <AuthContextProvider>
       <MaterialUIControllerProvider>
-        <App />
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
       </MaterialUIControllerProvider>
     </AuthContextProvider>
   </BrowserRouter>

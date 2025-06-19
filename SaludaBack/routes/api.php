@@ -18,6 +18,8 @@ use App\Http\Controllers\RolesPuestosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\HuellasController;
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\CategoriaPosController;
+use App\Http\Controllers\PersonalPOSController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -53,6 +55,7 @@ Route::options('/sucursales', function() {
     return response()->json([], 200);
 });
 Route::get('/sucursales', [SucursalController::class, 'index']);
+Route::get('/sucursales/activas', [SucursalController::class, 'getAllActive']);
 
 // Rutas para preferencias de usuario (sin middleware, validación manual en controlador)
 Route::options('/user/preferences', function() {
@@ -212,4 +215,25 @@ Route::prefix('asistencia-eloquent')->group(function () {
     Route::get('/resumen-hoy', [App\Http\Controllers\AsistenciaEloquentController::class, 'getResumenAsistenciaHoy']);
     Route::get('/resumen-por-rango', [App\Http\Controllers\AsistenciaEloquentController::class, 'getResumenAsistenciaPorRango']);
     Route::get('/sin-asistencia-hoy', [App\Http\Controllers\AsistenciaEloquentController::class, 'getEmpleadosSinAsistenciaHoy']);
-}); 
+});
+
+// Rutas para el manejo de categorías POS
+Route::prefix('categorias')->group(function () {
+    Route::get('/', [CategoriaPosController::class, 'index']);
+    Route::get('/create', [CategoriaPosController::class, 'create']);
+    Route::post('/', [CategoriaPosController::class, 'store']);
+    Route::get('/{id}', [CategoriaPosController::class, 'show']);
+    Route::get('/{id}/edit', [CategoriaPosController::class, 'edit']);
+    Route::put('/{id}', [CategoriaPosController::class, 'update']);
+    Route::delete('/{id}', [CategoriaPosController::class, 'destroy']);
+    Route::get('/estado/{estado}', [CategoriaPosController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [CategoriaPosController::class, 'getByOrganizacion']);
+});
+
+Route::get('/personal/listado', [PersonalPOSController::class, 'indexDataTable']);
+Route::get('personal/{id}', [PersonalPOSController::class, 'show']);
+Route::post('personal', [PersonalPOSController::class, 'store']);
+Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
+Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
+Route::get('personal/active/count', [PersonalPOSController::class, 'countActive']);
+Route::get('personal', [PersonalPOSController::class, 'index']); 

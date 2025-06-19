@@ -13,6 +13,8 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
+import { forwardRef } from "react";
+
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
 
@@ -28,122 +30,35 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
 // Custom styles for the MDSnackbar
-import MDSnackbarIconRoot from "components/MDSnackbar/MDSnackbarIconRoot";
+import MDSnackbarRoot from "components/MDSnackbar/MDSnackbarRoot";
 
 // Material Dashboard 2 React context
 import { useMaterialUIController } from "context";
 
-function MDSnackbar({ color, icon, title, dateTime, content, close, bgWhite, ...rest }) {
-  const [controller] = useMaterialUIController();
-  const { darkMode } = controller;
+const MDSnackbar = forwardRef(
+  ({ color, icon, title, content, close, bgWhite, ...rest }, ref) => {
+    const [controller] = useMaterialUIController();
+    const { darkMode } = controller;
 
-  let titleColor;
-  let dateTimeColor;
-  let dividerColor;
-
-  if (bgWhite) {
-    titleColor = color;
-    dateTimeColor = "dark";
-    dividerColor = false;
-  } else if (color === "light") {
-    titleColor = darkMode ? "inherit" : "dark";
-    dateTimeColor = darkMode ? "inherit" : "text";
-    dividerColor = false;
-  } else {
-    titleColor = "white";
-    dateTimeColor = "white";
-    dividerColor = true;
-  }
-
-  return (
-    <Snackbar
-      TransitionComponent={Fade}
-      autoHideDuration={5000}
-      anchorOrigin={{
-        vertical: "bottom",
-        horizontal: "right",
-      }}
-      {...rest}
-      action={
-        <IconButton size="small" aria-label="close" color="inherit" onClick={close}>
-          <Icon fontSize="small">close</Icon>
-        </IconButton>
-      }
-    >
-      <MDBox
-        variant={bgWhite ? "contained" : "gradient"}
-        bgColor={bgWhite ? "white" : color}
-        minWidth="21.875rem"
-        maxWidth="100%"
-        shadow="md"
-        borderRadius="md"
-        p={1}
-        sx={{
-          backgroundColor: ({ palette }) =>
-            darkMode ? palette.background.card : palette[color] || palette.white.main,
-        }}
+    return (
+      <MDSnackbarRoot
+        {...rest}
+        ref={ref}
+        color={color}
+        bgWhite={bgWhite}
+        variant={darkMode ? "contained" : "gradient"}
+        ownerState={{ color, bgWhite, darkMode }}
       >
-        <MDBox
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          color="dark"
-          p={1.5}
-        >
-          <MDBox display="flex" alignItems="center" lineHeight={0}>
-            <MDSnackbarIconRoot fontSize="small" ownerState={{ color, bgWhite }}>
-              {icon}
-            </MDSnackbarIconRoot>
-            <MDTypography
-              variant="button"
-              fontWeight="medium"
-              color={titleColor}
-              textGradient={bgWhite}
-            >
-              {title}
-            </MDTypography>
-          </MDBox>
-          <MDBox display="flex" alignItems="center" lineHeight={0}>
-            <MDTypography variant="caption" color={dateTimeColor}>
-              {dateTime}
-            </MDTypography>
-            <Icon
-              sx={{
-                color: ({ palette: { dark, white } }) =>
-                  (bgWhite && !darkMode) || color === "light" ? dark.main : white.main,
-                fontWeight: ({ typography: { fontWeightBold } }) => fontWeightBold,
-                cursor: "pointer",
-                marginLeft: 2,
-                transform: "translateY(-1px)",
-              }}
-              onClick={close}
-            >
-              close
-            </Icon>
-          </MDBox>
-        </MDBox>
-        <Divider sx={{ margin: 0 }} light={dividerColor} />
-        <MDBox
-          p={1.5}
-          sx={{
-            fontSize: ({ typography: { size } }) => size.sm,
-            color: ({ palette: { white, text } }) => {
-              let colorValue = bgWhite || color === "light" ? text.main : white.main;
-
-              if (darkMode) {
-                colorValue = color === "light" ? "inherit" : white.main;
-              }
-
-              return colorValue;
-            },
-          }}
-        >
+        {icon}
+        <div>
+          {title}
           {content}
-        </MDBox>
-      </MDBox>
-    </Snackbar>
-  );
-}
+        </div>
+        {close}
+      </MDSnackbarRoot>
+    );
+  }
+);
 
 // Setting default values for the props of MDSnackbar
 MDSnackbar.defaultProps = {
@@ -151,9 +66,10 @@ MDSnackbar.defaultProps = {
   color: "info",
 };
 
-// Typechecking props for MDSnackbar
+// Typechecking props for the MDSnackbar
 MDSnackbar.propTypes = {
   color: PropTypes.oneOf([
+    "white",
     "primary",
     "secondary",
     "info",
@@ -164,10 +80,9 @@ MDSnackbar.propTypes = {
     "light",
   ]),
   icon: PropTypes.node.isRequired,
-  title: PropTypes.string.isRequired,
-  dateTime: PropTypes.string.isRequired,
+  title: PropTypes.node.isRequired,
   content: PropTypes.node.isRequired,
-  close: PropTypes.func.isRequired,
+  close: PropTypes.node.isRequired,
   bgWhite: PropTypes.bool,
 };
 

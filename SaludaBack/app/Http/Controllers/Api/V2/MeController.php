@@ -43,6 +43,21 @@ class MeController extends Controller
             $responseStatus = $response->getStatusCode();
             $responseHeaders = $this->parseHeaders($response->getHeaders());
 
+            // Agregar nombre de sucursal y licencia si es posible
+            $user = auth()->user();
+            $nombreSucursal = null;
+            if ($user && isset($user->Fk_Sucursal)) {
+                $nombreSucursal = \DB::table('Sucursales')
+                    ->where('ID_SucursalC', $user->Fk_Sucursal)
+                    ->value('Nombre_Sucursal');
+            }
+            $licencia = 'Licencia Saluda'; // Puedes cambiar esto si tienes una tabla de licencias
+
+            if (isset($responseBody['data']['attributes'])) {
+                $responseBody['data']['attributes']['nombre_sucursal'] = $nombreSucursal;
+                $responseBody['data']['attributes']['licencia'] = $licencia;
+            }
+
             unset($responseHeaders['Transfer-Encoding']);
 
             return response()->json($responseBody, $responseStatus)->withHeaders($responseHeaders);

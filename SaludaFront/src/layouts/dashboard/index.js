@@ -46,15 +46,23 @@ import { AuthContext } from "context";
 
 // Mock data
 import { getMockDataByRole } from "services/mock-user-service";
+import HttpService from "services/htttp.service";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const { userRole, userData } = useContext(AuthContext);
   const [mockData, setMockData] = useState(null);
+  const [personalActivo, setPersonalActivo] = useState(0);
 
   useEffect(() => {
     console.log('Datos del usuario en Dashboard:', userData); // Debug log
     console.log('Rol del usuario en Dashboard:', userRole); // Debug log
+    // Obtener personal activo solo para admin
+    if (userRole === 'Administrador') {
+      HttpService.get("personal/active/count")
+        .then(data => setPersonalActivo(data.active))
+        .catch(() => setPersonalActivo(0));
+    }
   }, [userData, userRole]);
 
   // Obtener datos simulados según el rol
@@ -186,23 +194,44 @@ function Dashboard() {
     <>
       {/* Estadísticas para Administrador */}
       <Grid container spacing={3}>
-        {mockData.dashboardData.stats.map((stat, index) => (
-          <Grid item xs={12} md={6} lg={3} key={`admin-stat-${index}`}>
-            <MDBox mb={1.5}>
-              <ComplexStatisticsCard
-                color={stat.color}
-                icon={stat.icon}
-                title={stat.title}
-                count={stat.value}
-                percentage={{
-                  color: "success",
-                  amount: "+5%",
-                  label: "que la semana pasada",
-                }}
-              />
-            </MDBox>
-          </Grid>
-        ))}
+        {mockData.dashboardData.stats.map((stat, index) => {
+          if (stat.title === "Personal Activo") {
+            return (
+              <Grid item xs={12} md={6} lg={3} key={`admin-stat-${index}`}>
+                <MDBox mb={1.5}>
+                  <ComplexStatisticsCard
+                    color={stat.color}
+                    icon={stat.icon}
+                    title={stat.title}
+                    count={personalActivo}
+                    percentage={{
+                      color: "success",
+                      amount: "+5%",
+                      label: "que la semana pasada",
+                    }}
+                  />
+                </MDBox>
+              </Grid>
+            );
+          }
+          return (
+            <Grid item xs={12} md={6} lg={3} key={`admin-stat-${index}`}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color={stat.color}
+                  icon={stat.icon}
+                  title={stat.title}
+                  count={stat.value}
+                  percentage={{
+                    color: "success",
+                    amount: "+5%",
+                    label: "que la semana pasada",
+                  }}
+                />
+              </MDBox>
+            </Grid>
+          );
+        })}
       </Grid>
 
       {/* Gráficos */}

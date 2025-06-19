@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -12,12 +12,22 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import Fade from "@mui/material/Fade";
+import Zoom from "@mui/material/Zoom";
 
 // @mui icons
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import LockIcon from "@mui/icons-material/Lock";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import EmailIcon from "@mui/icons-material/Email";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -53,11 +63,15 @@ function Login() {
   const [credentialsError, setCredentialsError] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   
-  // Estados para diálogos
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  // Estados para notificaciones minimalistas
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info", // 'error', 'warning', 'info', 'success'
+  });
   
   // Estados para manejo de intentos fallidos
   const [intentosFallidos, setIntentosFallidos] = useState(
@@ -70,11 +84,64 @@ function Login() {
   const maxIntentos = 3;
   const tiempoBloqueoMinutos = 5;
 
+  // Cargar estado "Recordarme" al iniciar
+  useEffect(() => {
+    const savedRememberMe = localStorage.getItem("rememberMe") === "true";
+    const savedEmail = localStorage.getItem("savedEmail");
+    
+    setRememberMe(savedRememberMe);
+    if (savedRememberMe && savedEmail) {
+      setInputs(prev => ({ ...prev, email: savedEmail }));
+    }
+  }, []);
+
   const handleChange = (e) => {
-    setInputs({
-      ...inputs,
-      [e.target.name]: e.target.value,
+    const { name, value } = e.target;
+    setInputs(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    
+    // Limpiar errores al escribir
+    if (errors[`${name}Error`]) {
+      setErrors(prev => ({
+        ...prev,
+        [`${name}Error`]: false,
+      }));
+    }
+    
+    // Guardar email si "Recordarme" está activado
+    if (name === "email" && rememberMe) {
+      localStorage.setItem("savedEmail", value);
+    }
+  };
+
+  const handleRememberMeChange = (event) => {
+    const checked = event.target.checked;
+    setRememberMe(checked);
+    localStorage.setItem("rememberMe", checked.toString());
+    
+    if (checked) {
+      localStorage.setItem("savedEmail", inputs.email);
+    } else {
+      localStorage.removeItem("savedEmail");
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const showNotification = (message, severity = "info") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
     });
+  };
+
+  const closeNotification = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   const bloquearAcceso = () => {
@@ -98,29 +165,42 @@ function Login() {
     }, 1000);
   };
 
+  const validateForm = () => {
+    const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    let isValid = true;
+    const newErrors = { emailError: false, passwordError: false };
+
+    if (inputs.email.trim().length === 0 || !inputs.email.trim().match(mailFormat)) {
+      newErrors.emailError = true;
+      isValid = false;
+    }
+
+    if (inputs.password.trim().length < 3) {
+      newErrors.passwordError = true;
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const submitHandler = async (e) => {
     e.preventDefault();
     
     if (bloqueado) {
-      setBlockDialogOpen(true);
+      showNotification("Acceso bloqueado temporalmente", "warning");
       return;
     }
 
     setCredentialsError(null);
 
-    const mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-
-    if (inputs.email.trim().length === 0 || !inputs.email.trim().match(mailFormat)) {
-      setErrors({ ...errors, emailError: true });
-      return;
-    }
-
-    if (inputs.password.trim().length < 3) {
-      setErrors({ ...errors, passwordError: true });
+    if (!validateForm()) {
+      showNotification("Por favor, corrige los errores en el formulario", "error");
       return;
     }
 
     setIsLoading(true);
+    setIsValidating(true);
 
     const myData = {
       data: {
@@ -136,7 +216,7 @@ function Login() {
       const response = await AuthService.login(myData);
       
       // En caso de éxito
-      setSuccessDialogOpen(true);
+      showNotification("¡Bienvenido! Redirigiendo...", "success");
       
       // Resetear intentos fallidos al acceder correctamente
       localStorage.removeItem("intentosFallidos");
@@ -146,7 +226,6 @@ function Login() {
       // Realizar el login en el contexto de autenticación
       setTimeout(() => {
         authContext.login(response.access_token, response.refresh_token, response.user);
-        setSuccessDialogOpen(false);
       }, 1500);
       
     } catch (res) {
@@ -157,18 +236,18 @@ function Login() {
 
       if (nuevosIntentos >= maxIntentos) {
         bloquearAcceso();
+        showNotification("Demasiados intentos fallidos. Acceso bloqueado temporalmente.", "error");
       } else {
-        setErrorDialogOpen(true);
-        if (res.hasOwnProperty("message")) {
-          setCredentialsError(res.message);
-        } else {
-          setCredentialsError(
-            res.errors && res.errors[0] ? res.errors[0].detail : "Error de autenticación"
-          );
-        }
+        const errorMessage = res.hasOwnProperty("message") 
+          ? res.message 
+          : (res.errors && res.errors[0] ? res.errors[0].detail : "Credenciales incorrectas");
+        
+        setCredentialsError(errorMessage);
+        showNotification(errorMessage, "error");
       }
     } finally {
       setIsLoading(false);
+      setIsValidating(false);
     }
   };
 
@@ -209,11 +288,18 @@ function Login() {
                 onChange={handleChange}
                 error={errors.emailError}
                 helperText={errors.emailError && "Por favor ingresa un correo válido"}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
               />
             </MDBox>
             <MDBox mb={2}>
               <MDInput
-                type="password"
+                type={showPassword ? "text" : "password"}
                 label="Contraseña"
                 fullWidth
                 name="password"
@@ -221,28 +307,43 @@ function Login() {
                 onChange={handleChange}
                 error={errors.passwordError}
                 helperText={errors.passwordError && "La contraseña debe tener al menos 3 caracteres"}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <VpnKeyIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={togglePasswordVisibility}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
+              <Switch 
+                checked={rememberMe} 
+                onChange={handleRememberMeChange}
+                color="info"
+              />
               <MDTypography
                 variant="button"
                 fontWeight="regular"
                 color="text"
-                onClick={() => setRememberMe(!rememberMe)}
+                onClick={handleRememberMeChange}
                 sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
               >
                 &nbsp;&nbsp;Recordarme
               </MDTypography>
             </MDBox>
-
-            {credentialsError && (
-              <MDBox mt={2} mb={1}>
-                <MDAlert color="error" dismissible>
-                  {credentialsError}
-                </MDAlert>
-              </MDBox>
-            )}
 
             <MDBox mt={4} mb={1}>
               <MDButton
@@ -250,9 +351,25 @@ function Login() {
                 color="info"
                 fullWidth
                 type="submit"
-                disabled={isLoading || bloqueado}
+                disabled={isLoading || bloqueado || isValidating}
+                sx={{
+                  position: 'relative',
+                  minHeight: '44px',
+                }}
               >
-                {isLoading ? <MDLoader size={20} color="white" /> : "Iniciar Sesión"}
+                {isLoading ? (
+                  <Box display="flex" alignItems="center">
+                    <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                    Iniciando sesión...
+                  </Box>
+                ) : isValidating ? (
+                  <Box display="flex" alignItems="center">
+                    <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                    Validando credenciales...
+                  </Box>
+                ) : (
+                  "Iniciar Sesión"
+                )}
               </MDButton>
             </MDBox>
 
@@ -288,38 +405,31 @@ function Login() {
         </MDBox>
       </Card>
 
-      {/* Diálogo de éxito */}
-      <Dialog open={successDialogOpen} onClose={() => setSuccessDialogOpen(false)}>
-        <DialogTitle>
-          <Box display="flex" alignItems="center">
-            <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-            Acceso exitoso
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Bienvenido al sistema. Redirigiendo...
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diálogo de error */}
-      <Dialog open={errorDialogOpen} onClose={() => setErrorDialogOpen(false)}>
-        <DialogTitle>
-          <Box display="flex" alignItems="center">
-            <ErrorOutlineIcon color="error" sx={{ mr: 1 }} />
-            Error de autenticación
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {credentialsError || "Ha ocurrido un error al intentar iniciar sesión."}
-          </DialogContentText>
-        </DialogContent>
-      </Dialog>
+      {/* Notificación minimalista */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={closeNotification}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        TransitionComponent={Zoom}
+      >
+        <Alert 
+          onClose={closeNotification} 
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {/* Diálogo de bloqueo */}
-      <Dialog open={blockDialogOpen} onClose={() => setBlockDialogOpen(false)}>
+      <Dialog 
+        open={bloqueado} 
+        onClose={() => {}} // No permitir cerrar mientras está bloqueado
+        TransitionComponent={Fade}
+        transitionDuration={300}
+      >
         <DialogTitle>
           <Box display="flex" alignItems="center">
             <LockIcon color="warning" sx={{ mr: 1 }} />
@@ -328,7 +438,9 @@ function Login() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Has excedido el número máximo de intentos. Por favor, espera {Math.floor(segundosRestantes / 60)} minutos y {segundosRestantes % 60} segundos antes de intentar nuevamente.
+            Has excedido el número máximo de intentos. Por favor, espera{" "}
+            <strong>{Math.floor(segundosRestantes / 60)} minutos y {segundosRestantes % 60} segundos</strong>{" "}
+            antes de intentar nuevamente.
           </DialogContentText>
         </DialogContent>
       </Dialog>

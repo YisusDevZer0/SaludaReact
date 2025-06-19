@@ -112,6 +112,29 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const roleMenuItems = getRoleMenuItems();
   const roleMenuTitles = getRoleMenuTitles();
 
+  // Filtrar rutas según el rol RH
+  const normalizedRole = (userRole || "").toLowerCase();
+  let filteredRoutes = routes;
+  
+  console.log('Sidenav - Rol del usuario:', userRole);
+  console.log('Sidenav - Rol normalizado:', normalizedRole);
+  console.log('Sidenav - Todas las rutas:', routes);
+  
+  // Si el usuario es RH o Desarrollo Humano, solo mostrar rutas exclusivas de RH
+  if (normalizedRole === 'rh' || normalizedRole === 'desarrollo humano') {
+    filteredRoutes = routes.filter(route => route.rhOnly === true);
+    console.log('Sidenav - Filtrando para RH, rutas resultantes:', filteredRoutes);
+  } else {
+    // Para otros roles, excluir las rutas exclusivas de RH
+    filteredRoutes = routes.filter(route => route.rhOnly !== true);
+    console.log('Sidenav - Filtrando para otros roles, rutas resultantes:', filteredRoutes);
+  }
+  
+  // Si no hay rutas filtradas, mostrar un mensaje de depuración
+  if (filteredRoutes.length === 0) {
+    console.log('Sidenav - No hay rutas filtradas para mostrar');
+  }
+
   // Renderizar secciones completas de menú específicas por rol
   const renderRoleMenuSections = () => {
     if (!roleMenuItems.length || !roleMenuTitles.length) return null;
@@ -232,7 +255,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   ));
 
   // Render all the routes from the routes.js (All the visible items on the Sidenav)
-  const renderRoutes = routes.map(({ type, name, icon, title, noCollapse, key, href, route }) => {
+  const renderRoutes = filteredRoutes.map(({ type, name, icon, title, noCollapse, key, href, route }) => {
     let returnValue;
 
     // Solo mostrar elementos de tipo "auth" cuando no hay sesión activa
@@ -317,10 +340,33 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
           <MDBox
             width={!brandName && "100%"}
-            sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}
+            sx={(theme) => ({
+              ...sidenavLogoLabel(theme, { miniSidenav }),
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mt: 1,
+              mb: 1
+            })}
           >
-            <MDTypography component="h6" variant="button" fontWeight="medium" color={textColor}>
-              {brandName}
+            <MDTypography
+              component="h5"
+              variant="h5"
+              fontWeight="bold"
+              color={textColor}
+              sx={{ fontSize: "1.35rem", lineHeight: 1.2, textAlign: 'center' }}
+            >
+              {userData?.ID_H_O_D || "Licencia"}
+            </MDTypography>
+            <MDTypography
+              component="h6"
+              variant="subtitle1"
+              fontWeight="medium"
+              color={textColor}
+              sx={{ fontSize: "1.1rem", lineHeight: 1.1, textAlign: 'center' }}
+            >
+              {userData?.sucursal?.Nombre_Sucursal || "Sucursal"}
             </MDTypography>
           </MDBox>
         </MDBox>
@@ -374,37 +420,10 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
         {renderRoutes}
       </List>
       
-      {/* Botón de cerrar sesión (solo si hay sesión activa) */}
-      {userData && (
-        <MDBox p={2} mt="auto">
-          <MDButton
-            variant="gradient"
-            color="error"
-            fullWidth
-            onClick={logout}
-            startIcon={<Icon>logout</Icon>}
-          >
-            Cerrar Sesión
-          </MDButton>
-        </MDBox>
-      )}
       
-      {/* Botón de upgrade (solo si no hay sesión activa) */}
-      {!userData && (
-        <MDBox p={2} mt="auto">
-          <MDButton
-            component="a"
-            href="https://www.creative-tim.com/product/material-dashboard-pro-react-laravel"
-            target="_blank"
-            rel="noreferrer"
-            variant="gradient"
-            color={sidenavColor}
-            fullWidth
-          >
-            upgrade to pro
-          </MDButton>
-        </MDBox>
-      )}
+      
+      
+      
     </SidenavRoot>
   );
 }
