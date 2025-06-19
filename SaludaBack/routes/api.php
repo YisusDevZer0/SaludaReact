@@ -45,6 +45,9 @@ JsonApiRoute::server('v2')->prefix('v2')->resources(function (ResourceRegistrar 
     Route::patch('me', [MeController::class, 'updateProfile']);
 });
 
+// Ruta adicional para /api/me (compatibilidad con frontend)
+Route::get('/me', [MeController::class, 'readProfile'])->middleware(['json.api', 'personalpos.auth']);
+
 // Rutas de autenticación PersonalPOS
 Route::post('/pos/login', App\Http\Controllers\Api\V2\Auth\PersonalPOSLoginController::class);
 Route::post('/pos/reset-password', App\Http\Controllers\Api\V2\Auth\PersonalPOSResetPasswordController::class);
@@ -237,3 +240,34 @@ Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
 Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
 Route::get('personal/active/count', [PersonalPOSController::class, 'countActive']);
 Route::get('personal', [PersonalPOSController::class, 'index']); 
+
+// Rutas para el manejo de agendas y citas
+Route::prefix('agendas')->group(function () {
+    Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
+    Route::get('/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
+    Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
+    Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
+    Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
+});
+
+// Rutas para pacientes
+Route::prefix('pacientes')->group(function () {
+    Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
+    Route::get('/{id}', [App\Http\Controllers\PacienteController::class, 'show']);
+    Route::post('/', [App\Http\Controllers\PacienteController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\PacienteController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\PacienteController::class, 'destroy']);
+});
+
+// Rutas para doctores
+Route::prefix('doctores')->group(function () {
+    Route::get('/', [App\Http\Controllers\DoctorController::class, 'index']);
+    Route::get('/{id}', [App\Http\Controllers\DoctorController::class, 'show']);
+    Route::post('/', [App\Http\Controllers\DoctorController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
+    Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
+}); 

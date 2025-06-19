@@ -25,6 +25,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -88,6 +89,11 @@ function DashboardNavbar({ absolute, light, isMini }) {
   ];
   
   const [randomMessage, setRandomMessage] = useState("");
+
+  // Obtener datos de usuario y licencia
+  const { userData } = authContext;
+  const licencia = userData?.licencia || "";
+  const isDemo = licencia.toLowerCase().includes("demo");
 
   useEffect(() => {
     // Establecer un mensaje aleatorio
@@ -233,8 +239,8 @@ function DashboardNavbar({ absolute, light, isMini }) {
             </MDBox>
             <MDTypography 
               variant="caption" 
-              color={SALUDA_COLORS.light} 
-              sx={{ fontStyle: "italic", opacity: 0.9 }}
+              color="#fff"
+              sx={{ fontStyle: "italic", opacity: 1, fontWeight: 500 }}
             >
               {randomMessage}
             </MDTypography>
@@ -243,50 +249,52 @@ function DashboardNavbar({ absolute, light, isMini }) {
         
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox 
-              display="flex" 
-              alignItems="center"
-              pr={2} 
-              sx={{ background: "rgba(255,255,255,0.1)", borderRadius: "10px", px: 1 }}
-            >
-              <MDInput 
-                label="Buscar" 
-                sx={{ 
-                  "& .MuiInputBase-root": { color: SALUDA_COLORS.light },
-                  "& .MuiInputLabel-root": { color: `${SALUDA_COLORS.light} !important` },
-                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.3)" },
-                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.5)" }
-                }}
-              />
-            </MDBox>
-            
+            {/* Mostrar el buscador solo si la licencia NO es Demo */}
+            {!isDemo && (
+              <MDBox 
+                display="flex" 
+                alignItems="center"
+                pr={2} 
+                sx={{ background: "rgba(255,255,255,0.1)", borderRadius: "10px", px: 1 }}
+              >
+                <MDInput 
+                  label="Buscar" 
+                  sx={{ 
+                    "& .MuiInputBase-root": { color: SALUDA_COLORS.light },
+                    "& .MuiInputLabel-root": { color: `${SALUDA_COLORS.light} !important` },
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.3)" },
+                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.5)" }
+                  }}
+                />
+              </MDBox>
+            )}
             <MDBox display="flex" alignItems="center" color={SALUDA_COLORS.light}>
+              {/* Botón de toggle del sidenav */}
+              <IconButton
+                size="small"
+                color="inherit"
+                sx={{ ...navbarIconButton, color: SALUDA_COLORS.light }}
+                onClick={handleMiniSidenav}
+                title={miniSidenav ? "Expandir menú" : "Comprimir menú"}
+              >
+                <Icon>{miniSidenav ? "menu_open" : "menu"}</Icon>
+              </IconButton>
               <Link to="/profile">
                 <IconButton sx={{ ...navbarIconButton, color: SALUDA_COLORS.light }} size="small">
                   <Icon>account_circle</Icon>
                 </IconButton>
               </Link>
-              
-              <IconButton
-                size="small"
-                color="inherit"
-                sx={{ ...navbarMobileMenu, color: SALUDA_COLORS.light }}
-                onClick={handleMiniSidenav}
-              >
-                <Icon fontSize="medium">
-                  {miniSidenav ? "menu_open" : "menu"}
-                </Icon>
-              </IconButton>
-              
-              <IconButton
-                size="small"
-                color="inherit"
-                sx={{ ...navbarIconButton, color: SALUDA_COLORS.light }}
-                onClick={handleConfiguratorOpen}
-              >
-                <Icon>settings</Icon>
-              </IconButton>
-              
+              {/* Ocultar configurador si la licencia es Demo */}
+              {!isDemo && (
+                <IconButton
+                  size="small"
+                  color="inherit"
+                  sx={{ ...navbarIconButton, color: SALUDA_COLORS.light }}
+                  onClick={handleConfiguratorOpen}
+                >
+                  <Icon>settings</Icon>
+                </IconButton>
+              )}
               <IconButton
                 size="small"
                 color="inherit"
@@ -298,27 +306,17 @@ function DashboardNavbar({ absolute, light, isMini }) {
               >
                 <Icon>notifications</Icon>
               </IconButton>
-              
               {renderMenu()}
-              
               <MDBox ml={1}>
-                <MDButton
-                  variant="contained"
-                  sx={{ 
-                    backgroundColor: SALUDA_COLORS.light, 
-                    color: SALUDA_COLORS.primary,
-                    "&:hover": { 
-                      backgroundColor: "rgba(255,255,255,0.9)",
-                      boxShadow: "0 5px 10px rgba(0,0,0,0.1)"
-                    },
-                    fontWeight: "bold",
-                    borderRadius: "8px"
-                  }}
-                  type="button"
+                <IconButton
+                  size="small"
+                  color="inherit"
+                  sx={{ ...navbarIconButton, color: SALUDA_COLORS.light }}
                   onClick={handleLogOut}
+                  title="Cerrar sesión"
                 >
-                  Cerrar Sesión
-                </MDButton>
+                  <LogoutIcon />
+                </IconButton>
               </MDBox>
             </MDBox>
           </MDBox>

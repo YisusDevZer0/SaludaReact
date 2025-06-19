@@ -48,6 +48,9 @@ import { AuthContext } from "context";
 import { getMockDataByRole } from "services/mock-user-service";
 import HttpService from "services/htttp.service";
 
+// Default avatar image
+import defaultAvatar from "assets/images/zero.png";
+
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const { userRole, userData } = useContext(AuthContext);

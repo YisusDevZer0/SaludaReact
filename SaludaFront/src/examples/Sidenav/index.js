@@ -52,6 +52,8 @@ import {
 
 // Mock data para menús personalizados
 import { getMockDataByRole } from "services/mock-user-service";
+import defaultLogo from "assets/images/logo-ct.png";
+import defaultAvatar from "assets/images/zero.png";
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -112,7 +114,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const roleMenuItems = getRoleMenuItems();
   const roleMenuTitles = getRoleMenuTitles();
 
-  // Filtrar rutas según el rol RH
+  // Filtrar rutas según el rol RH o Administrador Agendas
   const normalizedRole = (userRole || "").toLowerCase();
   let filteredRoutes = routes;
   
@@ -120,14 +122,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   console.log('Sidenav - Rol normalizado:', normalizedRole);
   console.log('Sidenav - Todas las rutas:', routes);
   
-  // Si el usuario es RH o Desarrollo Humano, solo mostrar rutas exclusivas de RH
   if (normalizedRole === 'rh' || normalizedRole === 'desarrollo humano') {
     filteredRoutes = routes.filter(route => route.rhOnly === true);
-    console.log('Sidenav - Filtrando para RH, rutas resultantes:', filteredRoutes);
+  } else if (userRole === 'Administrador Agendas') {
+    filteredRoutes = routes.filter(route => route.adminAgendasOnly === true);
   } else {
-    // Para otros roles, excluir las rutas exclusivas de RH
-    filteredRoutes = routes.filter(route => route.rhOnly !== true);
-    console.log('Sidenav - Filtrando para otros roles, rutas resultantes:', filteredRoutes);
+    filteredRoutes = routes.filter(route => route.rhOnly !== true && route.adminAgendasOnly !== true);
   }
   
   // Si no hay rutas filtradas, mostrar un mensaje de depuración
@@ -336,39 +336,38 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             <Icon sx={{ fontWeight: "bold" }}>close</Icon>
           </MDTypography>
         </MDBox>
-        <MDBox component={NavLink} to="/" display="flex" alignItems="center">
-          {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
-          <MDBox
-            width={!brandName && "100%"}
-            sx={(theme) => ({
-              ...sidenavLogoLabel(theme, { miniSidenav }),
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mt: 1,
-              mb: 1
-            })}
+        <MDBox
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          component={NavLink}
+          to="/"
+          sx={{ mb: 1 }}
+        >
+          <Avatar
+            src={userData?.logo_url || defaultLogo}
+            alt="Logo Empresa"
+            sx={{ width: 56, height: 56, mb: 1, boxShadow: 2, bgcolor: "white" }}
+          />
+          <MDTypography
+            component="h5"
+            variant="h5"
+            fontWeight="bold"
+            color={textColor}
+            sx={{ fontSize: "1.35rem", lineHeight: 1.2, textAlign: 'center', mt: 1 }}
           >
-            <MDTypography
-              component="h5"
-              variant="h5"
-              fontWeight="bold"
-              color={textColor}
-              sx={{ fontSize: "1.35rem", lineHeight: 1.2, textAlign: 'center' }}
-            >
-              {userData?.ID_H_O_D || "Licencia"}
-            </MDTypography>
-            <MDTypography
-              component="h6"
-              variant="subtitle1"
-              fontWeight="medium"
-              color={textColor}
-              sx={{ fontSize: "1.1rem", lineHeight: 1.1, textAlign: 'center' }}
-            >
-              {userData?.sucursal?.Nombre_Sucursal || "Sucursal"}
-            </MDTypography>
-          </MDBox>
+            {userData?.ID_H_O_D || "Licencia"}
+          </MDTypography>
+          <MDTypography
+            component="h6"
+            variant="subtitle1"
+            fontWeight="medium"
+            color={textColor}
+            sx={{ fontSize: "1.1rem", lineHeight: 1.1, textAlign: 'center', mb: 1 }}
+          >
+            {userData?.sucursal?.Nombre_Sucursal || "Sucursal"}
+          </MDTypography>
         </MDBox>
       </MDBox>
       <Divider
@@ -385,7 +384,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             {/* Mostrar la URL del avatar para depuración */}
             {console.log('Avatar URL Sidenav:', userData.avatar_url)}
             <MDAvatar
-              src={userData.avatar_url || defaultAvatar}
+              src={userData.avatar_url && userData.avatar_url !== "" ? userData.avatar_url : defaultAvatar}
               alt={userData.name}
               size="lg"
               bgColor={userData?.avatar_url ? "transparent" : "info"}
@@ -396,11 +395,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             {userData.name}
           </MDTypography>
           <MDTypography variant="caption" color="text">
-            {userRole === "admin" ? "Administrador" : 
-             userRole === "seller" ? "Vendedor" : 
-             userRole === "nurse" ? "Enfermero" : 
+            {userRole === "admin" ? "Administrador" :
+             userRole === "seller" ? "Vendedor" :
+             userRole === "nurse" ? "Enfermero" :
              userRole === "doctor" ? "Doctor" :
-             userRole === "pharmacist" ? "Farmacéutico" : "Usuario"}
+             userRole === "pharmacist" ? "Farmacéutico" :
+             userRole === "Administrador Agendas" ? "Administrador Agendas" : "Usuario"}
           </MDTypography>
           <Divider sx={{ my: 1 }} />
         </MDBox>

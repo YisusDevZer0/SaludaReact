@@ -28,6 +28,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import PreferencesService from "services/preferences-service";
 import PillLoader from "../components/PillLoader";
 import "../components/PillLoader.css";
+import AuthService from "services/auth-service";
 
 // Material Dashboard 2 React main context
 const MaterialUI = createContext();
@@ -87,9 +88,16 @@ const AuthContextProvider = ({ children }) => {
               navigate("/dashboard");
             } else if (storedRole === 'RH' || storedRole === 'Desarrollo Humano') {
               navigate("/rh-dashboard");
+            } else if (storedRole === 'Administrador Agendas') {
+              navigate("/admin-agendas");
             } else {
               navigate("/dashboard");
             }
+          }
+          
+          // Redirigir si un administrador de agendas accede al dashboard general
+          if (location.pathname === '/dashboard' && storedRole === 'Administrador Agendas') {
+            navigate("/admin-agendas");
           }
         } catch (e) {
           console.error("Error parsing user data from localStorage", e);
@@ -112,45 +120,63 @@ const AuthContextProvider = ({ children }) => {
     };
 
     checkAuthentication();
-  }, []); // Solo ejecutar una vez al montar el componente
+  }, [location.pathname]); // Agregar location.pathname como dependencia
 
-  const login = (token, refreshToken, user = {}) => {
-    console.log('Datos del usuario recibidos en login:', user); // Debug log
-    console.log('Token recibido en login:', token?.substring(0, 20) + '...'); // Debug token
-    console.log('Token length:', token?.length); // Debug token length
-    
-    const userRole = user.role?.Nombre_rol || 'user';
-    console.log('Rol del usuario a guardar:', userRole); // Debug log del rol
-    
-    localStorage.setItem("token", token);
-    localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("userRole", userRole);
-    localStorage.setItem("userData", JSON.stringify(user));
-    if (user.role?.Permisos) {
-      localStorage.setItem("userPermissions", user.role.Permisos);
-      setUserPermissions(user.role.Permisos);
-    }
-    
-    // Verificar que el token se guardó correctamente
-    const savedToken = localStorage.getItem("token");
-    const savedRole = localStorage.getItem("userRole");
-    console.log('Token guardado en localStorage:', savedToken?.substring(0, 20) + '...');
-    console.log('Rol guardado en localStorage:', savedRole);
-    console.log('Tokens coinciden:', token === savedToken);
-    console.log('Roles coinciden:', userRole === savedRole);
-    
-    setIsAuthenticated(true);
-    setUserRole(userRole);
-    setUserData(user);
-    setIsLoading(false);
-    
-    // Redirigir según el rol
-    if (userRole === 'Administrador') {
-      navigate("/dashboard");
-    } else if (userRole === 'RH' || userRole === 'Desarrollo Humano') {
-      navigate("/rh-dashboard");
-    } else {
-      navigate("/dashboard");
+  const login = async (token, refreshToken, user = {}) => {
+    try {
+      console.log('Datos del usuario recibidos en login:', user); // Debug log
+      console.log('Token recibido en login:', token?.substring(0, 20) + '...'); // Debug token
+      console.log('Token length:', token?.length); // Debug token length
+      const userRole = user.role?.Nombre_rol || 'user';
+      console.log('Rol del usuario a guardar:', userRole); // Debug log del rol
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("userRole", userRole);
+      localStorage.setItem("userData", JSON.stringify(user));
+      if (user.role?.Permisos) {
+        localStorage.setItem("userPermissions", user.role.Permisos);
+        setUserPermissions(user.role.Permisos);
+      }
+
+      // Obtener perfil actualizado (logo_url, licencia, etc.)
+      const profile = await AuthService.getProfile();
+      if (profile && profile.data && profile.data.attributes) {
+        const userDataProfile = { ...user, ...profile.data.attributes };
+        setUserData(userDataProfile);
+        localStorage.setItem("userData", JSON.stringify(userDataProfile));
+      } else {
+        setUserData(user);
+      }
+
+      // Verificar que el token se guardó correctamente
+      const savedToken = localStorage.getItem("token");
+      const savedRole = localStorage.getItem("userRole");
+      console.log('Token guardado en localStorage:', savedToken?.substring(0, 20) + '...');
+      console.log('Rol guardado en localStorage:', savedRole);
+      console.log('Tokens coinciden:', token === savedToken);
+      console.log('Roles coinciden:', userRole === savedRole);
+
+      setIsAuthenticated(true);
+      setUserRole(userRole);
+      setIsLoading(false);
+
+      // Redirigir según el rol
+      if (userRole === 'Administrador') {
+        navigate("/dashboard");
+      } else if (userRole === 'RH' || userRole === 'Desarrollo Humano') {
+        navigate("/rh-dashboard");
+      } else if (userRole === 'Administrador Agendas') {
+        navigate("/admin-agendas");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (e) {
+      console.error("Error al obtener perfil después de login:", e);
+      setUserData(user);
+      setIsAuthenticated(true);
+      setUserRole(user.role?.Nombre_rol || 'user');
+      setIsLoading(false);
     }
   };
 

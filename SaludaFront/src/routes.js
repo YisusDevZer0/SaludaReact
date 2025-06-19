@@ -9,6 +9,14 @@ import AdminTimeClock from "./layouts/admin/TimeClock";
 import RhDashboard from "layouts/rh-dashboard";
 import RHControlPersonal from "layouts/rh-dashboard/RHControlPersonal";
 import PermisosVacaciones from "layouts/rh-dashboard/PermisosVacaciones";
+import AdminAlmacenes from "layouts/admin/AdminAlmacenes";
+import Categorias from "layouts/admin/Categorias";
+import ComponenteActivo from "layouts/admin/ComponenteActivo";
+import Tipos from "layouts/admin/Tipos";
+import Presentaciones from "layouts/admin/Presentaciones";
+import Marcas from "layouts/admin/Marcas";
+import Servicios from "layouts/admin/Servicios";
+import AdminAgendasDashboard from "layouts/admin-agendas";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -74,11 +82,54 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Reloj Checador",
-    key: "timeclock",
-    icon: <Icon fontSize="small">schedule</Icon>,
-    route: "/time-clock",
-    component: <AdminTimeClock />,
+    name: "Configuraciones",
+    key: "admin-almacenes",
+    icon: <Icon fontSize="small">inventory</Icon>,
+    route: "/admin/almacenes",
+    component: <AdminAlmacenes />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-categorias",
+    route: "/admin/almacenes/categorias",
+    component: <Categorias />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-componente-activo",
+    route: "/admin/almacenes/componentes-activos",
+    component: <ComponenteActivo />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-tipos",
+    route: "/admin/almacenes/tipos",
+    component: <Tipos />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-presentaciones",
+    route: "/admin/almacenes/presentaciones",
+    component: <Presentaciones />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-marcas",
+    route: "/admin/almacenes/marcas",
+    component: <Marcas />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-servicios",
+    route: "/admin/almacenes/servicios",
+    component: <Servicios />,
+    adminOnly: true,
   },
   //FIN ALMACENES E INVENTARIOS
 
@@ -91,13 +142,21 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Reloj Checador Admin",
-    key: "timeclock-admin",
+    name: "Reloj Checador",
+    key: "timeclock",
     icon: <Icon fontSize="small">schedule</Icon>,
     route: "/time-clock",
     component: <AdminTimeClock />,
   },
-  
+  {
+    type: "collapse",
+    name: "Control de personal",
+    key: "control-personal-rh",
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/rh/control-personal",
+    component: <RHControlPersonal />,
+    
+  },
   // RUTAS EXCLUSIVAS PARA RH
   {
     type: "title",
@@ -141,6 +200,16 @@ const routes = [
     route: "/permisos",
     component: <PermisosVacaciones />,
     rhOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Agendas",
+    key: "admin-agendas",
+    icon: <Icon fontSize="small">event</Icon>,
+    route: "/admin-agendas",
+    component: <AdminAgendasDashboard />,
+    protected: true,
+    adminAgendasOnly: true,
   },
 ];
 
