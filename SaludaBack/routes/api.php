@@ -20,6 +20,8 @@ use App\Http\Controllers\HuellasController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\CategoriaPosController;
 use App\Http\Controllers\PersonalPOSController;
+use App\Http\Controllers\ComponenteActivoController;
+use App\Http\Controllers\TipoController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -270,4 +272,17 @@ Route::prefix('doctores')->group(function () {
     Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
     Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
     Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
-}); 
+});
+
+// Rutas para Componentes Activos
+Route::prefix('componentes')->group(function () {
+    Route::get('/', [ComponenteActivoController::class, 'index']);
+    Route::post('/', [ComponenteActivoController::class, 'store']);
+    Route::get('/{id}', [ComponenteActivoController::class, 'show']);
+    Route::put('/{id}', [ComponenteActivoController::class, 'update']);
+    Route::delete('/{id}', [ComponenteActivoController::class, 'destroy']);
+    Route::get('/estado/{estado}', [ComponenteActivoController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [ComponenteActivoController::class, 'getByOrganizacion']);
+});
+
+Route::apiResource('tipos', App\Http\Controllers\TipoController::class); 

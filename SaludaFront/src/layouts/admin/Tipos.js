@@ -3,6 +3,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import TiposTable from "components/TiposTable";
 
 export default function Tipos() {
   return (
@@ -15,6 +16,8 @@ export default function Tipos() {
         <MDTypography variant="body1" color="text" textAlign="center">
           Aquí podrás definir y organizar los diferentes tipos de productos.
         </MDTypography>
+        {/* Tabla de tipos */}
+        <TiposTable />
       </MDBox>
     </DashboardLayout>
   );

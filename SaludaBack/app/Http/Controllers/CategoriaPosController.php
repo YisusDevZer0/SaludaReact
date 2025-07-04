@@ -17,16 +17,61 @@ class CategoriaPosController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $categorias = CategoriaPos::vigente()
-                ->sistemaPos()
-                ->orderBy('Nom_Cat', 'asc')
+            $draw = request()->get('draw');
+            $start = request()->get("start");
+            $rowperpage = request()->get("length");
+
+            $columnIndex_arr = request()->get('order');
+            $columnName_arr = request()->get('columns');
+            $order_arr = request()->get('order');
+            $search_arr = request()->get('search');
+
+            $columnIndex = isset($columnIndex_arr[0]['column']) ? $columnIndex_arr[0]['column'] : 1;
+            $columnName = isset($columnName_arr[$columnIndex]['data']) ? $columnName_arr[$columnIndex]['data'] : 'Nom_Cat';
+            $columnSortOrder = isset($order_arr[0]['dir']) ? $order_arr[0]['dir'] : 'asc';
+            $searchValue = $search_arr['value'] ?? '';
+
+            // Total de registros
+            $totalRecords = CategoriaPos::count();
+            $totalRecordswithFilter = CategoriaPos::where('Nom_Cat', 'like', '%' . $searchValue . '%')
+                ->orWhere('Estado', 'like', '%' . $searchValue . '%')
+                ->orWhere('Sistema', 'like', '%' . $searchValue . '%')
+                ->count();
+
+            // Obtener registros
+            $records = CategoriaPos::orderBy($columnName, $columnSortOrder)
+                ->where(function($query) use ($searchValue) {
+                    $query->where('Nom_Cat', 'like', '%' . $searchValue . '%')
+                        ->orWhere('Estado', 'like', '%' . $searchValue . '%')
+                        ->orWhere('Sistema', 'like', '%' . $searchValue . '%');
+                })
+                ->skip($start)
+                ->take($rowperpage)
                 ->get();
 
+            $data_arr = array();
+
+            foreach($records as $record){
+                $data_arr[] = array(
+                    "Cat_ID" => $record->Cat_ID,
+                    "Nom_Cat" => $record->Nom_Cat,
+                    "Estado" => $record->Estado,
+                    "Cod_Estado" => $record->Cod_Estado,
+                    "Sistema" => $record->Sistema,
+                    "ID_H_O_D" => $record->ID_H_O_D,
+                    "Agregadoel" => $record->Agregadoel,
+                    "Agregado_Por" => $record->Agregado_Por
+                );
+            }
+
             return response()->json([
-                'success' => true,
-                'data' => $categorias,
-                'message' => 'Categorías obtenidas exitosamente'
+                "draw" => intval($draw),
+                "recordsTotal" => $totalRecords,
+                "recordsFiltered" => $totalRecordswithFilter,
+                "data" => $data_arr,
+                "success" => true
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

@@ -89,7 +89,7 @@ export default function AdminAlmacenes() {
       <DashboardNavbar />
       <MDBox py={4}>
         <MDTypography variant="h3" fontWeight="bold" color="info" textAlign="center" mb={4}>
-          Almacenes e Inventarios
+          Configuracion general de productos
         </MDTypography>
         <Grid container spacing={3} justifyContent="center">
           {cards.map((card, idx) => (

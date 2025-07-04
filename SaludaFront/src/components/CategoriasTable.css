@@ -1,0 +1,207 @@
+/* Estilos para la tabla de categorías */
+.categoria-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin: 0 2px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.categoria-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.categoria-action-btn.editar {
+  color: #2196F3;
+}
+
+.categoria-action-btn.editar:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.categoria-action-btn.eliminar {
+  color: #F44336;
+}
+
+.categoria-action-btn.eliminar:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.categoria-action-btn .material-icons {
+  font-size: 18px;
+}
+
+/* Estilos para el estado de las categorías */
+.categoria-estado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.categoria-estado .material-icons {
+  font-size: 16px;
+}
+
+/* Estilos para el modal de categorías */
+.categoria-modal .MuiDialog-paper {
+  border-radius: 12px;
+}
+
+.categoria-modal .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+}
+
+.categoria-modal .MuiDialogContent-root {
+  padding: 24px;
+}
+
+.categoria-modal .MuiDialogActions-root {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Estilos para el breadcrumb */
+.categoria-breadcrumb {
+  margin-bottom: 24px;
+}
+
+.categoria-breadcrumb .MuiBreadcrumbs-root {
+  font-size: 14px;
+}
+
+/* Estilos para el botón de nueva categoría */
+.nueva-categoria-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nueva-categoria-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.nueva-categoria-btn:active {
+  transform: translateY(0);
+}
+
+/* Estilos para los campos del formulario */
+.categoria-form .MuiTextField-root {
+  margin-bottom: 16px;
+}
+
+.categoria-form .MuiInputLabel-root {
+  font-weight: 500;
+}
+
+.categoria-form .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.categoria-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea;
+}
+
+.categoria-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea;
+  border-width: 2px;
+}
+
+/* Estilos para el loader */
+.categoria-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+/* Estilos para mensajes de estado */
+.categoria-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-weight: 500;
+}
+
+.categoria-message.success {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.categoria-message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.categoria-message.warning {
+  background-color: #fff3e0;
+  color: #ef6c00;
+  border: 1px solid #ffcc02;
+}
+
+/* Estilos para la tabla responsive */
+@media (max-width: 768px) {
+  .categoria-action-btn {
+    min-width: 28px;
+    height: 28px;
+  }
+  
+  .categoria-action-btn .material-icons {
+    font-size: 16px;
+  }
+  
+  .nueva-categoria-btn {
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+}
+
+/* Estilos para modo oscuro */
+[data-theme="dark"] .categoria-action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .categoria-action-btn.editar:hover {
+  background-color: rgba(33, 150, 243, 0.2);
+}
+
+[data-theme="dark"] .categoria-action-btn.eliminar:hover {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+[data-theme="dark"] .categoria-modal .MuiDialogContent-root {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .categoria-form .MuiTextField-root .MuiOutlinedInput-root {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .categoria-form .MuiTextField-root .MuiInputLabel-root {
+  color: #b0b0b0;
+} 
