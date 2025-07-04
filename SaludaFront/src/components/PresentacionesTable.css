@@ -1,0 +1,186 @@
+/* Estilos específicos para la tabla de presentaciones */
+
+.presentacion-breadcrumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.presentacion-breadcrumb .MuiBreadcrumbs-root {
+  color: white;
+}
+
+.presentacion-breadcrumb .MuiTypography-root {
+  color: white !important;
+}
+
+.nueva-presentacion-btn {
+  background: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%) !important;
+  border-radius: 25px !important;
+  box-shadow: 0 3px 5px 2px rgba(33, 203, 243, .3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.nueva-presentacion-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(33, 203, 243, .4) !important;
+}
+
+.presentacion-modal .MuiDialog-paper {
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.presentacion-modal .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px 15px 0 0;
+}
+
+.presentacion-form .MuiTextField-root {
+  margin-bottom: 1rem;
+}
+
+.presentacion-form .MuiInputBase-root {
+  border-radius: 8px;
+}
+
+.presentacion-form .MuiInputBase-root:hover {
+  background-color: rgba(102, 126, 234, 0.04);
+}
+
+.presentacion-form .MuiInputBase-root.Mui-focused {
+  background-color: rgba(102, 126, 234, 0.08);
+}
+
+/* Estilos para los botones de acción en la tabla */
+.presentacion-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin: 0 2px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.presentacion-action-btn.editar {
+  color: #2196F3;
+}
+
+.presentacion-action-btn.editar:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+  transform: scale(1.1);
+}
+
+.presentacion-action-btn.eliminar {
+  color: #f44336;
+}
+
+.presentacion-action-btn.eliminar:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  transform: scale(1.1);
+}
+
+.presentacion-action-btn .material-icons {
+  font-size: 1.2em;
+}
+
+/* Estilos para el estado en la tabla */
+.presentacion-action-btn .material-icons.check_circle {
+  color: #4caf50;
+}
+
+.presentacion-action-btn .material-icons.cancel {
+  color: #f44336;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .presentacion-breadcrumb {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .nueva-presentacion-btn {
+    min-width: 150px !important;
+    font-size: 0.9rem !important;
+  }
+  
+  .presentacion-modal .MuiDialog-paper {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.presentacion-modal .MuiDialogContent-root {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para el loader */
+.presentacion-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Estilos para mensajes de estado */
+.presentacion-status-message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.presentacion-status-message.success {
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.presentacion-status-message.error {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #c62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Estilos para el formulario en modo oscuro */
+[data-theme="dark"] .presentacion-form .MuiTextField-root {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .presentacion-form .MuiInputBase-root {
+  color: white;
+}
+
+[data-theme="dark"] .presentacion-form .MuiInputLabel-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Estilos para la tabla en modo oscuro */
+[data-theme="dark"] .presentacion-action-btn.editar {
+  color: #64b5f6;
+}
+
+[data-theme="dark"] .presentacion-action-btn.eliminar {
+  color: #ef5350;
+} 

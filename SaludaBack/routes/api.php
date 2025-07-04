@@ -19,6 +19,7 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\HuellasController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\CategoriaPosController;
+use App\Http\Controllers\PresentacionController;
 use App\Http\Controllers\PersonalPOSController;
 use App\Http\Controllers\ComponenteActivoController;
 use App\Http\Controllers\TipoController;
@@ -233,6 +234,20 @@ Route::prefix('categorias')->group(function () {
     Route::delete('/{id}', [CategoriaPosController::class, 'destroy']);
     Route::get('/estado/{estado}', [CategoriaPosController::class, 'getByEstado']);
     Route::get('/organizacion/{organizacion}', [CategoriaPosController::class, 'getByOrganizacion']);
+});
+
+// Rutas para el manejo de presentaciones
+Route::prefix('presentaciones')->group(function () {
+    Route::get('/', [PresentacionController::class, 'index']);
+    Route::get('/create', [PresentacionController::class, 'create']);
+    Route::post('/', [PresentacionController::class, 'store']);
+    Route::get('/{id}', [PresentacionController::class, 'show']);
+    Route::get('/{id}/edit', [PresentacionController::class, 'edit']);
+    Route::put('/{id}', [PresentacionController::class, 'update']);
+    Route::delete('/{id}', [PresentacionController::class, 'destroy']);
+    Route::get('/estado/{estado}', [PresentacionController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [PresentacionController::class, 'getByOrganizacion']);
+    Route::get('/siglas/{siglas}', [PresentacionController::class, 'getBySiglas']);
 });
 
 Route::get('/personal/listado', [PersonalPOSController::class, 'indexDataTable']);
