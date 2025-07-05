@@ -60,11 +60,20 @@ function Dashboard() {
   useEffect(() => {
     console.log('Datos del usuario en Dashboard:', userData); // Debug log
     console.log('Rol del usuario en Dashboard:', userRole); // Debug log
+    console.log('Token en localStorage:', localStorage.getItem('token')?.substring(0, 20) + '...'); // Debug token
+    
     // Obtener personal activo solo para admin
     if (userRole === 'Administrador') {
+      console.log('Obteniendo count de personal activo...'); // Debug log
       HttpService.get("personal/active/count")
-        .then(data => setPersonalActivo(data.active))
-        .catch(() => setPersonalActivo(0));
+        .then(data => {
+          console.log('Count de personal activo recibido:', data); // Debug log
+          setPersonalActivo(data.active);
+        })
+        .catch((error) => {
+          console.error('Error obteniendo count de personal:', error); // Debug error
+          setPersonalActivo(0);
+        });
     }
   }, [userData, userRole]);
 
@@ -150,15 +159,13 @@ function Dashboard() {
                         </MDTypography>
                         <MDBox mt={2}>
                           <MDTypography variant="body1" color="text" fontWeight="medium">
-                            Permisos del Sistema:
+                            Descripción del Rol:
                           </MDTypography>
-                          {Object.entries(JSON.parse(userData.role.Permisos)).map(([key, value]) => (
-                            <MDBox key={key} ml={2} mt={1}>
-                              <MDTypography variant="body2" color="text">
-                                • {key}: {value ? '✅' : '❌'}
-                              </MDTypography>
-                            </MDBox>
-                          ))}
+                          <MDBox ml={2} mt={1}>
+                            <MDTypography variant="body2" color="text">
+                              {userData.role.Descripcion || 'Sin descripción'}
+                            </MDTypography>
+                          </MDBox>
                         </MDBox>
                         <MDBox mt={2}>
                           <MDTypography variant="body1" color="text" fontWeight="medium">
@@ -195,6 +202,100 @@ function Dashboard() {
   // Componentes específicos para cada rol
   const renderAdminDashboard = () => (
     <>
+      {/* Información del Usuario */}
+      <MDBox mb={3}>
+        <Card>
+          <MDBox
+            mx={2}
+            mt={-3}
+            py={3}
+            px={2}
+            variant="gradient"
+            bgColor="info"
+            borderRadius="lg"
+            coloredShadow="info"
+          >
+            <MDTypography variant="h4" color="white">
+              Información del Usuario
+            </MDTypography>
+          </MDBox>
+          <MDBox p={3}>
+            {userData && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <MDBox mb={2}>
+                    <MDTypography variant="h5" color="text" fontWeight="bold">
+                      {userData.Nombre_Apellidos}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Rol:</strong> {userData.role?.Nombre_rol || 'No asignado'}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Email:</strong> {userData.Correo_Electronico}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Teléfono:</strong> {userData.Telefono}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Estado:</strong> {userData.Estatus}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Sucursal:</strong> {userData.Fk_Sucursal}
+                    </MDTypography>
+                  </MDBox>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <MDBox mb={2}>
+                    <MDTypography variant="h5" color="text" fontWeight="medium">
+                      Permisos del Rol
+                    </MDTypography>
+                  </MDBox>
+                  {userData.role && (
+                    <MDBox>
+                      <MDTypography variant="body1" color="text">
+                        <strong>Estado del Rol:</strong> {userData.role.Estado}
+                      </MDTypography>
+                      <MDBox mt={2}>
+                        <MDTypography variant="body1" color="text" fontWeight="medium">
+                          Descripción del Rol:
+                        </MDTypography>
+                        <MDBox ml={2} mt={1}>
+                          <MDTypography variant="body2" color="text">
+                            {userData.role.Descripcion || 'Sin descripción'}
+                          </MDTypography>
+                        </MDBox>
+                      </MDBox>
+                      <MDBox mt={2}>
+                        <MDTypography variant="body1" color="text" fontWeight="medium">
+                          Permisos Generales:
+                        </MDTypography>
+                        {userData.Permisos && Object.entries(JSON.parse(userData.Permisos)).map(([key, value]) => (
+                          <MDBox key={key} ml={2} mt={1}>
+                            <MDTypography variant="body2" color="text">
+                              • {key}: {value ? '✅' : '❌'}
+                            </MDTypography>
+                          </MDBox>
+                        ))}
+                      </MDBox>
+                    </MDBox>
+                  )}
+                </Grid>
+              </Grid>
+            )}
+          </MDBox>
+        </Card>
+      </MDBox>
+
       {/* Estadísticas para Administrador */}
       <Grid container spacing={3}>
         {mockData.dashboardData.stats.map((stat, index) => {

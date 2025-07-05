@@ -1,19 +1,15 @@
 /* Estilos específicos para la tabla de presentaciones */
 
 .presentacion-breadcrumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 1rem;
-  border-radius: 10px;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .presentacion-breadcrumb .MuiBreadcrumbs-root {
-  color: white;
+  color: inherit;
 }
 
 .presentacion-breadcrumb .MuiTypography-root {
-  color: white !important;
+  color: inherit !important;
 }
 
 .nueva-presentacion-btn {

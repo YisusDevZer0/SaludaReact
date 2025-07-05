@@ -81,9 +81,9 @@
 
 /* Estilos para el botón de nueva categoría */
 .nueva-categoria-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   border: none;
-  color: white;
+  color: white !important;
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
@@ -96,6 +96,12 @@
   gap: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.nueva-categoria-btn:disabled {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  opacity: 0.7;
 }
 
 .nueva-categoria-btn:hover {

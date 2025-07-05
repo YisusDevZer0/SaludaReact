@@ -38,7 +38,11 @@ return [
     'guards' => [
         'api' => [
             'driver' => 'passport',
-            'provider' => 'users',
+            'provider' => 'personalpos',
+        ],
+        'personalpos' => [
+            'driver' => 'session',
+            'provider' => 'personalpos',
         ],
     ],
 
@@ -62,7 +66,11 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\PersonalPOS::class,
+        ],
+        'personalpos' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\PersonalPOS::class,
         ],
 
         // 'users' => [

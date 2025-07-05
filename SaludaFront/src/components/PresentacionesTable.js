@@ -21,6 +21,7 @@ import Box from '@mui/material/Box';
 import HomeIcon from '@mui/icons-material/Home';
 import Chip from '@mui/material/Chip';
 import PresentacionService from 'services/presentacion-service';
+import notificationService from 'services/notification-service';
 
 const PresentacionesTable = () => {
   const tableRef = useRef();
@@ -170,7 +171,7 @@ const PresentacionesTable = () => {
       }
     } catch (error) {
       console.error('Error al obtener presentación:', error);
-      alert('Error al cargar la presentación para editar');
+      notificationService.error('Error al cargar la presentación para editar');
     }
   };
 
@@ -179,17 +180,17 @@ const PresentacionesTable = () => {
       try {
         const response = await PresentacionService.eliminarPresentacion(id);
         if (response.success) {
-          alert('Presentación eliminada exitosamente');
+          notificationService.success('Presentación eliminada exitosamente');
           // Recargar la tabla
           if (tableRef.current) {
             $(tableRef.current).DataTable().ajax.reload();
           }
         } else {
-          alert('Error al eliminar la presentación');
+          notificationService.error('Error al eliminar la presentación');
         }
       } catch (error) {
         console.error('Error al eliminar presentación:', error);
-        alert('Error al eliminar la presentación');
+        notificationService.error('Error al eliminar la presentación');
       }
     }
   };
@@ -225,19 +226,25 @@ const PresentacionesTable = () => {
         if (tableRef.current) {
           $(tableRef.current).DataTable().ajax.reload();
         }
-        alert(editingPresentacion ? 'Presentación actualizada exitosamente' : 'Presentación creada exitosamente');
+        notificationService.success(editingPresentacion ? 'Presentación actualizada exitosamente' : 'Presentación creada exitosamente');
       } else {
-        alert('Error: ' + response.message);
+        // Mostrar errores de validación si existen
+        if (response.errors) {
+          const errorMessages = Object.values(response.errors).flat().join(', ');
+          notificationService.error(`Error de validación: ${errorMessages}`);
+        } else {
+          notificationService.error(`Error: ${response.message}`);
+        }
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('Error al procesar la presentación');
+      notificationService.error('Error al procesar la presentación');
     }
   };
 
   return (
     <div>
-      <Box mb={3} mt={2} className="presentacion-breadcrumb">
+      <Box mb={3} mt={2} className="categoria-breadcrumb">
         <Breadcrumbs aria-label="breadcrumb">
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" color="primary" />
@@ -247,12 +254,10 @@ const PresentacionesTable = () => {
         </Breadcrumbs>
         <Box display="flex" justifyContent="center" mt={2} mb={2}>
           <Button
-            variant="contained"
-            color="primary"
+            className="nueva-categoria-btn"
             startIcon={<Icon>add</Icon>}
             onClick={handleOpen}
-            className="nueva-presentacion-btn"
-            sx={{ px: 2, py: 0.5, borderRadius: 2, fontWeight: 'bold', fontSize: '1rem', boxShadow: 2, color: '#fff', minWidth: 180, letterSpacing: 1 }}
+            sx={{ px: 2, py: 0.5, borderRadius: 2, fontWeight: 'bold', fontSize: '1rem', minWidth: 180, letterSpacing: 1 }}
           >
             NUEVA PRESENTACIÓN
           </Button>
