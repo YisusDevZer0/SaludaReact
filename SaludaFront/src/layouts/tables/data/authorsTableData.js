@@ -39,7 +39,7 @@ export default function data() {
     </MDBox>
   );
 
-  const Job = ({ title, description }) => (
+  const Job = ({ title, descriptionn }) => (
     <MDBox lineHeight={1} textAlign="left">
       <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
         {title}

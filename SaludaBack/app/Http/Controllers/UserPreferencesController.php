@@ -132,14 +132,14 @@ class UserPreferencesController extends Controller
         try {
             // Usar la autenticación de Passport directamente
             $user = $request->user('api');
-            
+
             if ($user) {
                 \Log::info('UserPreferences: User authenticated via Passport: ' . $user->Pos_ID . ' - ' . $user->Nombre_Apellidos);
                 return (array) $user;
             }
             
             \Log::info('UserPreferences: No authenticated user found');
-            return null;
+                return null;
             
         } catch (\Exception $e) {
             \Log::error('UserPreferences: Exception in getUserFromToken: ' . $e->getMessage());

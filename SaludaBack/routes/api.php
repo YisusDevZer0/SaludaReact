@@ -121,12 +121,12 @@ Route::get('/sucursales/activas', [SucursalController::class, 'getAllActive']);
 
 // Rutas para preferencias de usuario (protegidas con Passport)
 Route::middleware(['auth:api'])->group(function () {
-    Route::options('/user/preferences', function() {
-        return response()->json([], 200);
-    });
-    Route::get('/user/preferences', [UserPreferencesController::class, 'getUserPreferences']);
-    Route::post('/user/preferences', [UserPreferencesController::class, 'saveUserPreferences']);
-    Route::put('/user/preferences', [UserPreferencesController::class, 'saveUserPreferences']);
+Route::options('/user/preferences', function() {
+    return response()->json([], 200);
+});
+Route::get('/user/preferences', [UserPreferencesController::class, 'getUserPreferences']);
+Route::post('/user/preferences', [UserPreferencesController::class, 'saveUserPreferences']);
+Route::put('/user/preferences', [UserPreferencesController::class, 'saveUserPreferences']);
 });
 
 // Endpoint de debug para verificar tokens
@@ -283,82 +283,82 @@ Route::prefix('asistencia-eloquent')->group(function () {
 
 Route::middleware(['auth:api'])->group(function () {
     // Categorías POS
-    Route::prefix('categorias')->group(function () {
-        Route::get('/', [CategoriaPosController::class, 'index']);
-        Route::get('/create', [CategoriaPosController::class, 'create']);
-        Route::post('/', [CategoriaPosController::class, 'store']);
-        Route::get('/{id}', [CategoriaPosController::class, 'show']);
-        Route::get('/{id}/edit', [CategoriaPosController::class, 'edit']);
-        Route::put('/{id}', [CategoriaPosController::class, 'update']);
-        Route::delete('/{id}', [CategoriaPosController::class, 'destroy']);
-        Route::get('/estado/{estado}', [CategoriaPosController::class, 'getByEstado']);
-        Route::get('/organizacion/{organizacion}', [CategoriaPosController::class, 'getByOrganizacion']);
-    });
+Route::prefix('categorias')->group(function () {
+    Route::get('/', [CategoriaPosController::class, 'index']);
+    Route::get('/create', [CategoriaPosController::class, 'create']);
+    Route::post('/', [CategoriaPosController::class, 'store']);
+    Route::get('/{id}', [CategoriaPosController::class, 'show']);
+    Route::get('/{id}/edit', [CategoriaPosController::class, 'edit']);
+    Route::put('/{id}', [CategoriaPosController::class, 'update']);
+    Route::delete('/{id}', [CategoriaPosController::class, 'destroy']);
+    Route::get('/estado/{estado}', [CategoriaPosController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [CategoriaPosController::class, 'getByOrganizacion']);
+});
 
     // Presentaciones
-    Route::prefix('presentaciones')->group(function () {
-        Route::get('/', [PresentacionController::class, 'index']);
-        Route::get('/create', [PresentacionController::class, 'create']);
-        Route::post('/', [PresentacionController::class, 'store']);
-        Route::get('/{id}', [PresentacionController::class, 'show']);
-        Route::get('/{id}/edit', [PresentacionController::class, 'edit']);
-        Route::put('/{id}', [PresentacionController::class, 'update']);
-        Route::delete('/{id}', [PresentacionController::class, 'destroy']);
-        Route::get('/estado/{estado}', [PresentacionController::class, 'getByEstado']);
-        Route::get('/organizacion/{organizacion}', [PresentacionController::class, 'getByOrganizacion']);
-        Route::get('/siglas/{siglas}', [PresentacionController::class, 'getBySiglas']);
-    });
+Route::prefix('presentaciones')->group(function () {
+    Route::get('/', [PresentacionController::class, 'index']);
+    Route::get('/create', [PresentacionController::class, 'create']);
+    Route::post('/', [PresentacionController::class, 'store']);
+    Route::get('/{id}', [PresentacionController::class, 'show']);
+    Route::get('/{id}/edit', [PresentacionController::class, 'edit']);
+    Route::put('/{id}', [PresentacionController::class, 'update']);
+    Route::delete('/{id}', [PresentacionController::class, 'destroy']);
+    Route::get('/estado/{estado}', [PresentacionController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [PresentacionController::class, 'getByOrganizacion']);
+    Route::get('/siglas/{siglas}', [PresentacionController::class, 'getBySiglas']);
+});
 
     // Personal
-    Route::get('/personal/listado', [PersonalPOSController::class, 'indexDataTable']);
-    Route::get('personal/{id}', [PersonalPOSController::class, 'show']);
-    Route::post('personal', [PersonalPOSController::class, 'store']);
-    Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
-    Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
-    Route::get('personal/active/count', [PersonalPOSController::class, 'countActive']);
-    Route::get('personal', [PersonalPOSController::class, 'index']);
+Route::get('/personal/listado', [PersonalPOSController::class, 'indexDataTable']);
+Route::get('personal/{id}', [PersonalPOSController::class, 'show']);
+Route::post('personal', [PersonalPOSController::class, 'store']);
+Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
+Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
+Route::get('personal/active/count', [PersonalPOSController::class, 'countActive']);
+Route::get('personal', [PersonalPOSController::class, 'index']); 
 
     // Agendas
-    Route::prefix('agendas')->group(function () {
-        Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
-        Route::get('/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
-        Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
-        Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
-        Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
-        Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
-    });
+Route::prefix('agendas')->group(function () {
+    Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
+    Route::get('/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
+    Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
+    Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
+    Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
+});
 
     // Pacientes
-    Route::prefix('pacientes')->group(function () {
-        Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
-        Route::get('/{id}', [App\Http\Controllers\PacienteController::class, 'show']);
-        Route::post('/', [App\Http\Controllers\PacienteController::class, 'store']);
-        Route::put('/{id}', [App\Http\Controllers\PacienteController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\PacienteController::class, 'destroy']);
-    });
+Route::prefix('pacientes')->group(function () {
+    Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
+    Route::get('/{id}', [App\Http\Controllers\PacienteController::class, 'show']);
+    Route::post('/', [App\Http\Controllers\PacienteController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\PacienteController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\PacienteController::class, 'destroy']);
+});
 
     // Doctores
-    Route::prefix('doctores')->group(function () {
-        Route::get('/', [App\Http\Controllers\DoctorController::class, 'index']);
-        Route::get('/{id}', [App\Http\Controllers\DoctorController::class, 'show']);
-        Route::post('/', [App\Http\Controllers\DoctorController::class, 'store']);
-        Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
-        Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
-    });
+Route::prefix('doctores')->group(function () {
+    Route::get('/', [App\Http\Controllers\DoctorController::class, 'index']);
+    Route::get('/{id}', [App\Http\Controllers\DoctorController::class, 'show']);
+    Route::post('/', [App\Http\Controllers\DoctorController::class, 'store']);
+    Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
+    Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
+});
 
     // Componentes
-    Route::prefix('componentes')->group(function () {
-        Route::get('/', [ComponenteActivoController::class, 'index']);
-        Route::post('/', [ComponenteActivoController::class, 'store']);
-        Route::get('/{id}', [ComponenteActivoController::class, 'show']);
-        Route::put('/{id}', [ComponenteActivoController::class, 'update']);
-        Route::delete('/{id}', [ComponenteActivoController::class, 'destroy']);
-        Route::get('/estado/{estado}', [ComponenteActivoController::class, 'getByEstado']);
-        Route::get('/organizacion/{organizacion}', [ComponenteActivoController::class, 'getByOrganizacion']);
-    });
+Route::prefix('componentes')->group(function () {
+    Route::get('/', [ComponenteActivoController::class, 'index']);
+    Route::post('/', [ComponenteActivoController::class, 'store']);
+    Route::get('/{id}', [ComponenteActivoController::class, 'show']);
+    Route::put('/{id}', [ComponenteActivoController::class, 'update']);
+    Route::delete('/{id}', [ComponenteActivoController::class, 'destroy']);
+    Route::get('/estado/{estado}', [ComponenteActivoController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [ComponenteActivoController::class, 'getByOrganizacion']);
+});
 
     // Auditoría (ya estaba protegida)
     Route::get('/auditorias', [AuditoriaController::class, 'apiIndex']);

@@ -162,10 +162,10 @@ function Dashboard() {
                             Descripción del Rol:
                           </MDTypography>
                           <MDBox ml={2} mt={1}>
-                            <MDTypography variant="body2" color="text">
+                              <MDTypography variant="body2" color="text">
                               {userData.role.Descripcion || 'Sin descripción'}
-                            </MDTypography>
-                          </MDBox>
+                              </MDTypography>
+                            </MDBox>
                         </MDBox>
                         <MDBox mt={2}>
                           <MDTypography variant="body1" color="text" fontWeight="medium">
