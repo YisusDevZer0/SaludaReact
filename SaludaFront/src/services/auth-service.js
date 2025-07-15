@@ -3,9 +3,11 @@ import HttpService from "./htttp.service";
 class AuthService {
   // authEndpoint = process.env.API_URL;
 
+  // El endpoint ya es correcto para PersonalPOS
   login = async (payload) => {
     try {
       console.log('Intentando login con payload:', payload); // Debug log
+      // Usar el endpoint correcto para PersonalPOS
       const response = await HttpService.post("pos/login", {
         email: payload.data.attributes.email,
         password: payload.data.attributes.password

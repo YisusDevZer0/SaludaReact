@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Frontend React
+  frontend:
+    build:
+      context: ./SaludaFront
+      dockerfile: Dockerfile
+    container_name: saludafront
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./SaludaFront:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - saludanetwork
+    restart: unless-stopped
+
+  # Backend Laravel
+  backend:
+    build:
+      context: ./SaludaBack
+      dockerfile: Dockerfile
+    container_name: saludaback
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=mysql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SECOND_HOST=${DB_SECOND_HOST}
+      - DB_SECOND_PORT=${DB_SECOND_PORT}
+      - DB_SECOND_DATABASE=${DB_SECOND_DATABASE}
+      - DB_SECOND_USERNAME=${DB_SECOND_USERNAME}
+      - DB_SECOND_PASSWORD=${DB_SECOND_PASSWORD}
+    volumes:
+      - ./SaludaBack:/var/www/html
+      - ./SaludaBack/storage:/var/www/html/storage
+      - ./SaludaBack/bootstrap/cache:/var/www/html/bootstrap/cache
+    networks:
+      - saludanetwork
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (opcional, para producción)
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: saludanginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - saludanetwork
+    restart: unless-stopped
+
+networks:
+  saludanetwork:
+    driver: bridge
+
+volumes:
+  frontend_node_modules:
+  backend_storage: 
