@@ -1,0 +1,267 @@
+/* Estilos específicos para la tabla de servicios */
+.servicios-table {
+  padding: 20px;
+  background-color: var(--md-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.servicios-table .table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones de acción */
+.servicios-table .action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.servicios-table .btn-action {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.servicios-table .btn-action:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  transform: scale(1.1);
+}
+
+.servicios-table .btn-action i {
+  font-size: 18px;
+}
+
+.servicios-table .btn-view {
+  color: #2196f3;
+}
+
+.servicios-table .btn-view:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.servicios-table .btn-edit {
+  color: #ff9800;
+}
+
+.servicios-table .btn-edit:hover {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.servicios-table .btn-toggle {
+  transition: color 0.3s ease;
+}
+
+.servicios-table .btn-toggle:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.servicios-table .btn-delete {
+  color: #f44336;
+}
+
+.servicios-table .btn-delete:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Estilos para badges y estados */
+.servicios-table .badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.servicios-table .precio-formateado {
+  font-weight: 600;
+  color: #1976d2;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.servicios-table .precio-no-definido {
+  color: #757575;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Estilos para el estado de cita */
+.servicios-table .cita-si {
+  color: #2196f3;
+  font-weight: 500;
+}
+
+.servicios-table .cita-no {
+  color: #757575;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .servicios-table {
+    padding: 16px;
+  }
+  
+  .servicios-table .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .servicios-table .btn-action {
+    min-width: 28px;
+    height: 28px;
+  }
+  
+  .servicios-table .btn-action i {
+    font-size: 16px;
+  }
+}
+
+/* Estilos para el modal */
+.servicios-table .MuiDialog-paper {
+  border-radius: 12px;
+}
+
+.servicios-table .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin: 0;
+}
+
+.servicios-table .MuiDialogContent-root {
+  padding: 24px;
+}
+
+.servicios-table .MuiDialogActions-root {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+}
+
+/* Mejoras para DataTables */
+.servicios-table .dataTables_wrapper {
+  padding: 0;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_length,
+.servicios-table .dataTables_wrapper .dataTables_filter {
+  margin-bottom: 16px;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_info,
+.servicios-table .dataTables_wrapper .dataTables_paginate {
+  margin-top: 16px;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 6px 12px;
+  margin: 0 2px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  background: white;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #007bff !important;
+  border-color: #007bff !important;
+  color: white !important;
+}
+
+.servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.servicios-table {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Loading state */
+.servicios-table .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .servicios-table {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .servicios-table .table-responsive {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .servicios-table .btn-action:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button {
+  background: #2d2d2d;
+  color: #ffffff;
+  border-color: #495057;
+}
+
+[data-theme="dark"] .servicios-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #495057;
+}
+
+/* Accessibility improvements */
+.servicios-table .btn-action:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.servicios-table .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+} 

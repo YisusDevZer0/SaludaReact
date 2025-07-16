@@ -16,6 +16,7 @@ import Tipos from "layouts/admin/Tipos";
 import Presentaciones from "layouts/admin/Presentaciones";
 import Marcas from "layouts/admin/Marcas";
 import Servicios from "layouts/admin/Servicios";
+import Almacenes from "layouts/admin/Almacenes";
 import AdminAgendasDashboard from "layouts/admin-agendas";
 
 // @mui icons
@@ -87,6 +88,15 @@ const routes = [
     icon: <Icon fontSize="small">inventory</Icon>,
     route: "/admin/almacenes",
     component: <AdminAlmacenes />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Almacenes",
+    key: "almacenes-gestion",
+    icon: <Icon fontSize="small">storage</Icon>,
+    route: "/admin/almacenes/gestion",
+    component: <Almacenes />,
     adminOnly: true,
   },
   {

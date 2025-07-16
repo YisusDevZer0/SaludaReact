@@ -1,0 +1,430 @@
+/* Estilos específicos para la tabla de marcas */
+.marcas-table {
+  padding: 20px;
+  background-color: var(--md-white);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.marcas-table .table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botones de acción */
+.marcas-table .action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.marcas-table .btn-action {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.marcas-table .btn-action:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  transform: scale(1.1);
+}
+
+.marcas-table .btn-action i {
+  font-size: 18px;
+}
+
+.marcas-table .btn-view {
+  color: #2196f3;
+}
+
+.marcas-table .btn-view:hover {
+  background-color: rgba(33, 150, 243, 0.1);
+}
+
+.marcas-table .btn-edit {
+  color: #ff9800;
+}
+
+.marcas-table .btn-edit:hover {
+  background-color: rgba(255, 152, 0, 0.1);
+}
+
+.marcas-table .btn-toggle {
+  transition: color 0.3s ease;
+}
+
+.marcas-table .btn-toggle:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.marcas-table .btn-delete {
+  color: #f44336;
+}
+
+.marcas-table .btn-delete:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Estilos específicos para marcas */
+.marcas-table .marca-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s ease;
+}
+
+.marcas-table .marca-logo:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.marcas-table .sitio-web-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.marcas-table .sitio-web-link:hover {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
+.marcas-table .sitio-web-link::after {
+  content: "🔗";
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Estilos para badges y estados */
+.marcas-table .badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Estilos para países */
+.marcas-table .pais-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.marcas-table .no-especificado {
+  color: #757575;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+/* Tooltips para logos */
+.marcas-table .logo-container {
+  position: relative;
+  display: inline-block;
+}
+
+.marcas-table .logo-container:hover .logo-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.marcas-table .logo-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .marcas-table {
+    padding: 16px;
+  }
+  
+  .marcas-table .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .marcas-table .btn-action {
+    min-width: 28px;
+    height: 28px;
+  }
+  
+  .marcas-table .btn-action i {
+    font-size: 16px;
+  }
+  
+  .marcas-table .marca-logo {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .marcas-table .sitio-web-link {
+    font-size: 0.8rem;
+  }
+}
+
+/* Estilos para el modal */
+.marcas-table .MuiDialog-paper {
+  border-radius: 12px;
+}
+
+.marcas-table .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin: 0;
+}
+
+.marcas-table .MuiDialogContent-root {
+  padding: 24px;
+}
+
+.marcas-table .MuiDialogActions-root {
+  padding: 16px 24px;
+  background-color: #f8f9fa;
+}
+
+/* Vista previa del logo en el formulario */
+.marcas-table .logo-preview {
+  max-width: 120px;
+  max-height: 60px;
+  object-fit: contain;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fafafa;
+  margin-top: 8px;
+}
+
+/* Mejoras para DataTables */
+.marcas-table .dataTables_wrapper {
+  padding: 0;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_length,
+.marcas-table .dataTables_wrapper .dataTables_filter {
+  margin-bottom: 16px;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_info,
+.marcas-table .dataTables_wrapper .dataTables_paginate {
+  margin-top: 16px;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 6px 12px;
+  margin: 0 2px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  background: white;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: #007bff !important;
+  border-color: #007bff !important;
+  color: white !important;
+}
+
+.marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.marcas-table {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes logoHover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(1.2) rotate(0deg);
+  }
+}
+
+.marcas-table .marca-logo:hover {
+  animation: logoHover 0.3s ease;
+}
+
+/* Loading state */
+.marcas-table .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .marcas-table {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .marcas-table .table-responsive {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .marcas-table .btn-action:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .marcas-table .marca-logo {
+  background: #404040;
+  border-color: #606060;
+}
+
+[data-theme="dark"] .marcas-table .sitio-web-link {
+  color: #64b5f6;
+}
+
+[data-theme="dark"] .marcas-table .sitio-web-link:hover {
+  color: #90caf9;
+}
+
+[data-theme="dark"] .marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button {
+  background: #2d2d2d;
+  color: #ffffff;
+  border-color: #495057;
+}
+
+[data-theme="dark"] .marcas-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #495057;
+}
+
+[data-theme="dark"] .marcas-table .logo-preview {
+  background: #404040;
+  border-color: #606060;
+}
+
+/* Accessibility improvements */
+.marcas-table .btn-action:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.marcas-table .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Efectos especiales para marcas destacadas */
+.marcas-table .marca-destacada {
+  position: relative;
+  overflow: hidden;
+}
+
+.marcas-table .marca-destacada::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.marcas-table .marca-destacada:hover::before {
+  left: 100%;
+}
+
+/* Indicadores de estado visual */
+.marcas-table .estado-activo {
+  position: relative;
+}
+
+.marcas-table .estado-activo::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 0 2px white;
+}
+
+.marcas-table .estado-inactivo::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f44336;
+  box-shadow: 0 0 0 2px white;
+} 

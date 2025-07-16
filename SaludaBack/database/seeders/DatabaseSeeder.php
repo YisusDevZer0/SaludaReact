@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             UsersSeeder::class,
             CategoriaPosSeeder::class,
             AgendaSeeder::class,
+            ServicioSeeder::class,
+            MarcaSeeder::class,
+            AlmacenSeeder::class,
         ]);
     }
 }

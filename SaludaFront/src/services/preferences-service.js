@@ -1,6 +1,10 @@
 import HttpService from "./htttp.service";
 
 class PreferencesService {
+  constructor() {
+    this.isBlocked = false;
+    this.blockUntil = 0;
+  }
   
   /**
    * Obtener las preferencias del usuario autenticado
@@ -50,6 +54,12 @@ class PreferencesService {
    */
   updateUserPreferences = async (preferences) => {
     try {
+      // Verificar si estamos en período de bloqueo por errores previos
+      if (this.isBlocked && Date.now() < this.blockUntil) {
+        console.log("Servicio de preferencias bloqueado temporalmente debido a errores de autenticación");
+        return { message: "Servicio temporalmente bloqueado" };
+      }
+      
       console.log("Actualizando preferencias:", preferences);
       const token = localStorage.getItem("token");
       
@@ -60,14 +70,29 @@ class PreferencesService {
       
       const response = await HttpService.put("user/preferences", preferences);
       console.log("Preferencias actualizadas:", response);
+      
+      // Reset bloqueo si la operación fue exitosa
+      this.isBlocked = false;
+      this.blockUntil = 0;
+      
       return response;
     } catch (error) {
       console.error("Error actualizando preferencias:", error);
       
-      // No lanzar error para que no bloquee la app
+      // Si es error de autenticación, bloquear temporalmente el servicio
       if (error.status === 401) {
-        console.log("Token inválido al actualizar preferencias");
+        console.log("Token inválido al actualizar preferencias - bloqueando servicio por 1 minuto");
+        this.isBlocked = true;
+        this.blockUntil = Date.now() + 60000; // 1 minuto
         return { message: "No autenticado" };
+      }
+      
+      // Si es error 500, bloquear por menos tiempo
+      if (error.status === 500) {
+        console.log("Error del servidor - bloqueando servicio por 30 segundos");
+        this.isBlocked = true;
+        this.blockUntil = Date.now() + 30000; // 30 segundos
+        return { message: "Error del servidor" };
       }
       
       return { message: "Error guardando preferencias" };

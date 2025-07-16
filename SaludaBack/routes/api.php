@@ -360,6 +360,45 @@ Route::prefix('componentes')->group(function () {
     Route::get('/organizacion/{organizacion}', [ComponenteActivoController::class, 'getByOrganizacion']);
 });
 
+    // Servicios
+    Route::prefix('servicios')->group(function () {
+        Route::get('/', [App\Http\Controllers\ServicioController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\ServicioController::class, 'store']);
+        Route::get('/{id}', [App\Http\Controllers\ServicioController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\ServicioController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\ServicioController::class, 'destroy']);
+        Route::patch('/{id}/toggle-status', [App\Http\Controllers\ServicioController::class, 'toggleStatus']);
+        Route::get('/estado/{estado}', [App\Http\Controllers\ServicioController::class, 'getByEstado']);
+        Route::get('/sistema/{sistema}', [App\Http\Controllers\ServicioController::class, 'getBySistema']);
+    });
+
+    // Marcas
+    Route::prefix('marcas')->group(function () {
+        Route::get('/', [App\Http\Controllers\MarcaController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\MarcaController::class, 'store']);
+        Route::get('/{id}', [App\Http\Controllers\MarcaController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\MarcaController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\MarcaController::class, 'destroy']);
+        Route::patch('/{id}/toggle-status', [App\Http\Controllers\MarcaController::class, 'toggleStatus']);
+        Route::get('/estado/{estado}', [App\Http\Controllers\MarcaController::class, 'getByEstado']);
+        Route::get('/sistema/{sistema}', [App\Http\Controllers\MarcaController::class, 'getBySistema']);
+        Route::get('/pais/{pais}', [App\Http\Controllers\MarcaController::class, 'getByPais']);
+        Route::get('/paises-disponibles', [App\Http\Controllers\MarcaController::class, 'getPaisesDisponibles']);
+    });
+
+    // Almacenes
+    Route::prefix('almacenes')->group(function () {
+        Route::get('/', [App\Http\Controllers\AlmacenController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\AlmacenController::class, 'store']);
+        Route::get('/estadisticas', [App\Http\Controllers\AlmacenController::class, 'estadisticas']);
+        Route::get('/tipos-disponibles', [App\Http\Controllers\AlmacenController::class, 'tiposDisponibles']);
+        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\AlmacenController::class, 'cambiarEstadoMasivo']);
+        Route::get('/tipo/{tipo}', [App\Http\Controllers\AlmacenController::class, 'porTipo']);
+        Route::get('/{id}', [App\Http\Controllers\AlmacenController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\AlmacenController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\AlmacenController::class, 'destroy']);
+    });
+
     // Auditoría (ya estaba protegida)
     Route::get('/auditorias', [AuditoriaController::class, 'apiIndex']);
 }); 

@@ -15,7 +15,7 @@ const axiosInstance = Axios.create({
     'Accept': 'application/json'
   },
   // Agregar timeout y otras configuraciones
-  timeout: 10000,
+  timeout: 15000, // Aumentar timeout a 15 segundos
   validateStatus: function (status) {
     return status >= 200 && status < 500; // Aceptar todos los códigos de estado para manejar errores
   }
@@ -26,11 +26,27 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
+      console.log("HttpService: Enviando Bearer token:", token.substring(0, 20) + "...");
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("HttpService: Error en request interceptor:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor de respuesta para manejar errores de autenticación
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si es error 401, no hacer nada aquí - dejarlo al interceptor principal
+    if (error.response?.status === 401) {
+      console.log("HttpService: Error 401 detectado, delegando al interceptor principal");
+    }
+    return Promise.reject(error);
+  }
 );
 
 export class HttpService {
@@ -52,7 +68,10 @@ export class HttpService {
     return await this.request(this.getOptionsConfig("post", url, data));
   };
 
-  put = async (url, data) => await this.request(this.getOptionsConfig("put", url, data));
+  put = async (url, data) => {
+    console.log("Enviando petición PUT a:", `${API_BASE}/${url}`);
+    return await this.request(this.getOptionsConfig("put", url, data));
+  };
 
   patch = async (url, data) => await this.request(this.getOptionsConfig("patch", url, data));
 
@@ -89,11 +108,18 @@ export class HttpService {
           // Mejorar el manejo de errores
           if (error.response) {
             // El servidor respondió con un código de estado fuera del rango 2xx
-            reject({
+            const errorResponse = {
               status: error.response.status,
               message: error.response.data?.message || 'Error del servidor',
               errors: error.response.data?.errors || [{ detail: 'Error desconocido' }]
-            });
+            };
+            
+            // Para errores 401, no hacer retry automático para evitar loops infinitos
+            if (error.response.status === 401) {
+              console.log("HttpService: Error 401 - Usuario no autenticado");
+            }
+            
+            reject(errorResponse);
           } else if (error.request) {
             // La petición fue hecha pero no se recibió respuesta
             reject({

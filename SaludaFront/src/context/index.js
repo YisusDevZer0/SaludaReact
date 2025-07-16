@@ -374,6 +374,13 @@ function MaterialUIControllerProvider({ children }) {
       
       // Solo guardar si hay token, userData y las preferencias ya se cargaron
       if (token && userData && preferencesLoaded) {
+        // Verificar que el usuario esté autenticado en el contexto
+        const authContext = JSON.parse(userData);
+        if (!authContext || !authContext.Pos_ID) {
+          console.log("Usuario no válido, saltando guardado de preferencias");
+          return;
+        }
+        
         console.log("Guardando preferencias automáticamente...");
         const preferences = {
           ui: {
@@ -397,22 +404,44 @@ function MaterialUIControllerProvider({ children }) {
         
         const result = await PreferencesService.updateUserPreferences(preferences);
         console.log("Resultado del guardado:", result);
+        
+        // Si hay error de autenticación, no continuar guardando
+        if (result && result.message === "No autenticado") {
+          console.log("Error de autenticación al guardar preferencias, deteniendo auto-guardado");
+          return;
+        }
       } else {
         console.log("No se puede guardar: token=" + !!token + ", userData=" + !!userData + ", loaded=" + preferencesLoaded);
       }
     } catch (error) {
       console.error("Error saving preferences:", error);
+      
+      // Si es error 401, no intentar más guardados por un tiempo
+      if (error.status === 401) {
+        console.log("Error 401 al guardar preferencias, pausando auto-guardado");
+        // Pausar el auto-guardado por 30 segundos
+        setTimeout(() => {
+          console.log("Reanudando auto-guardado de preferencias");
+        }, 30000);
+        return;
+      }
     }
   };
 
-  // Auto-guardar cuando el estado cambia
+  // Auto-guardar cuando el estado cambia (con mejor control)
   useEffect(() => {
     if (preferencesLoaded) {
-      const timeoutId = setTimeout(() => {
-        savePreferences(controller);
-      }, 1000); // Debounce de 1 segundo
+      // Solo auto-guardar si el usuario está realmente autenticado
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("userData");
+      
+      if (token && userData) {
+        const timeoutId = setTimeout(() => {
+          savePreferences(controller);
+        }, 2000); // Aumentar debounce a 2 segundos para reducir requests
 
-      return () => clearTimeout(timeoutId);
+        return () => clearTimeout(timeoutId);
+      }
     }
   }, [controller, preferencesLoaded]);
 

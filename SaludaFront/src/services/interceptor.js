@@ -4,10 +4,8 @@ export const setupAxiosInterceptors = (onUnauthenticated) => {
   const onRequestSuccess = async (config) => {
     const token = localStorage.getItem("token");
     if (token) {
-      console.log("Interceptor: Enviando token:", token.substring(0, 20) + "...");
+      console.log("Interceptor: Token found:", token.substring(0, 20) + "...");
       console.log("Interceptor: Token length:", token.length);
-      config.headers['X-Auth-Token'] = token;
-      console.log("Interceptor: X-Auth-Token header:", config.headers['X-Auth-Token'].substring(0, 30) + "...");
     } else {
       console.log("Interceptor: No token found");
     }
@@ -44,19 +42,18 @@ export const setupAxiosInterceptors = (onUnauthenticated) => {
     if (error.response) {
       const status = error.response.status;
       if (status === 401) {
-        // Verificar si el token expiró
-        const tokenExpiresAt = localStorage.getItem("token_expires_at");
-        if (tokenExpiresAt && parseInt(tokenExpiresAt) < Date.now() / 1000) {
-          console.log("Interceptor: Token expirado, cerrando sesión");
-          localStorage.removeItem("token");
-          localStorage.removeItem("token_expires_at");
-          localStorage.removeItem("userData");
-          localStorage.removeItem("userRole");
-          localStorage.removeItem("userPermissions");
-          
-          if (onUnauthenticated) {
-            onUnauthenticated();
-          }
+        console.log("Interceptor: Error 401 - Token inválido o expirado");
+        
+        // Limpiar tokens y redirigir al login
+        localStorage.removeItem("token");
+        localStorage.removeItem("token_expires_at");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userPermissions");
+        
+        if (onUnauthenticated) {
+          console.log("Interceptor: Ejecutando callback de no autenticado");
+          onUnauthenticated();
         }
       }
     }
