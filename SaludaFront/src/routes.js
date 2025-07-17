@@ -18,6 +18,9 @@ import Presentaciones from "layouts/admin/Presentaciones";
 import Marcas from "layouts/admin/Marcas";
 import Servicios from "layouts/admin/Servicios";
 import Almacenes from "layouts/admin/Almacenes";
+import Productos from "layouts/admin/Productos";
+import Proveedores from "layouts/admin/Proveedores";
+import Clientes from "layouts/admin/Clientes";
 import AdminAgendasDashboard from "layouts/admin-agendas";
 
 // @mui icons
@@ -102,6 +105,13 @@ const routes = [
   },
   {
     type: "route",
+    key: "almacenes-productos",
+    route: "/admin/productos",
+    component: <Productos />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
     key: "almacenes-categorias",
     route: "/admin/categorias-pos",
     component: <Categorias />,
@@ -152,6 +162,29 @@ const routes = [
     adminOnly: true,
   },
   //FIN ALMACENES E INVENTARIOS
+
+  //INICIA GESTIÓN COMERCIAL
+  {
+    type: "title",
+    title: "Gestión comercial",
+    key: "gestion-comercial-title",
+    icon: <Icon fontSize="small">business</Icon>,
+  },
+  {
+    type: "route",
+    key: "proveedores",
+    route: "/admin/proveedores",
+    component: <Proveedores />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "clientes",
+    route: "/admin/clientes",
+    component: <Clientes />,
+    adminOnly: true,
+  },
+  //FIN GESTIÓN COMERCIAL
 
   //INICIA CONTROL DE PERSONAL (para administradores)
   {

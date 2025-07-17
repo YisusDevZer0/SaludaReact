@@ -1,0 +1,183 @@
+/* Estilos para ProductosTable */
+
+.productos-table {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.productos-table .rdt_Table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.productos-table .rdt_TableHead {
+  background-color: #f8f9fa;
+}
+
+.productos-table .rdt_TableHead .rdt_TableCol {
+  font-weight: 600;
+  color: #495057;
+  padding: 12px 8px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.productos-table .rdt_TableBody .rdt_TableRow {
+  border-bottom: 1px solid #f1f3f4;
+  transition: background-color 0.2s ease;
+}
+
+.productos-table .rdt_TableBody .rdt_TableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.productos-table .rdt_TableBody .rdt_TableCell {
+  padding: 12px 8px;
+  vertical-align: middle;
+}
+
+/* Estados de productos */
+.producto-estado-activo {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+.producto-estado-inactivo {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+}
+
+.producto-estado-descontinuado {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+.producto-estado-agotado {
+  background-color: #d1ecf1 !important;
+  color: #0c5460 !important;
+}
+
+/* Stock bajo */
+.producto-stock-bajo {
+  color: #dc3545 !important;
+  font-weight: 600;
+}
+
+.producto-stock-normal {
+  color: #28a745 !important;
+}
+
+.producto-stock-alto {
+  color: #17a2b8 !important;
+}
+
+/* Precios */
+.producto-precio {
+  font-weight: 600;
+  color: #28a745;
+}
+
+.producto-precio-mayor {
+  font-weight: 600;
+  color: #17a2b8;
+}
+
+/* Categorías */
+.producto-categoria {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Marcas */
+.producto-marca {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Acciones */
+.producto-acciones {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.producto-acciones .MuiIconButton-root {
+  padding: 4px;
+}
+
+.producto-acciones .MuiIconButton-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Filtros */
+.productos-filtros {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.productos-filtros .MuiGrid-item {
+  margin-bottom: 8px;
+}
+
+/* Estadísticas */
+.productos-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.productos-stat-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.productos-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.productos-stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .productos-table .rdt_TableHead .rdt_TableCol,
+  .productos-table .rdt_TableBody .rdt_TableCell {
+    padding: 8px 4px;
+    font-size: 0.875rem;
+  }
+  
+  .productos-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .productos-stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .productos-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .producto-acciones {
+    flex-direction: column;
+    gap: 2px;
+  }
+} 
