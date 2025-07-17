@@ -1,0 +1,343 @@
+/* Estilos específicos para AdminAlmacenes */
+
+.admin-almacenes-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.admin-almacenes-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  pointer-events: none;
+}
+
+.admin-almacenes-header .MuiTypography-root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Tarjetas de configuración */
+.config-card {
+  border-radius: 16px !important;
+  min-height: 380px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.config-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.config-card:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2) !important;
+}
+
+.config-card:hover::before {
+  opacity: 1;
+}
+
+.config-card:hover .card-icon {
+  transform: scale(1.1) !important;
+}
+
+/* Iconos de las tarjetas */
+.card-icon {
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+.card-icon .MuiBox-root {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.card-icon .MuiBox-root::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.config-card:hover .card-icon .MuiBox-root::after {
+  width: 100px;
+  height: 100px;
+  opacity: 1;
+}
+
+/* Estadísticas en las tarjetas */
+.card-stats {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+  border-radius: 12px !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+  border: 1px solid rgba(102, 126, 234, 0.2) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.card-stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.config-card:hover .card-stats::before {
+  left: 100%;
+}
+
+/* Botones de acción en el header */
+.header-action-button {
+  border-color: rgba(255,255,255,0.3) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.header-action-button:hover {
+  border-color: white !important;
+  background-color: rgba(255,255,255,0.1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(255,255,255,0.2) !important;
+}
+
+/* Botones de las tarjetas */
+.card-action-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 12px !important;
+  padding: 12px 24px !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.card-action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.card-action-button:hover::before {
+  left: 100%;
+}
+
+.card-action-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Animaciones de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.config-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.config-card:nth-child(1) { animation-delay: 0.1s; }
+.config-card:nth-child(2) { animation-delay: 0.2s; }
+.config-card:nth-child(3) { animation-delay: 0.3s; }
+.config-card:nth-child(4) { animation-delay: 0.4s; }
+.config-card:nth-child(5) { animation-delay: 0.5s; }
+.config-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .admin-almacenes-header {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .config-card {
+    min-height: 320px !important;
+    margin-bottom: 1rem;
+  }
+  
+  .card-icon .MuiBox-root {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .card-icon .MuiIcon-root {
+    font-size: 24px !important;
+  }
+  
+  .header-action-button {
+    font-size: 0.875rem !important;
+    padding: 8px 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-almacenes-header {
+    padding: 1rem;
+  }
+  
+  .config-card {
+    min-height: 280px !important;
+  }
+  
+  .card-action-button {
+    font-size: 0.8rem !important;
+    padding: 10px 16px !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .config-card {
+    background: rgba(33, 33, 33, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .card-stats {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%) !important;
+    border-color: rgba(102, 126, 234, 0.3) !important;
+  }
+  
+  .admin-almacenes-header {
+    background: linear-gradient(135deg, #424242 0%, #616161 100%);
+  }
+}
+
+/* Efectos de hover mejorados */
+.config-card:hover .MuiTypography-root {
+  color: #667eea !important;
+}
+
+.config-card:hover .card-stats .MuiTypography-root {
+  color: #667eea !important;
+}
+
+/* Estilos para el modal de información */
+.info-modal-content {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.info-modal-features {
+  list-style: none;
+  padding: 0;
+}
+
+.info-modal-features li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-modal-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
+}
+
+/* Estilos para filtros */
+.filters-section {
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+/* Efectos de carga */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Estilos para tooltips */
+.config-card[data-tooltip] {
+  position: relative;
+}
+
+.config-card[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.config-card[data-tooltip]:hover::after {
+  opacity: 1;
+} 

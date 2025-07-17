@@ -1,0 +1,371 @@
+/* StandardDataTable.css - Estilos estándar para todas las tablas */
+
+.standard-datatable-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Estilos para el loader personalizado */
+.standard-datatable-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* Estilos para la barra de herramientas */
+.standard-datatable-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.standard-datatable-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.standard-datatable-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilos para el campo de búsqueda */
+.standard-datatable-search {
+  min-width: 300px;
+}
+
+@media (max-width: 768px) {
+  .standard-datatable-search {
+    min-width: 200px;
+  }
+  
+  .standard-datatable-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Estilos para botones de acción en las celdas */
+.standard-datatable-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+
+.standard-datatable-action-btn {
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.standard-datatable-action-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: scale(1.1);
+}
+
+.standard-datatable-action-btn.edit {
+  color: #ff9800;
+}
+
+.standard-datatable-action-btn.delete {
+  color: #f44336;
+}
+
+.standard-datatable-action-btn.view {
+  color: #2196f3;
+}
+
+/* Estilos para chips de estado */
+.standard-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.standard-status-chip.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.standard-status-chip.inactive {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.standard-status-chip.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+/* Estilos para filas seleccionadas */
+.rdt_TableRow[aria-selected="true"] {
+  background-color: rgba(25, 118, 210, 0.08) !important;
+}
+
+/* Estilos para hover en filas */
+.rdt_TableRow:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Estilos para headers personalizados */
+.rdt_TableHeadRow {
+  border-bottom: 2px solid rgba(224, 224, 224, 1);
+}
+
+.rdt_TableCol {
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px !important;
+}
+
+/* Estilos para celdas */
+.rdt_TableCell {
+  padding: 12px 16px !important;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}
+
+/* Estilos para paginación */
+.rdt_Pagination {
+  border-top: 1px solid rgba(224, 224, 224, 1);
+  padding: 16px !important;
+}
+
+/* Estilos para modo oscuro */
+.dark-mode .standard-datatable-loading {
+  background: rgba(33, 33, 33, 0.8);
+}
+
+.dark-mode .standard-datatable-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .rdt_TableRow:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark-mode .standard-status-chip.active {
+  background: rgba(46, 125, 50, 0.2);
+  color: #81c784;
+}
+
+.dark-mode .standard-status-chip.inactive {
+  background: rgba(211, 47, 47, 0.2);
+  color: #e57373;
+}
+
+.dark-mode .standard-status-chip.pending {
+  background: rgba(245, 124, 0, 0.2);
+  color: #ffb74d;
+}
+
+/* Estilos para elementos de formulario en modales */
+.standard-form-row {
+  margin-bottom: 16px;
+}
+
+.standard-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.standard-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(224, 224, 224, 1);
+}
+
+/* Estilos para estadísticas */
+.standard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.standard-stats-card {
+  padding: 16px;
+  text-align: center;
+  border-radius: 8px;
+  background: #f5f5f5;
+  border: 1px solid rgba(224, 224, 224, 1);
+}
+
+.dark-mode .standard-stats-card {
+  background: #424242;
+  border-color: #616161;
+}
+
+.standard-stats-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.standard-stats-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+}
+
+/* Estilos para filtros */
+.standard-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.standard-datatable-wrapper {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para botones de bulk actions */
+.standard-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 4px;
+  border-left: 4px solid #1976d2;
+}
+
+.standard-bulk-actions-text {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .rdt_TableCol,
+  .rdt_TableCell {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  .standard-datatable-actions {
+    gap: 2px;
+  }
+  
+  .standard-datatable-action-btn {
+    padding: 2px;
+  }
+  
+  .standard-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .standard-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Estilos para indicadores de carga */
+.standard-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dark-mode .standard-loading-overlay {
+  background: rgba(33, 33, 33, 0.8);
+}
+
+/* Estilos para tooltips personalizados */
+.standard-tooltip {
+  font-size: 12px !important;
+  background: #333 !important;
+  color: white !important;
+}
+
+/* Estilos para elementos con focus */
+.standard-datatable-wrapper *:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* Personalización de scrollbar */
+.rdt_Table::-webkit-scrollbar {
+  height: 8px;
+}
+
+.rdt_Table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.rdt_Table::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.rdt_Table::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.dark-mode .rdt_Table::-webkit-scrollbar-track {
+  background: #424242;
+}
+
+.dark-mode .rdt_Table::-webkit-scrollbar-thumb {
+  background: #616161;
+}
+
+.dark-mode .rdt_Table::-webkit-scrollbar-thumb:hover {
+  background: #757575;
+} 

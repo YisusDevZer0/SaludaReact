@@ -1,0 +1,534 @@
+/* Estilos para el componente Servicios */
+
+.servicios-container {
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.page-title {
+  color: white !important;
+  margin-bottom: 24px !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: 600 !important;
+}
+
+/* Tarjeta de estadísticas */
+.estadisticas-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.estadisticas-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.estadisticas-card .card-icon {
+  margin-right: 8px;
+  color: #667eea;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Filtros */
+.filtros-paper {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.filtros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.filtros-header .filter-icon {
+  margin-right: 8px;
+}
+
+.filtros-content {
+  padding: 24px;
+}
+
+.filtros-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.search-icon {
+  color: #667eea;
+}
+
+/* Tabla de servicios */
+.servicios-table-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-header .table-icon {
+  margin-right: 8px;
+  color: #667eea;
+}
+
+.table-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 16px;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-container {
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.servicios-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.servicios-table th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 12px;
+  text-align: left;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.servicios-table th:first-child {
+  width: 50px;
+  text-align: center;
+}
+
+.servicios-table th:last-child {
+  width: 120px;
+  text-align: center;
+}
+
+.servicios-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.servicios-table tr:hover {
+  background: #f8f9fa;
+  transition: background 0.2s ease;
+}
+
+.servicios-table tr.sistema-row {
+  background: #f0f8ff;
+}
+
+.servicios-table tr.sistema-row:hover {
+  background: #e6f3ff;
+}
+
+.servicio-nombre {
+  font-weight: 500;
+  color: #333;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.action-buttons .MuiIconButton-root {
+  padding: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-buttons .MuiIconButton-root:hover {
+  transform: scale(1.1);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #666;
+}
+
+/* Paginación */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-top: 24px;
+}
+
+/* Modales */
+.MuiDialog-paper {
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(10px);
+}
+
+.MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.MuiDialogContent-root {
+  padding: 24px !important;
+}
+
+.MuiDialogActions-root {
+  padding: 16px 24px !important;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Chips personalizados */
+.MuiChip-root {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease;
+}
+
+.MuiChip-root:hover {
+  transform: scale(1.05);
+}
+
+/* Campos de formulario */
+.MuiTextField-root,
+.MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root,
+.MuiFormControl-root .MuiOutlinedInput-root {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover,
+.MuiFormControl-root .MuiOutlinedInput-root:hover {
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
+.MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Botones */
+.MuiButton-root {
+  border-radius: 12px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.MuiButton-containedPrimary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.MuiButton-containedPrimary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+}
+
+/* Switch personalizado */
+.MuiSwitch-root {
+  padding: 8px;
+}
+
+.MuiSwitch-track {
+  border-radius: 22px !important;
+  background: #ccc !important;
+}
+
+.MuiSwitch-thumb {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+/* Snackbars */
+.MuiSnackbar-root {
+  z-index: 9999;
+}
+
+.MuiAlert-root {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .servicios-container {
+    padding: 16px;
+  }
+
+  .table-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .table-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .servicios-table th,
+  .servicios-table td {
+    padding: 8px 6px;
+    font-size: 14px;
+  }
+
+  .servicio-nombre {
+    max-width: 120px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bulk-actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .estadisticas-card .MuiGrid-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .filtros-content .MuiGrid-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  .servicios-table {
+    font-size: 12px;
+  }
+
+  .servicios-table th,
+  .servicios-table td {
+    padding: 6px 4px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.servicios-container > * {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.estadisticas-card,
+.filtros-paper,
+.servicios-table-card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Estados de carga */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 16px;
+}
+
+/* Tooltips personalizados */
+.MuiTooltip-tooltip {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  padding: 8px 12px !important;
+}
+
+/* Checkbox personalizado */
+.servicios-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #667eea;
+  cursor: pointer;
+}
+
+/* Scrollbar personalizado */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Efectos de hover mejorados */
+.servicios-table tr:hover .servicio-nombre {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.action-buttons .MuiIconButton-root:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Estados de error y éxito */
+.error-state {
+  background: #ffebee;
+  border: 1px solid #f44336;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  color: #d32f2f;
+}
+
+.success-state {
+  background: #e8f5e8;
+  border: 1px solid #4caf50;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  color: #2e7d32;
+}
+
+/* Modo oscuro (si se implementa) */
+@media (prefers-color-scheme: dark) {
+  .servicios-container {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
+
+  .estadisticas-card,
+  .filtros-paper,
+  .servicios-table-card {
+    background: rgba(44, 62, 80, 0.95) !important;
+    color: white;
+  }
+
+  .servicios-table {
+    background: #34495e;
+    color: white;
+  }
+
+  .servicios-table th {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
+
+  .servicios-table tr:hover {
+    background: #2c3e50;
+  }
+
+  .servicios-table tr.sistema-row {
+    background: #1a252f;
+  }
+
+  .servicios-table tr.sistema-row:hover {
+    background: #2c3e50;
+  }
+} 

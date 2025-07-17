@@ -26,26 +26,35 @@ class ServicioResource extends JsonResource
             'requiere_cita' => $this->Requiere_Cita,
             'requiere_cita_texto' => $this->requiere_cita_texto,
             'sistema' => $this->Sistema,
-            'organizacion' => $this->ID_H_O_D,
+            'sistema_descripcion' => $this->sistema_descripcion,
+            'sistema_color' => $this->sistema_color,
+            'organizacion' => 'Saluda',
             'agregado_por' => $this->Agregado_Por,
             'agregado_el' => $this->Agregadoel?->format('Y-m-d H:i:s'),
             'creado_en' => $this->created_at?->format('Y-m-d H:i:s'),
             'actualizado_en' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'ID_H_O_D' => $this->ID_H_O_D,
+            'deleted_at' => $this->deleted_at?->format('Y-m-d H:i:s'),
+            
+            // Campos computados
+            'es_activo' => $this->esActivo(),
+            'es_sistema' => $this->esSistema(),
+            'puede_editar' => true, // Basado en permisos del usuario
+            'puede_eliminar' => !$this->esSistema(), // No eliminar servicios del sistema
+            'puede_cambiar_estado' => true,
+            
+            // Información adicional
+            'tipo_info' => [
+                'codigo' => $this->Sistema ? 'Sistema' : 'Personalizado',
+                'descripcion' => $this->Sistema ? 'Servicio del sistema' : 'Servicio personalizado',
+                'permite_edicion' => !$this->Sistema,
+                'permite_eliminacion' => !$this->Sistema
+            ],
             
             // Relaciones condicionales
             'marcas' => MarcaResource::collection($this->whenLoaded('marcas')),
             'marcas_count' => $this->when($this->relationLoaded('marcas'), function () {
                 return $this->marcas->count();
-            }),
-            
-            // Datos adicionales para formularios
-            'puede_editar' => $this->when($request->user(), function () use ($request) {
-                return $request->user()->Nombre_Apellidos === $this->Agregado_Por || 
-                       $request->user()->role?->Nombre_rol === 'Administrador';
-            }),
-            
-            'puede_eliminar' => $this->when($request->user(), function () use ($request) {
-                return $request->user()->role?->Nombre_rol === 'Administrador';
             }),
         ];
     }
@@ -57,17 +66,18 @@ class ServicioResource extends JsonResource
     {
         return [
             'meta' => [
-                'version' => '1.0',
                 'timestamp' => now()->toISOString(),
-            ],
+                'version' => '1.0'
+            ]
         ];
     }
 
     /**
      * Customize the outgoing response for the resource.
      */
-    public function withResponse(Request $request, $response): void
+    public function withResponse($request, $response)
     {
         $response->header('X-Resource-Type', 'Servicio');
+        $response->header('X-Servicio-Tipo', $this->Sistema ? 'Sistema' : 'Personalizado');
     }
 } 

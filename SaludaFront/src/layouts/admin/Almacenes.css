@@ -1,0 +1,399 @@
+/* Estilos específicos para el componente Almacenes */
+
+.almacenes-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.almacenes-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  pointer-events: none;
+}
+
+.almacenes-header .MuiTypography-root {
+  position: relative;
+  z-index: 1;
+}
+
+.almacenes-debug-button {
+  border-color: rgba(255,255,255,0.3) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.almacenes-debug-button:hover {
+  border-color: white !important;
+  background-color: rgba(255,255,255,0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.almacenes-create-button {
+  background: rgba(255,255,255,0.9) !important;
+  color: #667eea !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.almacenes-create-button:hover {
+  background: white !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(255,255,255,0.3) !important;
+}
+
+/* Estilos para la tabla de almacenes */
+.almacenes-table {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.almacenes-table .rdt_Table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.almacenes-table .rdt_TableHead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.almacenes-table .rdt_TableHead .rdt_TableCol {
+  color: white !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  border: none !important;
+}
+
+.almacenes-table .rdt_TableBody .rdt_TableRow {
+  transition: all 0.2s ease !important;
+  border-bottom: 1px solid rgba(224, 224, 224, 0.5) !important;
+}
+
+.almacenes-table .rdt_TableBody .rdt_TableRow:hover {
+  background: rgba(102, 126, 234, 0.05) !important;
+  transform: translateX(4px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.almacenes-table .rdt_TableBody .rdt_TableRow:nth-child(even) {
+  background: rgba(248, 249, 250, 0.6) !important;
+}
+
+.almacenes-table .rdt_TableCell {
+  padding: 16px 12px !important;
+  font-size: 0.875rem !important;
+  border: none !important;
+}
+
+/* Estilos para chips de estado y tipo */
+.almacenes-chip {
+  border-radius: 16px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.almacenes-chip:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+.almacenes-chip.estado-activo {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.estado-inactivo {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.estado-sin-estado {
+  background: linear-gradient(135deg, #757575 0%, #616161 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.tipo-servicios {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.tipo-medicamentos {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.tipo-insumos {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.tipo-equipos {
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%) !important;
+  color: white !important;
+}
+
+.almacenes-chip.tipo-sin-tipo {
+  background: linear-gradient(135deg, #757575 0%, #616161 100%) !important;
+  color: white !important;
+}
+
+/* Estilos para el modal */
+.almacenes-modal .MuiDialog-paper {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+}
+
+.almacenes-modal .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  padding: 24px 32px !important;
+  margin: 0 !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 72px !important;
+}
+
+.almacenes-modal .MuiDialogTitle-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+
+.almacenes-modal .MuiDialogContent-root {
+  padding: 24px 32px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.almacenes-modal .MuiDialogActions-root {
+  padding: 16px 32px !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+  border-top: 1px solid rgba(224, 224, 224, 0.5) !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Estilos para campos de formulario */
+.almacenes-modal .MuiTextField-root {
+  margin-bottom: 16px !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-root:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+  background: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(224, 224, 224, 0.8) !important;
+  transition: all 0.2s ease !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea !important;
+}
+
+.almacenes-modal .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea !important;
+  border-width: 2px !important;
+}
+
+/* Estilos para botones del modal */
+.almacenes-modal .MuiButton-root {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.almacenes-modal .MuiButton-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.almacenes-modal .MuiButton-root:hover::before {
+  left: 100%;
+}
+
+.almacenes-modal .MuiButton-root:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.almacenes-modal .MuiDialogContent-root > * {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .almacenes-header {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .almacenes-modal .MuiDialog-paper {
+    margin: 16px !important;
+    max-width: calc(100% - 32px) !important;
+    max-height: calc(100% - 32px) !important;
+  }
+  
+  .almacenes-modal .MuiDialogTitle-root {
+    padding: 16px 24px !important;
+    min-height: 60px !important;
+  }
+  
+  .almacenes-modal .MuiDialogContent-root {
+    padding: 16px 24px !important;
+  }
+  
+  .almacenes-modal .MuiDialogActions-root {
+    padding: 12px 24px !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .almacenes-modal .MuiButton-root {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .almacenes-modal .MuiDialog-paper {
+    background: rgba(33, 33, 33, 0.98) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .almacenes-modal .MuiDialogContent-root {
+    background: rgba(33, 33, 33, 0.95) !important;
+  }
+  
+  .almacenes-modal .MuiDialogActions-root {
+    background: rgba(48, 48, 48, 0.8) !important;
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .almacenes-modal .MuiTextField-root .MuiOutlinedInput-root {
+    background: rgba(48, 48, 48, 0.8) !important;
+  }
+  
+  .almacenes-modal .MuiTextField-root .MuiOutlinedInput-root:hover {
+    background: rgba(48, 48, 48, 0.9) !important;
+  }
+}
+
+/* Estilos para tooltips */
+.almacenes-tooltip {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 0.875rem !important;
+}
+
+/* Estilos para alertas */
+.almacenes-alert {
+  border-radius: 8px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.almacenes-alert.MuiAlert-standardSuccess {
+  background: rgba(76, 175, 80, 0.1) !important;
+  border-color: rgba(76, 175, 80, 0.3) !important;
+}
+
+.almacenes-alert.MuiAlert-standardError {
+  background: rgba(244, 67, 54, 0.1) !important;
+  border-color: rgba(244, 67, 54, 0.3) !important;
+}
+
+.almacenes-alert.MuiAlert-standardInfo {
+  background: rgba(33, 150, 243, 0.1) !important;
+  border-color: rgba(33, 150, 243, 0.3) !important;
+}
+
+/* Estilos para loading states */
+.almacenes-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.almacenes-loading .MuiCircularProgress-root {
+  color: #667eea !important;
+}
+
+/* Estilos para empty states */
+.almacenes-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.almacenes-empty .MuiTypography-root {
+  margin-bottom: 16px;
+}
+
+.almacenes-empty .MuiButton-root {
+  margin-top: 16px;
+} 

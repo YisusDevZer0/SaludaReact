@@ -1,0 +1,376 @@
+/* Estilos base para todos los modales */
+.base-modal {
+  backdrop-filter: blur(10px);
+}
+
+.base-modal .MuiBackdrop-root {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(5px);
+}
+
+.base-modal .MuiDialog-paper {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  animation: modalSlideIn 0.3s ease-out !important;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header del modal */
+.base-modal .MuiDialogTitle-root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  padding: 24px 32px !important;
+  margin: 0 !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 72px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.base-modal .MuiDialogTitle-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+
+/* Contenido del modal */
+.base-modal .MuiDialogContent-root {
+  padding: 24px 32px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  position: relative;
+}
+
+.base-modal .MuiDialogContent-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Acciones del modal */
+.base-modal .MuiDialogActions-root {
+  padding: 16px 32px !important;
+  background: rgba(248, 249, 250, 0.8) !important;
+  border-top: 1px solid rgba(224, 224, 224, 0.5) !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Botones del modal */
+.base-modal .MuiButton-root {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.base-modal .MuiButton-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.base-modal .MuiButton-root:hover::before {
+  left: 100%;
+}
+
+.base-modal .MuiButton-root:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Campos de formulario */
+.base-modal .MuiTextField-root {
+  margin-bottom: 16px !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-root:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+  background: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(224, 224, 224, 0.8) !important;
+  transition: all 0.2s ease !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea !important;
+}
+
+.base-modal .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #667eea !important;
+  border-width: 2px !important;
+}
+
+/* Select fields */
+.base-modal .MuiFormControl-root .MuiOutlinedInput-root {
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.base-modal .MuiFormControl-root .MuiOutlinedInput-root:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Chips y badges */
+.base-modal .MuiChip-root {
+  border-radius: 16px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.base-modal .MuiChip-root:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Alertas */
+.base-modal .MuiAlert-root {
+  border-radius: 8px !important;
+  border: 1px solid !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.base-modal .MuiAlert-root.MuiAlert-standardSuccess {
+  background: rgba(76, 175, 80, 0.1) !important;
+  border-color: rgba(76, 175, 80, 0.3) !important;
+}
+
+.base-modal .MuiAlert-root.MuiAlert-standardError {
+  background: rgba(244, 67, 54, 0.1) !important;
+  border-color: rgba(244, 67, 54, 0.3) !important;
+}
+
+/* Sliders */
+.base-modal .MuiSlider-root {
+  color: #667eea !important;
+}
+
+.base-modal .MuiSlider-root .MuiSlider-thumb {
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.base-modal .MuiSlider-root .MuiSlider-thumb:hover {
+  transform: scale(1.2) !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Checkboxes y radios */
+.base-modal .MuiCheckbox-root,
+.base-modal .MuiRadio-root {
+  color: #667eea !important;
+}
+
+.base-modal .MuiCheckbox-root.Mui-checked,
+.base-modal .MuiRadio-root.Mui-checked {
+  color: #667eea !important;
+}
+
+/* Switches */
+.base-modal .MuiSwitch-root .MuiSwitch-switchBase.Mui-checked {
+  color: #667eea !important;
+}
+
+.base-modal .MuiSwitch-root .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: #667eea !important;
+}
+
+/* Iconos */
+.base-modal .MuiIconButton-root {
+  transition: all 0.2s ease !important;
+  border-radius: 50% !important;
+}
+
+.base-modal .MuiIconButton-root:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Grid y layout */
+.base-modal .MuiGrid-container {
+  margin: 0 !important;
+}
+
+.base-modal .MuiGrid-item {
+  padding: 8px !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .base-modal .MuiDialog-paper {
+    margin: 16px !important;
+    max-width: calc(100% - 32px) !important;
+    max-height: calc(100% - 32px) !important;
+  }
+  
+  .base-modal .MuiDialogTitle-root {
+    padding: 16px 24px !important;
+    min-height: 60px !important;
+  }
+  
+  .base-modal .MuiDialogContent-root {
+    padding: 16px 24px !important;
+  }
+  
+  .base-modal .MuiDialogActions-root {
+    padding: 12px 24px !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .base-modal .MuiButton-root {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .base-modal .MuiDialog-paper {
+    background: rgba(33, 33, 33, 0.98) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .base-modal .MuiDialogContent-root {
+    background: rgba(33, 33, 33, 0.95) !important;
+  }
+  
+  .base-modal .MuiDialogActions-root {
+    background: rgba(48, 48, 48, 0.8) !important;
+    border-top-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .base-modal .MuiTextField-root .MuiOutlinedInput-root {
+    background: rgba(48, 48, 48, 0.8) !important;
+  }
+  
+  .base-modal .MuiTextField-root .MuiOutlinedInput-root:hover {
+    background: rgba(48, 48, 48, 0.9) !important;
+  }
+}
+
+/* Animaciones adicionales */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.base-modal .MuiDialogContent-root > * {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.base-modal .MuiDialogActions-root > * {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Efectos de hover mejorados */
+.base-modal .MuiButton-root:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+}
+
+.base-modal .MuiButton-outlined:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+  border-color: #667eea !important;
+  color: #667eea !important;
+}
+
+/* Estilos para filtros específicos */
+.filters-modal .MuiCollapse-root {
+  transition: all 0.3s ease !important;
+}
+
+.filters-modal .MuiButton-root {
+  text-align: left !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.filters-modal .MuiButton-root:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+  transform: none !important;
+}
+
+/* Estilos para formularios específicos */
+.form-modal .MuiTextField-root {
+  margin-bottom: 20px !important;
+}
+
+.form-modal .MuiFormControl-root {
+  margin-bottom: 20px !important;
+}
+
+.form-modal .MuiGrid-item {
+  padding: 8px 12px !important;
+} 

@@ -1,146 +1,141 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import MDBox from "components/MDBox";
-import MDButton from "components/MDButton";
-import MDTypography from "components/MDTypography";
+import { Add as AddIcon } from "@mui/icons-material";
+import FormModal from "./FormModal";
 import { createComponente, updateComponente } from "services/componente-service";
 
 function ModalComponente({ show, onHide, componente, onSave }) {
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const fields = [
+    {
+      name: "Nom_Com",
+      label: "Nombre del Componente",
+      type: "text",
+      required: true,
+      gridProps: { xs: 12 },
+      placeholder: "Ingrese el nombre del componente",
+      helperText: "El nombre debe ser único y descriptivo"
+    },
+    {
+      name: "Estado",
+      label: "Estado",
+      type: "select",
+      required: true,
+      options: [
+        { value: "Vigente", label: "Vigente" },
+        { value: "Descontinuado", label: "Descontinuado" }
+      ],
+      gridProps: { xs: 12, sm: 6 }
+    },
+    {
+      name: "Cod_Estado",
+      label: "Código Estado",
+      type: "select",
+      required: true,
+      options: [
+        { value: "V", label: "V - Vigente" },
+        { value: "D", label: "D - Descontinuado" }
+      ],
+      gridProps: { xs: 12, sm: 6 }
+    },
+    {
+      name: "Sistema",
+      label: "Sistema",
+      type: "text",
+      disabled: true,
+      gridProps: { xs: 12, sm: 6 }
+    },
+    {
+      name: "Organizacion",
+      label: "Organización",
+      type: "text",
+      disabled: true,
+      gridProps: { xs: 12, sm: 6 }
+    }
+  ];
+
+  const initialData = {
     Nom_Com: "",
     Estado: "Vigente",
     Cod_Estado: "V",
     Sistema: "POS",
     Organizacion: "Saluda",
-  });
+  };
 
   useEffect(() => {
     if (componente) {
-      setFormData({
+      // Actualizar datos iniciales si hay un componente para editar
+      const editData = {
         Nom_Com: componente.Nom_Com || "",
         Estado: componente.Estado || "Vigente",
         Cod_Estado: componente.Cod_Estado || "V",
         Sistema: componente.Sistema || "POS",
         Organizacion: componente.Organizacion || "Saluda",
-      });
+      };
+      return editData;
     }
+    return initialData;
   }, [componente]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const handleSubmit = async (formData) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-  const handleSubmit = async () => {
     try {
       if (componente) {
         await updateComponente(componente.ID_Comp, formData);
+        setSuccess("Componente actualizado exitosamente");
       } else {
         await createComponente(formData);
+        setSuccess("Componente creado exitosamente");
       }
-      onSave();
+      
+      // Esperar un momento para mostrar el mensaje de éxito
+      setTimeout(() => {
+        onSave();
+        onHide();
+      }, 1500);
+      
     } catch (error) {
       console.error("Error al guardar el componente:", error);
+      setError("Error al guardar el componente. Por favor, intente nuevamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setError(null);
+    setSuccess(null);
+    onHide();
+  };
+
   return (
-    <Dialog 
-      open={show} 
-      onClose={onHide}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        <MDTypography variant="h6" color="primary">
-          {componente ? "Editar Componente" : "Nuevo Componente"}
-        </MDTypography>
-      </DialogTitle>
-      <DialogContent>
-        <MDBox p={2}>
-          <MDBox mb={2}>
-            <TextField
-              fullWidth
-              label="Nombre del Componente"
-              name="Nom_Com"
-              value={formData.Nom_Com}
-              onChange={handleChange}
-              required
-            />
-          </MDBox>
-          <MDBox mb={2}>
-            <FormControl fullWidth>
-              <InputLabel>Estado</InputLabel>
-              <Select
-                name="Estado"
-                value={formData.Estado}
-                onChange={handleChange}
-                label="Estado"
-              >
-                <MenuItem value="Vigente">Vigente</MenuItem>
-                <MenuItem value="Descontinuado">Descontinuado</MenuItem>
-              </Select>
-            </FormControl>
-          </MDBox>
-          <MDBox mb={2}>
-            <FormControl fullWidth>
-              <InputLabel>Código Estado</InputLabel>
-              <Select
-                name="Cod_Estado"
-                value={formData.Cod_Estado}
-                onChange={handleChange}
-                label="Código Estado"
-              >
-                <MenuItem value="V">V - Vigente</MenuItem>
-                <MenuItem value="D">D - Descontinuado</MenuItem>
-              </Select>
-            </FormControl>
-          </MDBox>
-          <MDBox mb={2}>
-            <TextField
-              fullWidth
-              label="Sistema"
-              name="Sistema"
-              value={formData.Sistema}
-              onChange={handleChange}
-              disabled
-            />
-          </MDBox>
-          <MDBox mb={2}>
-            <TextField
-              fullWidth
-              label="Organización"
-              name="Organizacion"
-              value={formData.Organizacion}
-              onChange={handleChange}
-              disabled
-            />
-          </MDBox>
-        </MDBox>
-      </DialogContent>
-      <DialogActions>
-        <MDButton onClick={onHide} color="secondary">
-          Cancelar
-        </MDButton>
-        <MDButton onClick={handleSubmit} color="info">
-          {componente ? "Actualizar" : "Guardar"}
-        </MDButton>
-      </DialogActions>
-    </Dialog>
+    <FormModal
+      open={show}
+      onClose={handleClose}
+      title={componente ? "Editar Componente" : "Nuevo Componente"}
+      titleIcon={<AddIcon />}
+      fields={fields}
+      initialData={componente ? {
+        Nom_Com: componente.Nom_Com || "",
+        Estado: componente.Estado || "Vigente",
+        Cod_Estado: componente.Cod_Estado || "V",
+        Sistema: componente.Sistema || "POS",
+        Organizacion: componente.Organizacion || "Saluda",
+      } : initialData}
+      onSubmit={handleSubmit}
+      loading={loading}
+      error={error}
+      success={success}
+      submitButtonText={componente ? "Actualizar" : "Crear"}
+      maxWidth="md"
+      className="form-modal"
+    />
   );
 }
 

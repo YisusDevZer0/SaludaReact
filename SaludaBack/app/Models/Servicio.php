@@ -10,7 +10,7 @@ class Servicio extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'servicios';
+    protected $table = 'Servicios_POS';
     protected $primaryKey = 'Servicio_ID';
     public $timestamps = true;
 
@@ -21,16 +21,13 @@ class Servicio extends Model
         'Agregado_Por',
         'Agregadoel',
         'Sistema',
-        'ID_H_O_D',
-        'Descripcion',
-        'Precio_Base',
-        'Requiere_Cita'
+        'ID_H_O_D'
     ];
 
     protected $casts = [
         'Agregadoel' => 'datetime',
-        'Precio_Base' => 'decimal:2',
-        'Requiere_Cita' => 'boolean',
+        'Sistema' => 'boolean',
+        'ID_H_O_D' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
@@ -43,15 +40,26 @@ class Servicio extends Model
         'deleted_at'
     ];
 
+    // Estados disponibles
+    const ESTADOS = [
+        'Activo' => 'A',
+        'Inactivo' => 'I'
+    ];
+
     // Scopes para consultas comunes
     public function scopeActivos($query)
     {
         return $query->where('Estado', 'Activo')->where('Cod_Estado', 'A');
     }
 
-    public function scopePorSistema($query, $sistema)
+    public function scopeInactivos($query)
     {
-        return $query->where('Sistema', $sistema);
+        return $query->where('Estado', 'Inactivo')->where('Cod_Estado', 'I');
+    }
+
+    public function scopeSistema($query)
+    {
+        return $query->where('Sistema', true);
     }
 
     public function scopePorOrganizacion($query, $organizacion)
@@ -59,22 +67,9 @@ class Servicio extends Model
         return $query->where('ID_H_O_D', $organizacion);
     }
 
-    public function scopeConCita($query)
+    public function scopeBuscar($query, $termino)
     {
-        return $query->where('Requiere_Cita', true);
-    }
-
-    public function scopeSinCita($query)
-    {
-        return $query->where('Requiere_Cita', false);
-    }
-
-    // Relaciones
-    public function marcas()
-    {
-        return $this->belongsToMany(Marca::class, 'servicio_marca', 'servicio_id', 'marca_id')
-                    ->withPivot('precio_especial', 'notas', 'agregado_por')
-                    ->withTimestamps();
+        return $query->where('Nom_Serv', 'LIKE', "%{$termino}%");
     }
 
     // Mutadores
@@ -86,7 +81,12 @@ class Servicio extends Model
     public function setEstadoAttribute($value)
     {
         $this->attributes['Estado'] = ucfirst(strtolower($value));
-        $this->attributes['Cod_Estado'] = $value === 'Activo' ? 'A' : 'I';
+        $this->attributes['Cod_Estado'] = self::ESTADOS[$value] ?? 'A';
+    }
+
+    public function setAgregadoPorAttribute($value)
+    {
+        $this->attributes['Agregado_Por'] = ucwords(strtolower(trim($value)));
     }
 
     // Accessors
@@ -95,14 +95,14 @@ class Servicio extends Model
         return $this->Estado === 'Activo' ? 'success' : 'error';
     }
 
-    public function getPrecioFormateadoAttribute()
+    public function getSistemaDescripcionAttribute()
     {
-        return $this->Precio_Base ? '$' . number_format($this->Precio_Base, 2) : 'No definido';
+        return $this->Sistema ? 'Sistema' : 'Personalizado';
     }
 
-    public function getRequiereCitaTextoAttribute()
+    public function getSistemaColorAttribute()
     {
-        return $this->Requiere_Cita ? 'Sí' : 'No';
+        return $this->Sistema ? 'primary' : 'secondary';
     }
 
     // Métodos de utilidad
@@ -122,17 +122,54 @@ class Servicio extends Model
         ]);
     }
 
-    public function asociarMarca($marcaId, $precioEspecial = null, $notas = null, $agregadoPor = null)
+    public function esActivo()
     {
-        return $this->marcas()->attach($marcaId, [
-            'precio_especial' => $precioEspecial,
-            'notas' => $notas,
-            'agregado_por' => $agregadoPor
-        ]);
+        return $this->Estado === 'Activo' && $this->Cod_Estado === 'A';
     }
 
-    public function desasociarMarca($marcaId)
+    public function esSistema()
     {
-        return $this->marcas()->detach($marcaId);
+        return $this->Sistema === true;
+    }
+
+    // Métodos estáticos
+    public static function estadosDisponibles()
+    {
+        return array_keys(self::ESTADOS);
+    }
+
+    public static function codigosEstados()
+    {
+        return self::ESTADOS;
+    }
+
+    public static function porcentajeUtilizacion()
+    {
+        $total = self::count();
+        $activos = self::activos()->count();
+        
+        return $total > 0 ? round(($activos / $total) * 100, 2) : 0;
+    }
+
+    public static function estadisticasPorOrganizacion($organizacionId = null)
+    {
+        $query = self::query();
+        
+        if ($organizacionId) {
+            $query->porOrganizacion($organizacionId);
+        }
+
+        $total = $query->count();
+        $activos = $query->activos()->count();
+        $sistema = $query->sistema()->count();
+
+        return [
+            'total' => $total,
+            'activos' => $activos,
+            'inactivos' => $total - $activos,
+            'sistema' => $sistema,
+            'personalizados' => $total - $sistema,
+            'porcentaje_activos' => $total > 0 ? round(($activos / $total) * 100, 2) : 0
+        ];
     }
 } 

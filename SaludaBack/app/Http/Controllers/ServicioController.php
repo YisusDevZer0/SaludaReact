@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ServicioController extends Controller
 {
@@ -231,27 +232,41 @@ class ServicioController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
-            $servicio = Servicio::findOrFail($id);
-            
-            // Soft delete para mantener integridad referencial
+            $servicio = Servicio::find($id);
+
+            if (!$servicio) {
+                return response()->json([
+                    'error' => 'Servicio no encontrado',
+                    'message' => 'El servicio especificado no existe'
+                ], 404);
+            }
+
+            // Verificar si es un servicio del sistema
+            if ($servicio->esSistema()) {
+                return response()->json([
+                    'error' => 'Servicio del sistema',
+                    'message' => 'No se puede eliminar un servicio del sistema'
+                ], 403);
+            }
+
             $servicio->delete();
 
             return response()->json([
-                'message' => 'Servicio eliminado exitosamente'
+                'message' => 'Servicio eliminado exitosamente',
+                'meta' => [
+                    'action' => 'deleted',
+                    'timestamp' => now()->toISOString()
+                ]
             ]);
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Servicio no encontrado'
-            ], 404);
         } catch (\Exception $e) {
-            Log::error('Error deleting servicio: ' . $e->getMessage());
+            \Log::error('Error al eliminar servicio: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Error al eliminar el servicio',
-                'error' => $e->getMessage()
+                'error' => 'Error interno del servidor',
+                'message' => 'No se pudo eliminar el servicio'
             ], 500);
         }
     }
@@ -340,5 +355,152 @@ class ServicioController extends Controller
         }
         
         $servicio->marcas()->sync($marcasData);
+    }
+
+    /**
+     * Obtener estadísticas de servicios
+     */
+    public function estadisticas(Request $request): JsonResponse
+    {
+        try {
+            $organizacionId = $request->get('organizacion_id');
+            $estadisticas = Servicio::estadisticasPorOrganizacion($organizacionId);
+
+            return response()->json([
+                'data' => $estadisticas,
+                'meta' => [
+                    'timestamp' => now()->toISOString(),
+                    'organizacion_id' => $organizacionId
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener estadísticas: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error interno del servidor',
+                'message' => 'No se pudieron obtener las estadísticas'
+            ], 500);
+        }
+    }
+
+    /**
+     * Cambiar estado masivo de servicios
+     */
+    public function cambiarEstadoMasivo(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'servicios_ids' => 'required|array',
+                'servicios_ids.*' => 'integer|exists:Servicios_POS,Servicio_ID',
+                'estado' => 'required|in:Activo,Inactivo'
+            ]);
+
+            $serviciosIds = $request->servicios_ids;
+            $nuevoEstado = $request->estado;
+
+            // Filtrar servicios del sistema
+            $serviciosSistema = Servicio::whereIn('Servicio_ID', $serviciosIds)
+                ->where('Sistema', true)
+                ->pluck('Servicio_ID')
+                ->toArray();
+
+            if (!empty($serviciosSistema)) {
+                return response()->json([
+                    'error' => 'Servicios del sistema',
+                    'message' => 'No se puede cambiar el estado de servicios del sistema',
+                    'servicios_sistema' => $serviciosSistema
+                ], 403);
+            }
+
+            DB::beginTransaction();
+
+            $serviciosActualizados = Servicio::whereIn('Servicio_ID', $serviciosIds)
+                ->update([
+                    'Estado' => $nuevoEstado,
+                    'Cod_Estado' => $nuevoEstado === 'Activo' ? 'A' : 'I'
+                ]);
+
+            DB::commit();
+
+            Log::info('Estado masivo cambiado', [
+                'servicios_ids' => $serviciosIds,
+                'nuevo_estado' => $nuevoEstado,
+                'servicios_actualizados' => $serviciosActualizados,
+                'usuario' => auth()->user()->Nombre_Apellidos ?? 'Sistema'
+            ]);
+
+            return response()->json([
+                'message' => 'Estado de servicios actualizado exitosamente',
+                'data' => [
+                    'servicios_actualizados' => $serviciosActualizados,
+                    'nuevo_estado' => $nuevoEstado
+                ],
+                'meta' => [
+                    'action' => 'bulk_status_update',
+                    'timestamp' => now()->toISOString()
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Error de validación',
+                'message' => 'Los datos proporcionados no son válidos',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al cambiar estado masivo: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Error interno del servidor',
+                'message' => 'No se pudo cambiar el estado de los servicios'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener filtros aplicados
+     */
+    private function getAppliedFilters(Request $request): array
+    {
+        $filtros = [];
+
+        if ($request->filled('estado')) {
+            $filtros['estado'] = $request->estado;
+        }
+
+        if ($request->filled('sistema')) {
+            $filtros['sistema'] = $request->sistema;
+        }
+
+        if ($request->filled('organizacion')) {
+            $filtros['organizacion'] = $request->organizacion;
+        }
+
+        if ($request->filled('search')) {
+            $filtros['search'] = $request->search;
+        }
+
+        return $filtros;
+    }
+
+    /**
+     * Obtener servicios relacionados
+     */
+    private function getRelacionados(Servicio $servicio): array
+    {
+        return [
+            'servicios_similares' => Servicio::where('ID_H_O_D', $servicio->ID_H_O_D)
+                ->where('Servicio_ID', '!=', $servicio->Servicio_ID)
+                ->where('Estado', 'Activo')
+                ->limit(5)
+                ->get()
+                ->map(function ($servicio) {
+                    return [
+                        'id' => $servicio->Servicio_ID,
+                        'nombre' => $servicio->Nom_Serv,
+                        'estado' => $servicio->Estado
+                    ];
+                })
+        ];
     }
 } 

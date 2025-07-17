@@ -12,64 +12,61 @@ class ServicioRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Autorización será manejada en el controlador/middleware
+        return true;
     }
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
     {
-        $servicioId = $this->route('servicio') ?? $this->route('id');
+        $servicioId = $this->route('servicio');
         
         return [
             'Nom_Serv' => [
                 'required',
                 'string',
-                'max:200',
-                'min:3',
-                Rule::unique('servicios', 'Nom_Serv')->ignore($servicioId, 'Servicio_ID')
+                'max:255',
+                Rule::unique('Servicios_POS', 'Nom_Serv')->ignore($servicioId, 'Servicio_ID')
             ],
-            'Estado' => ['required', 'in:Activo,Inactivo'],
-            'Descripcion' => ['nullable', 'string', 'max:1000'],
-            'Precio_Base' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
-            'Requiere_Cita' => ['boolean'],
-            'Sistema' => ['required', 'string', 'max:250'],
-            'ID_H_O_D' => ['required', 'string', 'max:150'],
-            
-            // Campos opcionales para relaciones
-            'marcas' => ['sometimes', 'array'],
-            'marcas.*' => ['integer', 'exists:marcas,Marca_ID'],
-            'marcas_precios' => ['sometimes', 'array'],
-            'marcas_precios.*' => ['nullable', 'numeric', 'min:0'],
-            'marcas_notas' => ['sometimes', 'array'],
-            'marcas_notas.*' => ['nullable', 'string', 'max:500']
+            'Estado' => [
+                'required',
+                'string',
+                Rule::in(['Activo', 'Inactivo'])
+            ],
+            'Sistema' => [
+                'boolean'
+            ],
+            'ID_H_O_D' => [
+                'required',
+                'integer',
+                'min:1'
+            ],
+            'Agregado_Por' => [
+                'nullable',
+                'string',
+                'max:250'
+            ]
         ];
     }
 
     /**
-     * Get custom validation messages.
+     * Get custom messages for validator errors.
      */
     public function messages(): array
     {
         return [
-            'Nom_Serv.required' => 'El nombre del servicio es obligatorio.',
+            'Nom_Serv.required' => 'El nombre del servicio es requerido.',
+            'Nom_Serv.string' => 'El nombre del servicio debe ser texto.',
+            'Nom_Serv.max' => 'El nombre del servicio no puede exceder 255 caracteres.',
             'Nom_Serv.unique' => 'Ya existe un servicio con este nombre.',
-            'Nom_Serv.min' => 'El nombre del servicio debe tener al menos 3 caracteres.',
-            'Nom_Serv.max' => 'El nombre del servicio no puede exceder 200 caracteres.',
-            'Estado.required' => 'El estado es obligatorio.',
+            'Estado.required' => 'El estado es requerido.',
             'Estado.in' => 'El estado debe ser Activo o Inactivo.',
-            'Descripcion.max' => 'La descripción no puede exceder 1000 caracteres.',
-            'Precio_Base.numeric' => 'El precio base debe ser un número válido.',
-            'Precio_Base.min' => 'El precio base debe ser mayor o igual a 0.',
-            'Precio_Base.max' => 'El precio base no puede exceder 999,999.99.',
-            'Requiere_Cita.boolean' => 'El campo requiere cita debe ser verdadero o falso.',
-            'Sistema.required' => 'El sistema es obligatorio.',
-            'ID_H_O_D.required' => 'El identificador de organización es obligatorio.',
-            'marcas.array' => 'Las marcas deben ser un arreglo válido.',
-            'marcas.*.exists' => 'Una o más marcas seleccionadas no existen.',
+            'Sistema.boolean' => 'El campo sistema debe ser verdadero o falso.',
+            'ID_H_O_D.required' => 'El ID de organización es requerido.',
+            'ID_H_O_D.integer' => 'El ID de organización debe ser un número.',
+            'ID_H_O_D.min' => 'El ID de organización debe ser mayor a 0.',
+            'Agregado_Por.max' => 'El nombre del usuario no puede exceder 250 caracteres.'
         ];
     }
 
@@ -81,12 +78,9 @@ class ServicioRequest extends FormRequest
         return [
             'Nom_Serv' => 'nombre del servicio',
             'Estado' => 'estado',
-            'Descripcion' => 'descripción',
-            'Precio_Base' => 'precio base',
-            'Requiere_Cita' => 'requiere cita',
             'Sistema' => 'sistema',
-            'ID_H_O_D' => 'organización',
-            'marcas' => 'marcas'
+            'ID_H_O_D' => 'ID de organización',
+            'Agregado_Por' => 'usuario que registró'
         ];
     }
 
@@ -95,25 +89,24 @@ class ServicioRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Asegurar valores por defecto
         $this->merge([
-            'Sistema' => $this->Sistema ?? 'POS',
-            'ID_H_O_D' => $this->ID_H_O_D ?? 'Saluda',
-            'Requiere_Cita' => $this->has('Requiere_Cita') ? filter_var($this->Requiere_Cita, FILTER_VALIDATE_BOOLEAN) : false,
+            'Agregado_Por' => $this->Agregado_Por ?? auth()->user()->Nombre_Apellidos ?? 'Sistema',
+            'ID_H_O_D' => $this->ID_H_O_D ?? 1
         ]);
     }
 
     /**
-     * Get validated data with computed fields.
+     * Get validated data with defaults.
      */
     public function getValidatedDataWithDefaults(): array
     {
-        $validated = $this->validated();
+        $data = $this->validated();
         
-        // Agregar campos computados
-        $validated['Agregado_Por'] = auth()->user()->Nombre_Apellidos ?? 'Sistema';
-        $validated['Cod_Estado'] = $validated['Estado'] === 'Activo' ? 'A' : 'I';
+        // Asegurar valores por defecto
+        $data['Cod_Estado'] = $data['Estado'] === 'Activo' ? 'A' : 'I';
+        $data['Sistema'] = $data['Sistema'] ?? false;
+        $data['ID_H_O_D'] = $data['ID_H_O_D'] ?? 1;
         
-        return $validated;
+        return $data;
     }
 } 

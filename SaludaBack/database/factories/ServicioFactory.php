@@ -10,6 +10,11 @@ use App\Models\Servicio;
  */
 class ServicioFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
     protected $model = Servicio::class;
 
     /**
@@ -19,78 +24,65 @@ class ServicioFactory extends Factory
      */
     public function definition(): array
     {
-        $serviciosMedicos = [
-            'Consulta General',
-            'Consulta de Especialidad',
-            'Laboratorio Clínico',
-            'Radiología',
-            'Ultrasonido',
-            'Tomografía',
-            'Resonancia Magnética',
+        $serviciosSistema = [
+            'Consulta Médica General',
+            'Consulta Especializada',
+            'Examen de Laboratorio',
+            'Radiografía',
+            'Ecografía',
             'Electrocardiograma',
-            'Endoscopia',
-            'Colonoscopia',
-            'Ecocardiograma',
-            'Mamografía',
-            'Densitometría Ósea',
-            'Pruebas de Esfuerzo',
-            'Holter',
-            'Cirugía Menor',
-            'Cirugía Mayor',
-            'Hospitalización',
-            'Urgencias',
-            'Medicina Preventiva',
-            'Vacunación',
             'Fisioterapia',
-            'Rehabilitación',
-            'Nutrición',
-            'Psicología',
-            'Psiquiatría',
+            'Odontología General',
             'Oftalmología',
             'Dermatología',
-            'Cardiología',
-            'Neurología'
+            'Ginecología',
+            'Pediatría',
+            'Psicología',
+            'Nutrición',
+            'Cardiología'
         ];
 
-        $descripcionesMedicas = [
-            'Evaluación médica completa y diagnóstico inicial',
-            'Consulta especializada para tratamiento específico',
-            'Análisis clínicos y estudios de laboratorio',
-            'Estudios radiológicos para diagnóstico por imagen',
-            'Evaluación no invasiva mediante ultrasonido',
-            'Diagnóstico avanzado por tomografía computarizada',
-            'Estudio detallado mediante resonancia magnética',
-            'Evaluación de la actividad eléctrica del corazón',
-            'Procedimiento endoscópico para diagnóstico interno',
-            'Evaluación del colon mediante colonoscopia',
+        $serviciosPersonalizados = [
+            'Terapia de Rehabilitación',
+            'Consulta de Emergencia',
+            'Examen Preventivo',
+            'Vacunación',
+            'Control Prenatal',
+            'Consulta Geriátrica',
+            'Medicina Deportiva',
+            'Alergología',
+            'Endocrinología',
+            'Neurología',
+            'Ortopedia',
+            'Urología',
+            'Gastroenterología',
+            'Neumología',
+            'Hematología'
         ];
 
-        $sistemas = ['POS', 'HOSPITALARIO', 'AMBULATORIO', 'URGENCIAS'];
-        $organizaciones = ['Saluda', 'Hospital Central', 'Clínica del Norte', 'Centro Médico'];
-        $agregadoPor = ['Dr. García', 'Dr. Martínez', 'Dr. López', 'Dr. Rodríguez', 'Sistema'];
-
-        $nombreServicio = $this->faker->randomElement($serviciosMedicos);
-        $requiereCita = $this->faker->boolean(70); // 70% requieren cita
-        $tienePrecion = $this->faker->boolean(80); // 80% tienen precio
+        $esSistema = $this->faker->boolean(30); // 30% probabilidad de ser sistema
+        $servicios = $esSistema ? $serviciosSistema : $serviciosPersonalizados;
+        $nombre = $this->faker->randomElement($servicios);
 
         return [
-            'Nom_Serv' => $nombreServicio,
+            'Nom_Serv' => $nombre,
             'Estado' => $this->faker->randomElement(['Activo', 'Inactivo']),
             'Cod_Estado' => function (array $attributes) {
                 return $attributes['Estado'] === 'Activo' ? 'A' : 'I';
             },
-            'Agregado_Por' => $this->faker->randomElement($agregadoPor),
+            'Agregado_Por' => $this->faker->name(),
             'Agregadoel' => $this->faker->dateTimeBetween('-2 years', 'now'),
-            'Sistema' => $this->faker->randomElement($sistemas),
-            'ID_H_O_D' => $this->faker->randomElement($organizaciones),
-            'Descripcion' => $this->faker->randomElement($descripcionesMedicas),
-            'Precio_Base' => $tienePrecion ? $this->faker->randomFloat(2, 50, 2000) : null,
-            'Requiere_Cita' => $requiereCita,
+            'Sistema' => $esSistema,
+            'ID_H_O_D' => $this->faker->numberBetween(1, 5),
+            'created_at' => $this->faker->dateTimeBetween('-2 years', 'now'),
+            'updated_at' => function (array $attributes) {
+                return $attributes['created_at'];
+            }
         ];
     }
 
     /**
-     * Indicate that the service is active.
+     * Indicate that the servicio is active.
      */
     public function activo(): static
     {
@@ -101,7 +93,7 @@ class ServicioFactory extends Factory
     }
 
     /**
-     * Indicate that the service is inactive.
+     * Indicate that the servicio is inactive.
      */
     public function inactivo(): static
     {
@@ -112,54 +104,124 @@ class ServicioFactory extends Factory
     }
 
     /**
-     * Indicate that the service requires an appointment.
+     * Indicate that the servicio is from system.
      */
-    public function conCita(): static
+    public function sistema(): static
     {
         return $this->state(fn (array $attributes) => [
-            'Requiere_Cita' => true,
+            'Sistema' => true,
         ]);
     }
 
     /**
-     * Indicate that the service doesn't require an appointment.
+     * Indicate that the servicio is custom.
      */
-    public function sinCita(): static
+    public function personalizado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'Requiere_Cita' => false,
+            'Sistema' => false,
         ]);
     }
 
     /**
-     * Indicate that the service has a high price.
+     * Indicate that the servicio is for a specific organization.
      */
-    public function caro(): static
+    public function paraOrganizacion(int $organizacionId): static
     {
         return $this->state(fn (array $attributes) => [
-            'Precio_Base' => $this->faker->randomFloat(2, 1000, 5000),
+            'ID_H_O_D' => $organizacionId,
         ]);
     }
 
     /**
-     * Indicate that the service is for a specific system.
+     * Create a servicio with specific name.
      */
-    public function paraSistema(string $sistema): static
+    public function conNombre(string $nombre): static
     {
         return $this->state(fn (array $attributes) => [
-            'Sistema' => $sistema,
+            'Nom_Serv' => $nombre,
         ]);
     }
 
     /**
-     * Indicate that the service is for emergency.
+     * Create servicios for medical specialties.
      */
-    public function urgencia(): static
+    public function especialidadMedica(): static
     {
+        $especialidades = [
+            'Cardiología',
+            'Dermatología',
+            'Endocrinología',
+            'Gastroenterología',
+            'Ginecología',
+            'Neurología',
+            'Oftalmología',
+            'Ortopedia',
+            'Pediatría',
+            'Psiquiatría',
+            'Radiología',
+            'Urología'
+        ];
+
         return $this->state(fn (array $attributes) => [
-            'Sistema' => 'URGENCIAS',
-            'Requiere_Cita' => false,
-            'Precio_Base' => $this->faker->randomFloat(2, 200, 800),
+            'Nom_Serv' => $this->faker->randomElement($especialidades),
+            'Sistema' => true,
+            'Estado' => 'Activo',
+            'Cod_Estado' => 'A'
+        ]);
+    }
+
+    /**
+     * Create servicios for laboratory tests.
+     */
+    public function examenLaboratorio(): static
+    {
+        $examenes = [
+            'Hemograma Completo',
+            'Glicemia en Ayunas',
+            'Perfil Lipídico',
+            'Creatinina',
+            'Ácido Úrico',
+            'TSH',
+            'T4 Libre',
+            'PSA',
+            'Orina Completa',
+            'Cultivo de Orina',
+            'Radiografía de Tórax',
+            'Electrocardiograma'
+        ];
+
+        return $this->state(fn (array $attributes) => [
+            'Nom_Serv' => $this->faker->randomElement($examenes),
+            'Sistema' => true,
+            'Estado' => 'Activo',
+            'Cod_Estado' => 'A'
+        ]);
+    }
+
+    /**
+     * Create servicios for therapy.
+     */
+    public function terapia(): static
+    {
+        $terapias = [
+            'Fisioterapia',
+            'Terapia Ocupacional',
+            'Terapia del Lenguaje',
+            'Psicoterapia',
+            'Terapia Respiratoria',
+            'Hidroterapia',
+            'Electroterapia',
+            'Terapia Manual',
+            'Punción Seca',
+            'Vendaje Funcional'
+        ];
+
+        return $this->state(fn (array $attributes) => [
+            'Nom_Serv' => $this->faker->randomElement($terapias),
+            'Sistema' => false,
+            'Estado' => 'Activo',
+            'Cod_Estado' => 'A'
         ]);
     }
 }

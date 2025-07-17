@@ -364,12 +364,11 @@ Route::prefix('componentes')->group(function () {
     Route::prefix('servicios')->group(function () {
         Route::get('/', [App\Http\Controllers\ServicioController::class, 'index']);
         Route::post('/', [App\Http\Controllers\ServicioController::class, 'store']);
+        Route::get('/estadisticas', [App\Http\Controllers\ServicioController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ServicioController::class, 'cambiarEstadoMasivo']);
         Route::get('/{id}', [App\Http\Controllers\ServicioController::class, 'show']);
         Route::put('/{id}', [App\Http\Controllers\ServicioController::class, 'update']);
         Route::delete('/{id}', [App\Http\Controllers\ServicioController::class, 'destroy']);
-        Route::patch('/{id}/toggle-status', [App\Http\Controllers\ServicioController::class, 'toggleStatus']);
-        Route::get('/estado/{estado}', [App\Http\Controllers\ServicioController::class, 'getByEstado']);
-        Route::get('/sistema/{sistema}', [App\Http\Controllers\ServicioController::class, 'getBySistema']);
     });
 
     // Marcas

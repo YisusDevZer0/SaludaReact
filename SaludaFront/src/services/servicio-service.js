@@ -1,242 +1,351 @@
-import HttpService from './htttp.service';
+import httpService from './http-service';
 
 class ServicioService {
     constructor() {
-        this.basePath = 'servicios';
+        this.baseURL = '/api/servicios';
     }
 
     /**
-     * Get all services with optional filters and pagination
+     * Obtener lista de servicios con filtros y paginación
      */
-    async getServicios(options = {}) {
+    async getServicios(params = {}) {
         try {
-            const params = new URLSearchParams();
+            const queryParams = new URLSearchParams();
             
-            // Filtros
-            if (options.estado) params.append('estado', options.estado);
-            if (options.sistema) params.append('sistema', options.sistema);
-            if (options.organizacion) params.append('organizacion', options.organizacion);
-            if (options.requiere_cita !== undefined) params.append('requiere_cita', options.requiere_cita);
-            if (options.precio_min) params.append('precio_min', options.precio_min);
-            if (options.precio_max) params.append('precio_max', options.precio_max);
-            if (options.search) params.append('search', options.search);
+            // Parámetros de paginación
+            if (params.page) queryParams.append('page', params.page);
+            if (params.per_page) queryParams.append('per_page', params.per_page);
             
-            // Paginación
-            if (options.paginate) params.append('paginate', 'true');
-            if (options.per_page) params.append('per_page', options.per_page);
-            if (options.page) params.append('page', options.page);
+            // Parámetros de búsqueda y filtros
+            if (params.search) queryParams.append('search', params.search);
+            if (params.estado) queryParams.append('estado', params.estado);
+            if (params.sistema !== undefined) queryParams.append('sistema', params.sistema);
+            if (params.organizacion_id) queryParams.append('organizacion_id', params.organizacion_id);
             
-            // Relaciones
-            if (options.with_marcas) params.append('with_marcas', 'true');
+            // Parámetros de ordenamiento
+            if (params.sort_by) queryParams.append('sort_by', params.sort_by);
+            if (params.sort_direction) queryParams.append('sort_direction', params.sort_direction);
             
-            // DataTable compatibility
-            if (options.draw) params.append('draw', options.draw);
-            if (options.start !== undefined) params.append('start', options.start);
-            if (options.length) params.append('length', options.length);
-            if (options.search_value) {
-                params.append('search[value]', options.search_value);
-            }
-            if (options.order_column !== undefined && options.order_dir) {
-                params.append('order[0][column]', options.order_column);
-                params.append('order[0][dir]', options.order_dir);
-            }
+            // Parámetros de fecha
+            if (params.fecha_desde) queryParams.append('fecha_desde', params.fecha_desde);
+            if (params.fecha_hasta) queryParams.append('fecha_hasta', params.fecha_hasta);
 
-            const queryString = params.toString();
-            const url = queryString ? `${this.basePath}?${queryString}` : this.basePath;
+            const response = await httpService.get(`${this.baseURL}?${queryParams.toString()}`);
             
-            const response = await HttpService.get(url);
-            return response;
-        } catch (error) {
-            console.error('Error fetching servicios:', error);
-            throw this.handleError(error);
-        }
-    }
-
-    /**
-     * Get service by ID
-     */
-    async getServicio(id, withMarcas = false) {
-        try {
-            const params = withMarcas ? '?with_marcas=true' : '';
-            const response = await HttpService.get(`${this.basePath}/${id}${params}`);
+            // Mapear datos del backend al formato esperado por el frontend
+            if (response.data && response.data.data) {
+                response.data.data = response.data.data.map(servicio => this.mapServicioData(servicio));
+            }
+            
             return response.data;
         } catch (error) {
-            console.error('Error fetching servicio:', error);
+            console.error('Error al obtener servicios:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Create new service
+     * Obtener un servicio específico por ID
+     */
+    async getServicio(id) {
+        try {
+            const response = await httpService.get(`${this.baseURL}/${id}`);
+            return {
+                ...response.data,
+                data: this.mapServicioData(response.data.data)
+            };
+        } catch (error) {
+            console.error('Error al obtener servicio:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crear un nuevo servicio
      */
     async createServicio(servicioData) {
         try {
-            const response = await HttpService.post(this.basePath, servicioData);
-            return response;
+            const dataToSend = this.prepareServicioData(servicioData);
+            const response = await httpService.post(this.baseURL, dataToSend);
+            
+            return {
+                ...response.data,
+                data: this.mapServicioData(response.data.data)
+            };
         } catch (error) {
-            console.error('Error creating servicio:', error);
+            console.error('Error al crear servicio:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Update service
+     * Actualizar un servicio existente
      */
     async updateServicio(id, servicioData) {
         try {
-            const response = await HttpService.put(`${this.basePath}/${id}`, servicioData);
-            return response;
+            const dataToSend = this.prepareServicioData(servicioData);
+            const response = await httpService.put(`${this.baseURL}/${id}`, dataToSend);
+            
+            return {
+                ...response.data,
+                data: this.mapServicioData(response.data.data)
+            };
         } catch (error) {
-            console.error('Error updating servicio:', error);
+            console.error('Error al actualizar servicio:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Delete service
+     * Eliminar un servicio
      */
     async deleteServicio(id) {
         try {
-            const response = await HttpService.delete(`${this.basePath}/${id}`);
-            return response;
+            const response = await httpService.delete(`${this.baseURL}/${id}`);
+            return response.data;
         } catch (error) {
-            console.error('Error deleting servicio:', error);
+            console.error('Error al eliminar servicio:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Toggle service status
+     * Obtener estadísticas de servicios
      */
-    async toggleStatus(id) {
+    async getEstadisticas(params = {}) {
         try {
-            const response = await HttpService.patch(`${this.basePath}/${id}/toggle-status`);
-            return response;
+            const queryParams = new URLSearchParams();
+            if (params.organizacion_id) queryParams.append('organizacion_id', params.organizacion_id);
+            
+            const response = await httpService.get(`${this.baseURL}/estadisticas?${queryParams.toString()}`);
+            return response.data;
         } catch (error) {
-            console.error('Error toggling servicio status:', error);
+            console.error('Error al obtener estadísticas:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Get services by status
+     * Cambiar estado masivo de servicios
      */
-    async getServiciosByEstado(estado) {
+    async cambiarEstadoMasivo(serviciosIds, estado) {
         try {
-            const response = await HttpService.get(`${this.basePath}/estado/${estado}`);
-            return response;
+            const response = await httpService.post(`${this.baseURL}/cambiar-estado-masivo`, {
+                servicios_ids: serviciosIds,
+                estado: estado
+            });
+            return response.data;
         } catch (error) {
-            console.error('Error fetching servicios by estado:', error);
+            console.error('Error al cambiar estado masivo:', error);
             throw this.handleError(error);
         }
     }
 
     /**
-     * Get services by system
+     * Mapear datos del backend al formato del frontend
      */
-    async getServiciosBySistema(sistema) {
-        try {
-            const response = await HttpService.get(`${this.basePath}/sistema/${sistema}`);
-            return response;
-        } catch (error) {
-            console.error('Error fetching servicios by sistema:', error);
-            throw this.handleError(error);
-        }
+    mapServicioData(servicio) {
+        if (!servicio) return null;
+        
+        return {
+            id: servicio.id || servicio.Servicio_ID,
+            nombre: servicio.nombre || servicio.Nom_Serv || '',
+            estado: servicio.estado || servicio.Estado || 'Inactivo',
+            codigo_estado: servicio.codigo_estado || servicio.Cod_Estado || 'I',
+            estado_color: servicio.estado_color || (servicio.estado === 'Activo' ? 'success' : 'error'),
+            sistema: servicio.sistema || servicio.Sistema || false,
+            sistema_descripcion: servicio.sistema_descripcion || (servicio.sistema ? 'Sistema' : 'Personalizado'),
+            sistema_color: servicio.sistema_color || (servicio.sistema ? 'primary' : 'secondary'),
+            organizacion: servicio.organizacion || 'Saluda',
+            agregado_por: servicio.agregado_por || servicio.Agregado_Por || 'Sistema',
+            agregado_el: servicio.agregado_el || servicio.Agregadoel || '',
+            creado_en: servicio.creado_en || servicio.created_at || '',
+            actualizado_en: servicio.actualizado_en || servicio.updated_at || '',
+            ID_H_O_D: servicio.ID_H_O_D || 1,
+            
+            // Campos computados
+            es_activo: servicio.es_activo || (servicio.estado === 'Activo'),
+            es_sistema: servicio.es_sistema || servicio.sistema || false,
+            puede_editar: servicio.puede_editar !== undefined ? servicio.puede_editar : !servicio.sistema,
+            puede_eliminar: servicio.puede_eliminar !== undefined ? servicio.puede_eliminar : !servicio.sistema,
+            puede_cambiar_estado: servicio.puede_cambiar_estado !== undefined ? servicio.puede_cambiar_estado : true,
+            
+            // Información adicional
+            tipo_info: servicio.tipo_info || {
+                codigo: servicio.sistema ? 'Sistema' : 'Personalizado',
+                descripcion: servicio.sistema ? 'Servicio del sistema' : 'Servicio personalizado',
+                permite_edicion: !servicio.sistema,
+                permite_eliminacion: !servicio.sistema
+            }
+        };
     }
 
     /**
-     * Get only active services
+     * Preparar datos para enviar al backend
      */
-    async getServiciosActivos(withMarcas = false) {
-        return this.getServicios({ 
+    prepareServicioData(servicioData) {
+        return {
+            Nom_Serv: servicioData.nombre || servicioData.Nom_Serv || '',
+            Estado: servicioData.estado || servicioData.Estado || 'Activo',
+            Sistema: servicioData.sistema !== undefined ? servicioData.sistema : servicioData.Sistema || false,
+            ID_H_O_D: servicioData.ID_H_O_D || 1,
+            Agregado_Por: servicioData.agregado_por || servicioData.Agregado_Por || 'Sistema'
+        };
+    }
+
+    /**
+     * Obtener opciones para filtros
+     */
+    getOpcionesFiltros() {
+        return {
+            estados: [
+                { value: 'Activo', label: 'Activo', color: 'success' },
+                { value: 'Inactivo', label: 'Inactivo', color: 'error' }
+            ],
+            tipos_sistema: [
+                { value: true, label: 'Sistema', color: 'primary' },
+                { value: false, label: 'Personalizado', color: 'secondary' }
+            ],
+            organizaciones: [
+                { value: 1, label: 'Saluda' },
+                { value: 2, label: 'Hospital Central' },
+                { value: 3, label: 'Clínica del Norte' },
+                { value: 4, label: 'Centro Médico' },
+                { value: 5, label: 'Policlínico' }
+            ]
+        };
+    }
+
+    /**
+     * Obtener datos de ejemplo para formularios
+     */
+    getDatosEjemplo() {
+        return {
+            nombre: '',
             estado: 'Activo',
-            with_marcas: withMarcas 
-        });
+            sistema: false,
+            ID_H_O_D: 1,
+            agregado_por: 'Sistema'
+        };
     }
 
     /**
-     * Search services
+     * Validar datos del servicio
      */
-    async searchServicios(searchTerm, options = {}) {
-        return this.getServicios({ 
-            search: searchTerm,
-            ...options 
-        });
+    validarServicio(servicioData) {
+        const errores = {};
+
+        if (!servicioData.nombre || servicioData.nombre.trim() === '') {
+            errores.nombre = 'El nombre del servicio es requerido';
+        } else if (servicioData.nombre.length > 255) {
+            errores.nombre = 'El nombre no puede exceder 255 caracteres';
+        }
+
+        if (!servicioData.estado || !['Activo', 'Inactivo'].includes(servicioData.estado)) {
+            errores.estado = 'El estado debe ser Activo o Inactivo';
+        }
+
+        if (servicioData.sistema !== undefined && typeof servicioData.sistema !== 'boolean') {
+            errores.sistema = 'El campo sistema debe ser verdadero o falso';
+        }
+
+        if (!servicioData.ID_H_O_D || servicioData.ID_H_O_D < 1) {
+            errores.ID_H_O_D = 'El ID de organización debe ser mayor a 0';
+        }
+
+        return {
+            esValido: Object.keys(errores).length === 0,
+            errores
+        };
     }
 
     /**
-     * Handle API errors
+     * Manejar errores de la API
      */
     handleError(error) {
         if (error.response) {
-            // Server responded with error status
+            // Error de respuesta del servidor
             const { status, data } = error.response;
             
             switch (status) {
                 case 400:
-                    return new Error(data.message || 'Datos inválidos');
+                    return {
+                        type: 'validation_error',
+                        message: 'Datos de entrada inválidos',
+                        errors: data.errors || {},
+                        status
+                    };
                 case 401:
-                    return new Error('No autorizado');
+                    return {
+                        type: 'auth_error',
+                        message: 'No autorizado',
+                        status
+                    };
                 case 403:
-                    return new Error('Sin permisos para realizar esta acción');
+                    return {
+                        type: 'forbidden_error',
+                        message: data.message || 'Acceso denegado',
+                        status
+                    };
                 case 404:
-                    return new Error('Servicio no encontrado');
+                    return {
+                        type: 'not_found_error',
+                        message: 'Servicio no encontrado',
+                        status
+                    };
                 case 422:
-                    // Validation errors
-                    const validationErrors = data.errors ? 
-                        Object.values(data.errors).flat().join(', ') : 
-                        data.message;
-                    return new Error(validationErrors);
+                    return {
+                        type: 'validation_error',
+                        message: data.message || 'Error de validación',
+                        errors: data.errors || {},
+                        status
+                    };
                 case 500:
-                    return new Error('Error interno del servidor');
+                    return {
+                        type: 'server_error',
+                        message: 'Error interno del servidor',
+                        status
+                    };
                 default:
-                    return new Error(data.message || 'Error desconocido');
+                    return {
+                        type: 'unknown_error',
+                        message: data.message || 'Error desconocido',
+                        status
+                    };
             }
         } else if (error.request) {
-            // Network error
-            return new Error('Error de conexión. Verifique su conexión a internet.');
+            // Error de red
+            return {
+                type: 'network_error',
+                message: 'Error de conexión. Verifique su conexión a internet.',
+                status: 0
+            };
         } else {
-            // Other error
-            return new Error(error.message || 'Error inesperado');
+            // Error de configuración
+            return {
+                type: 'config_error',
+                message: 'Error de configuración: ' + error.message,
+                status: 0
+            };
         }
     }
 
     /**
-     * Validate service data before sending
+     * Obtener mensajes de error amigables
      */
-    validateServicioData(data) {
-        const errors = [];
-        
-        if (!data.Nom_Serv || data.Nom_Serv.trim().length < 3) {
-            errors.push('El nombre del servicio debe tener al menos 3 caracteres');
-        }
-        
-        if (!data.Estado || !['Activo', 'Inactivo'].includes(data.Estado)) {
-            errors.push('El estado debe ser Activo o Inactivo');
-        }
-        
-        if (data.Precio_Base && (isNaN(data.Precio_Base) || data.Precio_Base < 0)) {
-            errors.push('El precio base debe ser un número positivo');
-        }
-        
-        return errors;
-    }
-
-    /**
-     * Format service data for display
-     */
-    formatServicioForDisplay(servicio) {
-        return {
-            ...servicio,
-            precio_formateado: servicio.precio_base ? 
-                `$${parseFloat(servicio.precio_base).toFixed(2)}` : 
-                'No definido',
-            requiere_cita_texto: servicio.requiere_cita ? 'Sí' : 'No',
-            estado_badge: {
-                text: servicio.estado,
-                color: servicio.estado === 'Activo' ? 'success' : 'error'
-            }
+    getMensajeError(error) {
+        const mensajes = {
+            validation_error: 'Por favor, corrija los errores en el formulario.',
+            auth_error: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+            forbidden_error: 'No tiene permisos para realizar esta acción.',
+            not_found_error: 'El servicio solicitado no existe.',
+            server_error: 'Error en el servidor. Intente nuevamente más tarde.',
+            network_error: 'Error de conexión. Verifique su conexión a internet.',
+            config_error: 'Error de configuración. Contacte al administrador.',
+            unknown_error: 'Ha ocurrido un error inesperado.'
         };
+
+        return mensajes[error.type] || error.message || 'Error desconocido';
     }
 }
 

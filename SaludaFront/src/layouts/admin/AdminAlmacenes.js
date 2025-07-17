@@ -48,7 +48,7 @@ const cards = [
     icon: "category",
     title: "Categorías",
     description: "Administra las categorías de productos y su clasificación.",
-    route: "/admin/almacenes/categorias"
+    route: "/admin/categorias-pos"
   },
   {
     icon: "science",

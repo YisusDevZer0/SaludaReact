@@ -11,6 +11,7 @@ import RHControlPersonal from "layouts/rh-dashboard/RHControlPersonal";
 import PermisosVacaciones from "layouts/rh-dashboard/PermisosVacaciones";
 import AdminAlmacenes from "layouts/admin/AdminAlmacenes";
 import Categorias from "layouts/admin/Categorias";
+import CategoriasPos from "layouts/admin/CategoriasPos";
 import ComponenteActivo from "layouts/admin/ComponenteActivo";
 import Tipos from "layouts/admin/Tipos";
 import Presentaciones from "layouts/admin/Presentaciones";
@@ -102,10 +103,19 @@ const routes = [
   {
     type: "route",
     key: "almacenes-categorias",
-    route: "/admin/almacenes/categorias",
+    route: "/admin/categorias-pos",
     component: <Categorias />,
     adminOnly: true,
   },
+  // {
+  //   type: "collapse",
+  //   name: "Categorías POS Optimizadas",
+  //   key: "categorias-pos-optimized",
+  //   icon: <Icon fontSize="small">category</Icon>,
+  //   route: "/admin/categorias-pos",
+  //   component: <CategoriasPos />,
+  //   adminOnly: true,
+  // },
   {
     type: "route",
     key: "almacenes-componente-activo",
