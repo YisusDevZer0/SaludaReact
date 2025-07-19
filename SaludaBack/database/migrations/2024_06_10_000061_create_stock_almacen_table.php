@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stock_almacen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
-            $table->foreignId('almacen_id')->constrained('almacenes')->onDelete('cascade');
+            $table->foreignId('almacen_id')->constrained('almacenes', 'Almacen_ID')->onDelete('cascade');
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
             
             // Información de stock

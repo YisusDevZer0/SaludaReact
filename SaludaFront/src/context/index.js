@@ -131,6 +131,7 @@ const AuthContextProvider = ({ children }) => {
       console.log('Rol del usuario a guardar:', userRole); // Debug log del rol
 
       localStorage.setItem("token", token);
+      localStorage.setItem("access_token", token); // También guardar como access_token para compatibilidad
       localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("userRole", userRole);
       localStorage.setItem("userData", JSON.stringify(user));
@@ -140,12 +141,17 @@ const AuthContextProvider = ({ children }) => {
       }
 
       // Obtener perfil actualizado (logo_url, licencia, etc.)
+      console.log('Obteniendo perfil del usuario...'); // Debug log
       const profile = await AuthService.getProfile();
+      console.log('Perfil obtenido:', profile); // Debug log
+      
       if (profile && profile.data && profile.data.attributes) {
         const userDataProfile = { ...user, ...profile.data.attributes };
+        console.log('Datos del usuario con perfil:', userDataProfile); // Debug log
         setUserData(userDataProfile);
         localStorage.setItem("userData", JSON.stringify(userDataProfile));
       } else {
+        console.log('No se pudo obtener perfil, usando datos básicos del usuario'); // Debug log
         setUserData(user);
       }
 
@@ -187,6 +193,7 @@ const AuthContextProvider = ({ children }) => {
       // Si "Recordarme" está activado, solo limpiar datos de sesión pero mantener email
       if (rememberMe) {
         localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userRole");
         localStorage.removeItem("userData");
@@ -196,6 +203,7 @@ const AuthContextProvider = ({ children }) => {
       } else {
         // Si "Recordarme" no está activado, limpiar todo
         localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userRole");
         localStorage.removeItem("userData");
@@ -254,6 +262,15 @@ const AuthContextProvider = ({ children }) => {
   );
 };
 
+// Hook para usar el contexto de autenticación
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthContextProvider');
+  }
+  return context;
+};
+
 // Setting custom name for the context which is visible on react dev tools
 MaterialUI.displayName = "MaterialUIContext";
 
@@ -289,6 +306,18 @@ function reducer(state, action) {
     }
     case "DARKMODE": {
       return { ...state, darkMode: action.value };
+    }
+    case "TRANSPARENT_NAVBAR": {
+      return { ...state, transparentNavbar: action.value };
+    }
+    case "NAVBAR_COLOR": {
+      return { ...state, navbarColor: action.value };
+    }
+    case "NAVBAR_SHADOW": {
+      return { ...state, navbarShadow: action.value };
+    }
+    case "NAVBAR_POSITION": {
+      return { ...state, navbarPosition: action.value };
     }
     case "LOAD_PREFERENCES": {
       return { ...state, ...action.preferences };
@@ -330,6 +359,10 @@ function MaterialUIControllerProvider({ children }) {
     direction: "ltr",
     layout: "dashboard",
     darkMode: false,
+    transparentNavbar: true,
+    navbarColor: "info",
+    navbarShadow: true,
+    navbarPosition: "fixed",
     tableHeaderColor: "azulSereno", // Color por defecto para headers de tabla
   };
 
@@ -347,9 +380,24 @@ function MaterialUIControllerProvider({ children }) {
         if (token && userData) {
           console.log("Cargando preferencias del usuario...");
           const preferences = await PreferencesService.getUserPreferences();
-          if (preferences && preferences.ui) {
+          if (preferences && preferences.data) {
             console.log("Preferencias cargadas, aplicando al contexto...");
-            dispatch({ type: "LOAD_PREFERENCES", preferences: preferences.ui });
+            const uiPreferences = {
+              sidenavColor: preferences.data.sidenav_color,
+              transparentSidenav: preferences.data.transparent_sidenav,
+              whiteSidenav: preferences.data.white_sidenav,
+              fixedNavbar: preferences.data.fixed_navbar,
+              darkMode: preferences.data.dark_mode,
+              miniSidenav: preferences.data.mini_sidenav,
+              navbarColor: preferences.data.navbar_color,
+              transparentNavbar: preferences.data.transparent_navbar,
+              navbarShadow: preferences.data.navbar_shadow,
+              navbarPosition: preferences.data.navbar_position,
+              layout: preferences.data.layout,
+              direction: preferences.data.direction,
+              tableHeaderColor: preferences.data.table_header_color
+            };
+            dispatch({ type: "LOAD_PREFERENCES", preferences: uiPreferences });
           }
         } else {
           console.log("No hay token o userData, usando valores por defecto");
@@ -375,32 +423,37 @@ function MaterialUIControllerProvider({ children }) {
       // Solo guardar si hay token, userData y las preferencias ya se cargaron
       if (token && userData && preferencesLoaded) {
         // Verificar que el usuario esté autenticado en el contexto
-        const authContext = JSON.parse(userData);
-        if (!authContext || !authContext.Pos_ID) {
-          console.log("Usuario no válido, saltando guardado de preferencias");
+        let authContext = null;
+        try {
+          authContext = JSON.parse(userData);
+          console.log("AuthContext parseado:", authContext);
+        } catch (error) {
+          console.error("Error parsing userData in savePreferences:", error);
+          return;
+        }
+        if (!authContext || !authContext.id) {
+          console.log("Usuario no válido, saltando guardado de preferencias. AuthContext:", authContext);
           return;
         }
         
         console.log("Guardando preferencias automáticamente...");
+        console.log("Estado actual:", newState);
         const preferences = {
-          ui: {
-            miniSidenav: newState.miniSidenav,
-            transparentSidenav: newState.transparentSidenav,
-            whiteSidenav: newState.whiteSidenav,
-            sidenavColor: newState.sidenavColor,
-            transparentNavbar: newState.transparentNavbar,
-            fixedNavbar: newState.fixedNavbar,
-            darkMode: newState.darkMode,
-            direction: newState.direction,
-            layout: newState.layout,
-            tableHeaderColor: newState.tableHeaderColor,
-            sucursalesTableHeaderColor: newState.sucursalesTableHeaderColor,
-            sucursalesTableHeaderText: newState.sucursalesTableHeaderText,
-            sucursalesTableCellText: newState.sucursalesTableCellText,
-            sucursalesTableActiveIcon: newState.sucursalesTableActiveIcon,
-            sucursalesTableInactiveIcon: newState.sucursalesTableInactiveIcon
-          }
+          sidenav_color: newState.sidenavColor,
+          transparent_sidenav: newState.transparentSidenav,
+          white_sidenav: newState.whiteSidenav,
+          fixed_navbar: newState.fixedNavbar,
+          dark_mode: newState.darkMode,
+          mini_sidenav: newState.miniSidenav,
+          navbar_color: newState.navbarColor,
+          transparent_navbar: newState.transparentNavbar,
+          navbar_shadow: newState.navbarShadow,
+          navbar_position: newState.navbarPosition,
+          layout: newState.layout,
+          direction: newState.direction,
+          table_header_color: newState.tableHeaderColor
         };
+        console.log("Preferencias a enviar:", preferences);
         
         const result = await PreferencesService.updateUserPreferences(preferences);
         console.log("Resultado del guardado:", result);
@@ -479,6 +532,9 @@ const setOpenConfigurator = (dispatch, value) => dispatch({ type: "OPEN_CONFIGUR
 const setDirection = (dispatch, value) => dispatch({ type: "DIRECTION", value });
 const setLayout = (dispatch, value) => dispatch({ type: "LAYOUT", value });
 const setDarkMode = (dispatch, value) => dispatch({ type: "DARKMODE", value });
+const setNavbarColor = (dispatch, value) => dispatch({ type: "NAVBAR_COLOR", value });
+const setNavbarShadow = (dispatch, value) => dispatch({ type: "NAVBAR_SHADOW", value });
+const setNavbarPosition = (dispatch, value) => dispatch({ type: "NAVBAR_POSITION", value });
 const setTableHeaderColor = (dispatch, value) => dispatch({ type: "TABLE_HEADER_COLOR", value });
 
 // Funciones para actualizar colores de la tabla de sucursales
@@ -492,6 +548,7 @@ export {
   AuthContextProvider,
   MaterialUIControllerProvider,
   useMaterialUIController,
+  useAuth,
   setMiniSidenav,
   setTransparentSidenav,
   setWhiteSidenav,
@@ -502,6 +559,9 @@ export {
   setDirection,
   setLayout,
   setDarkMode,
+  setNavbarColor,
+  setNavbarShadow,
+  setNavbarPosition,
   setTableHeaderColor,
   setSucursalesTableHeaderColor,
   setSucursalesTableHeaderText,

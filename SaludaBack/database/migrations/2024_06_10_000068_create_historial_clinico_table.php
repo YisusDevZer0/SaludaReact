@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('historial_clinico', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
-            $table->foreignId('agenda_id')->nullable()->constrained('agendas')->onDelete('set null');
+            // $table->foreignId('paciente_id')->constrained('pacientes', 'Paciente_ID')->onDelete('cascade');
+            // $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
+            // $table->foreignId('agenda_id')->nullable()->constrained('agendas')->onDelete('set null');
+            $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->unsignedBigInteger('agenda_id')->nullable();
             
             // Información de la consulta
             $table->enum('tipo_consulta', ['primera_vez', 'control', 'emergencia', 'seguimiento'])->default('control');

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PersonalPOS;
+use App\Models\PersonalPos;
+use App\Events\PersonalUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,13 +15,13 @@ class PersonalPOSController extends Controller
     // Listar todo el personal
     public function index()
     {
-        return PersonalPOS::all();
+        return PersonalPos::all();
     }
 
     // Mostrar un registro específico
     public function show($id)
     {
-        return PersonalPOS::findOrFail($id);
+        return PersonalPos::findOrFail($id);
     }
 
     // Crear nuevo personal
@@ -29,7 +31,7 @@ class PersonalPOSController extends Controller
             // Validar los datos recibidos
             $request->validate([
                 'Nombre_Apellidos' => 'required|string|max:255',
-                'Correo_Electronico' => 'required|email|unique:PersonalPOS,Correo_Electronico',
+                'email' => 'required|email|unique:personal_pos,email',
                 'Password' => 'required|string|min:6',
                 'Telefono' => 'required|string|max:20',
                 'Fecha_Nacimiento' => 'required|date',
@@ -47,50 +49,45 @@ class PersonalPOSController extends Controller
             $passwordHash = Hash::make($request->Password);
 
             // Crear el personal
-            $personal = PersonalPOS::create([
-                'Nombre_Apellidos' => $request->Nombre_Apellidos,
-                'Correo_Electronico' => $request->Correo_Electronico,
-                'Password' => $passwordHash,
-                'Telefono' => $request->Telefono,
-                'Fecha_Nacimiento' => $request->Fecha_Nacimiento,
-                'Fk_Usuario' => $request->Fk_Usuario,
-                'Fk_Sucursal' => $request->Fk_Sucursal,
-                'Estatus' => $request->Estatus ?? 'Vigente',
-                'ColorEstatus' => $request->ColorEstatus ?? '#28a745',
-                'ID_H_O_D' => $request->ID_H_O_D,
-                'AgregadoPor' => $request->AgregadoPor ?? 'Sistema',
-                'AgregadoEl' => now(),
-                'Perm_Elim' => $request->Perm_Elim ?? false,
-                'Perm_Edit' => $request->Perm_Edit ?? false,
-                'avatar_url' => $request->avatar_url,
-                'Permisos' => json_encode([
-                    'crear' => true,
-                    'editar' => $request->Perm_Edit ?? false,
-                    'eliminar' => $request->Perm_Elim ?? false,
-                    'ver' => true
-                ])
+            $personal = PersonalPos::create([
+                'nombre' => $request->nombre,
+                'apellido' => $request->apellido,
+                'email' => $request->email,
+                'password' => $passwordHash,
+                'telefono' => $request->telefono,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'role_id' => $request->role_id,
+                'sucursal_id' => $request->sucursal_id,
+                'estado_laboral' => $request->estado_laboral ?? 'activo',
+                'is_active' => true,
+                'can_login' => true,
+                'can_sell' => $request->can_sell ?? false,
+                'can_refund' => $request->can_refund ?? false,
+                'can_manage_inventory' => $request->can_manage_inventory ?? false,
+                'can_manage_users' => $request->can_manage_users ?? false,
+                'can_view_reports' => $request->can_view_reports ?? true,
+                'can_manage_settings' => $request->can_manage_settings ?? false,
+                'session_timeout' => 480,
+                'notas' => $request->notas ?? 'Personal creado por sistema'
             ]);
 
             // Obtener el personal creado con sus relaciones
-            $personalConRelaciones = DB::table('PersonalPOS as p')
-                ->leftJoin('Sucursales as s', 'p.Fk_Sucursal', '=', 's.ID_SucursalC')
-                ->leftJoin('Roles_Puestos as r', 'p.Fk_Usuario', '=', 'r.ID_rol')
-                ->where('p.Pos_ID', $personal->Pos_ID)
-                ->select([
-                    'p.Pos_ID',
-                    'p.Nombre_Apellidos',
-                    'p.Correo_Electronico',
-                    'p.Telefono',
-                    'p.Fecha_Nacimiento',
-                    'p.Estatus',
-                    'p.ColorEstatus',
-                    'p.avatar_url',
-                    'p.Fk_Sucursal',
-                    's.Nombre_Sucursal',
-                    'r.ID_rol',
-                    'r.Nombre_rol',
-                ])
+            $personalConRelaciones = PersonalPos::with(['sucursal', 'role'])
+                ->where('id', $personal->id)
                 ->first();
+
+            // Disparar evento de actualización
+            $licencia = $personal->Id_Licencia ?? $personal->ID_H_O_D ?? null;
+            if ($licencia) {
+                $activeCount = PersonalPos::where('estado_laboral', 'activo')
+                    ->where('is_active', true)
+                    ->where('Id_Licencia', $licencia)
+                    ->count();
+                
+                $totalCount = PersonalPos::where('Id_Licencia', $licencia)->count();
+                
+                event(new PersonalUpdated($licencia, $activeCount, $totalCount));
+            }
 
             return response()->json([
                 'success' => true,
@@ -115,51 +112,101 @@ class PersonalPOSController extends Controller
     // Actualizar personal
     public function update(Request $request, $id)
     {
-        $personal = PersonalPOS::findOrFail($id);
+        $personal = PersonalPos::findOrFail($id);
         $personal->update($request->all());
+        
+        // Disparar evento de actualización
+        $licencia = $personal->Id_Licencia ?? $personal->ID_H_O_D ?? null;
+        if ($licencia) {
+            $activeCount = PersonalPos::where('estado_laboral', 'activo')
+                ->where('is_active', true)
+                ->where('Id_Licencia', $licencia)
+                ->count();
+            
+            $totalCount = PersonalPos::where('Id_Licencia', $licencia)->count();
+            
+            event(new PersonalUpdated($licencia, $activeCount, $totalCount));
+        }
+        
         return response()->json($personal, 200);
     }
 
     // Eliminar personal
     public function destroy($id)
     {
-        PersonalPOS::destroy($id);
+        PersonalPos::destroy($id);
         return response()->json(null, 204);
     }
 
     // Contar personal activo
-    public function countActive()
+    public function countActive(Request $request)
     {
-        $count = PersonalPOS::where('Estatus', 'Vigente')->count();
-        return response()->json(['active' => $count]);
+        try {
+            // Obtener el usuario autenticado directamente
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Filtrar por licencia y contar personal activo usando consulta directa
+            $activePersonal = PersonalPos::where('estado_laboral', 'activo')
+                ->where('is_active', true)
+                ->where('Id_Licencia', $licencia)
+                ->get();
+
+            $count = $activePersonal->count();
+
+            // Debug: Mostrar información detallada
+            $debugInfo = [
+                'total_empleados_licencia' => PersonalPos::where('Id_Licencia', $licencia)->count(),
+                'empleados_activos_laboralmente' => PersonalPos::where('estado_laboral', 'activo')->where('Id_Licencia', $licencia)->count(),
+                'empleados_activos_sistema' => PersonalPos::where('is_active', true)->where('Id_Licencia', $licencia)->count(),
+                'empleados_activos_completos' => $count,
+                'detalle_empleados' => $activePersonal->map(function($emp) {
+                    return [
+                        'id' => $emp->id,
+                        'nombre' => $emp->nombre . ' ' . $emp->apellido,
+                        'estado_laboral' => $emp->estado_laboral,
+                        'is_active' => $emp->is_active,
+                        'licencia' => $emp->Id_Licencia
+                    ];
+                })
+            ];
+
+            return response()->json([
+                'success' => true,
+                'active' => $count,
+                'licencia' => $licencia,
+                'message' => "Se encontraron {$count} empleados activos en la licencia {$licencia}",
+                'debug' => $debugInfo
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error obteniendo count de personal activo: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Listar personal con sucursal y rol
     public function listWithSucursalAndRol()
     {
-        $personal = DB::table('PersonalPOS as p')
-            ->leftJoin('Sucursales as s', 'p.Fk_Sucursal', '=', 's.ID_SucursalC')
-            ->leftJoin('Roles_Puestos as r', 'p.Fk_Usuario', '=', 'r.ID_rol')
-            ->select([
-                'p.Pos_ID',
-                'p.Nombre_Apellidos',
-                'p.Correo_Electronico',
-                'p.Telefono',
-                'p.Fecha_Nacimiento',
-                'p.Estatus',
-                'p.ColorEstatus',
-                'p.avatar_url',
-                'p.Fk_Sucursal',
-                's.Nombre_Sucursal',
-                's.Direccion as Sucursal_Direccion',
-                's.Telefono as Sucursal_Telefono',
-                's.Correo as Sucursal_Correo',
-                's.Sucursal_Activa',
-                'r.ID_rol',
-                'r.Nombre_rol',
-                'r.Estado as Rol_Estado',
-            ])
-            ->get();
+        $personal = PersonalPos::with(['sucursal', 'role'])->get();
 
         return response()->json([
             'success' => true,
@@ -172,28 +219,7 @@ class PersonalPOSController extends Controller
     public function indexDataTable(Request $request)
     {
         if ($request->ajax() || $request->isMethod('get')) {
-            $personal = DB::table('PersonalPOS as p')
-                ->leftJoin('Sucursales as s', 'p.Fk_Sucursal', '=', 's.ID_SucursalC')
-                ->leftJoin('Roles_Puestos as r', 'p.Fk_Usuario', '=', 'r.ID_rol')
-                ->select([
-                    'p.Pos_ID',
-                    'p.Nombre_Apellidos',
-                    'p.Correo_Electronico',
-                    'p.Telefono',
-                    'p.Fecha_Nacimiento',
-                    'p.Estatus',
-                    'p.ColorEstatus',
-                    'p.avatar_url',
-                    'p.Fk_Sucursal',
-                    's.Nombre_Sucursal',
-                    's.Direccion as Sucursal_Direccion',
-                    's.Telefono as Sucursal_Telefono',
-                    's.Correo as Sucursal_Correo',
-                    's.Sucursal_Activa',
-                    'r.ID_rol',
-                    'r.Nombre_rol',
-                    'r.Estado as Rol_Estado',
-                ]);
+            $personal = PersonalPos::with(['sucursal', 'role']);
 
             $dataTablesResponse = DataTables::of($personal)->make(true);
 

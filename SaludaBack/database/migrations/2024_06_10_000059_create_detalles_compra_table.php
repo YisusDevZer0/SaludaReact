@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('detalles_compra', function (Blueprint $table) {
             $table->id();
             $table->foreignId('compra_id')->constrained('compras')->onDelete('cascade');
-            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            // $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            $table->unsignedBigInteger('producto_id')->nullable();
             
             // Información del producto
             $table->string('codigo_producto', 50);
@@ -56,11 +57,13 @@ return new class extends Migration
             $table->decimal('monto_devuelto', 12, 2)->default(0.00);
             $table->text('motivo_devolucion')->nullable();
             $table->timestamp('fecha_devolucion')->nullable();
-            $table->foreignId('devolucion_autorizada_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            // $table->foreignId('devolucion_autorizada_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            $table->unsignedBigInteger('devolucion_autorizada_por')->nullable();
             
             // Información de recepción
             $table->timestamp('fecha_recepcion')->nullable();
-            $table->foreignId('recibido_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            // $table->foreignId('recibido_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            $table->unsignedBigInteger('recibido_por')->nullable();
             $table->text('observaciones_recepcion')->nullable();
             $table->boolean('conforme_producto')->default(true);
             $table->text('motivo_no_conforme')->nullable();

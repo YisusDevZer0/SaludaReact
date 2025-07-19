@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pacientes_medicos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+            // $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+            $table->unsignedBigInteger('cliente_id')->nullable();
             
             // Información médica básica
             $table->string('grupo_sanguineo', 10)->nullable();
@@ -30,8 +31,10 @@ return new class extends Migration
             $table->string('contacto_emergencia_direccion', 255)->nullable();
             
             // Información de obra social
-            $table->foreignId('obra_social_id')->nullable()->constrained('obras_sociales')->onDelete('set null');
-            $table->foreignId('plan_obra_social_id')->nullable()->constrained('planes_obra_social')->onDelete('set null');
+            // $table->foreignId('obra_social_id')->nullable()->constrained('obras_sociales')->onDelete('set null');
+            // $table->foreignId('plan_obra_social_id')->nullable()->constrained('planes_obra_social')->onDelete('set null');
+            $table->unsignedBigInteger('obra_social_id')->nullable();
+            $table->unsignedBigInteger('plan_obra_social_id')->nullable();
             $table->string('numero_afiliado', 50)->nullable();
             $table->string('numero_beneficiario', 50)->nullable();
             $table->date('fecha_vencimiento_cobertura')->nullable();
@@ -56,7 +59,8 @@ return new class extends Migration
             $table->text('riesgos_laborales')->nullable();
             
             // Información de seguimiento
-            $table->foreignId('doctor_principal_id')->nullable()->constrained('doctores')->onDelete('set null');
+            // $table->foreignId('doctor_principal_id')->nullable()->constrained('doctores', 'Doctor_ID')->onDelete('set null');
+            $table->unsignedBigInteger('doctor_principal_id')->nullable();
             $table->date('fecha_ultima_consulta')->nullable();
             $table->date('fecha_proxima_consulta')->nullable();
             $table->text('observaciones_seguimiento')->nullable();

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
-            $table->foreignId('almacen_id')->nullable()->constrained('almacenes')->onDelete('set null');
+            $table->foreignId('almacen_id')->nullable()->constrained('almacenes', 'Almacen_ID')->onDelete('set null');
             
             // Información de la alerta
             $table->enum('tipo_alerta', [

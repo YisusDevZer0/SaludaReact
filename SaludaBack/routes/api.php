@@ -14,6 +14,7 @@ use LaravelJsonApi\Laravel\Facades\JsonApiRoute;
 use LaravelJsonApi\Laravel\Http\Controllers\JsonApiController;
 use App\Http\Controllers\SucursalController;
 use App\Http\Controllers\UserPreferencesController;
+use App\Http\Controllers\UserPreferenceController;
 use App\Http\Controllers\RolesPuestosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\HuellasController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\PersonalPOSController;
 use App\Http\Controllers\ComponenteActivoController;
 use App\Http\Controllers\TipoController;
 use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,10 +54,13 @@ JsonApiRoute::server('v2')->prefix('v2')->resources(function (ResourceRegistrar 
 // Ruta adicional para /api/me (compatibilidad con frontend)
 Route::get('/me', [MeController::class, 'readProfile'])->middleware(['json.api', 'personalpos.auth']);
 
-// Rutas de autenticación PersonalPOS
-Route::post('/pos/login', App\Http\Controllers\Api\V2\Auth\PersonalPOSLoginController::class);
-Route::post('/pos/reset-password', App\Http\Controllers\Api\V2\Auth\PersonalPOSResetPasswordController::class);
-Route::post('/pos/create-admin', App\Http\Controllers\Api\V2\Auth\PersonalPOSCreateAdminController::class);
+// Rutas de autenticación PersonalPos
+Route::post('/pos/login', \App\Http\Controllers\Api\V2\Auth\SimpleLoginController::class);
+Route::post('/pos/reset-password', [\App\Http\Controllers\Api\V2\Auth\PersonalPosResetPasswordController::class, '__invoke']);
+Route::post('/pos/create-admin', [\App\Http\Controllers\Api\V2\Auth\PersonalPosCreateAdminController::class, '__invoke']);
+
+// Ruta de prueba
+Route::get('/pos/test', [\App\Http\Controllers\Api\V2\Auth\TestController::class, '__invoke']);
 
 // Ruta de logout para PersonalPOS (compatibilidad con frontend)
 Route::post('/logout', function(Request $request) {
@@ -86,17 +91,17 @@ Route::get('/test-auth', function(Request $request) {
     try {
         $user = $request->user('api');
         if ($user) {
-            return response()->json([
-                'message' => 'Usuario autenticado correctamente',
-                'user_id' => $user->Pos_ID,
-                'user_name' => $user->Nombre_Apellidos,
-                'token_info' => [
-                    'id' => $user->token()->id,
-                    'user_id' => $user->token()->user_id,
-                    'revoked' => $user->token()->revoked,
-                    'expires_at' => $user->token()->expires_at
-                ]
-            ], 200);
+                    return response()->json([
+            'message' => 'Usuario autenticado correctamente',
+            'user_id' => $user->id,
+            'user_name' => $user->nombre . ' ' . $user->apellido,
+            'token_info' => [
+                'id' => $user->token()->id,
+                'user_id' => $user->token()->user_id,
+                'revoked' => $user->token()->revoked,
+                'expires_at' => $user->token()->expires_at
+            ]
+        ], 200);
         }
         
         return response()->json([
@@ -131,9 +136,9 @@ Route::put('/user/preferences', [UserPreferencesController::class, 'saveUserPref
 
 // Endpoint de debug para verificar tokens
 Route::get('/debug/tokens', function() {
-    $tokens = DB::table('PersonalPOS')
+    $tokens = DB::table('personal_pos')
         ->whereNotNull('remember_token')
-        ->select('Pos_ID', 'Nombre_Apellidos', 'remember_token', 'updated_at')
+        ->select('id', 'nombre', 'apellido', 'remember_token', 'updated_at')
         ->get();
     
     return response()->json([
@@ -141,8 +146,8 @@ Route::get('/debug/tokens', function() {
         'count' => $tokens->count(),
         'tokens' => $tokens->map(function($token) {
             return [
-                'Pos_ID' => $token->Pos_ID,
-                'Nombre_Apellidos' => $token->Nombre_Apellidos,
+                'id' => $token->id,
+                'nombre_completo' => $token->nombre . ' ' . $token->apellido,
                 'token_preview' => substr($token->remember_token, 0, 30) . '...',
                 'token_length' => strlen($token->remember_token),
                 'updated_at' => $token->updated_at
@@ -153,15 +158,15 @@ Route::get('/debug/tokens', function() {
 
 // Endpoint específico para debuggear el usuario ID 3
 Route::get('/debug/user/3', function() {
-    $user = DB::table('PersonalPOS')->where('Pos_ID', 3)->first();
+    $user = DB::table('personal_pos')->where('id', 3)->first();
     
     if ($user) {
         return response()->json([
             'message' => 'Usuario encontrado',
             'user' => [
-                'Pos_ID' => $user->Pos_ID,
-                'Nombre_Apellidos' => $user->Nombre_Apellidos,
-                'Correo_Electronico' => $user->Correo_Electronico,
+                'id' => $user->id,
+                'nombre_completo' => $user->nombre . ' ' . $user->apellido,
+                'email' => $user->email,
                 'remember_token' => $user->remember_token,
                 'token_length' => strlen($user->remember_token ?? ''),
                 'token_preview' => $user->remember_token ? substr($user->remember_token, 0, 30) . '...' : 'NULL',
@@ -177,7 +182,7 @@ Route::get('/debug/user/3', function() {
 Route::post('/debug/find-token', function(Request $request) {
     $token = $request->input('token');
     
-    $user = DB::table('PersonalPOS')
+    $user = DB::table('personal_pos')
         ->where('remember_token', $token)
         ->first();
     
@@ -185,8 +190,8 @@ Route::post('/debug/find-token', function(Request $request) {
         return response()->json([
             'message' => 'Token encontrado',
             'user' => [
-                'Pos_ID' => $user->Pos_ID,
-                'Nombre_Apellidos' => $user->Nombre_Apellidos,
+                'id' => $user->id,
+                'nombre_completo' => $user->nombre . ' ' . $user->apellido,
                 'token_matches' => true
             ]
         ]);
@@ -203,8 +208,8 @@ Route::post('/debug/find-token', function(Request $request) {
 Route::get('/debug/check-user3-token', function() {
     $targetToken = '3|1749268737|e69585627009c42eb4d98b1d094344e42153970122229aef6a2d76e66371dc2d';
     
-    $user = DB::table('PersonalPOS')
-        ->where('Pos_ID', 3)
+    $user = DB::table('personal_pos')
+        ->where('id', 3)
         ->first();
     
     $tokenMatch = false;
@@ -219,7 +224,7 @@ Route::get('/debug/check-user3-token', function() {
         'db_length' => $user->remember_token ? strlen($user->remember_token) : 0,
         'tokens_match' => $tokenMatch,
         'user_found' => $user ? true : false,
-        'user_name' => $user->Nombre_Apellidos ?? 'N/A'
+        'user_name' => $user->nombre . ' ' . $user->apellido ?? 'N/A'
     ]);
 });
 
@@ -315,8 +320,30 @@ Route::get('personal/{id}', [PersonalPOSController::class, 'show']);
 Route::post('personal', [PersonalPOSController::class, 'store']);
 Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
 Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
-Route::get('personal/active/count', [PersonalPOSController::class, 'countActive']);
+Route::get('personal/active/count', [PersonalPOSController::class, 'countActive'])->middleware(['json.api', 'auth:api']);
+
+// Rutas de preferencias del usuario
+Route::middleware(['json.api', 'auth:api'])->group(function () {
+    Route::get('user/preferences', [UserPreferenceController::class, 'getUserPreferences']);
+    Route::put('user/preferences', [UserPreferenceController::class, 'updateUserPreferences']);
+    Route::post('user/preferences/reset', [UserPreferenceController::class, 'resetUserPreferences']);
+});
+
+// Ruta para autenticación de broadcasting
+Route::post('broadcasting/auth', function (Request $request) {
+    return Broadcast::routes();
+})->middleware(['auth:api']);
 Route::get('personal', [PersonalPOSController::class, 'index']); 
+
+// Rutas del Dashboard
+Route::prefix('dashboard')->middleware(['json.api', 'personalpos.auth'])->group(function () {
+    Route::get('/stats', [DashboardController::class, 'getStats']);
+    Route::get('/sales-stats', [DashboardController::class, 'getSalesStats']);
+    Route::get('/appointments-stats', [DashboardController::class, 'getAppointmentsStats']);
+    Route::get('/recent-transactions', [DashboardController::class, 'getRecentTransactions']);
+    Route::get('/inventory-alerts', [DashboardController::class, 'getInventoryAlerts']);
+    Route::get('/advanced-stats', [DashboardController::class, 'getAdvancedStats']);
+});
 
     // Agendas
 Route::prefix('agendas')->group(function () {
@@ -400,4 +427,84 @@ Route::prefix('componentes')->group(function () {
 
     // Auditoría (ya estaba protegida)
     Route::get('/auditorias', [AuditoriaController::class, 'apiIndex']);
+
+    // Productos
+    Route::prefix('productos')->group(function () {
+        Route::get('/', [App\Http\Controllers\ProductoController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\ProductoController::class, 'store']);
+        Route::get('/estadisticas', [App\Http\Controllers\ProductoController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ProductoController::class, 'cambiarEstadoMasivo']);
+        Route::get('/estados-disponibles', [App\Http\Controllers\ProductoController::class, 'estadosDisponibles']);
+        Route::get('/unidades-medida-disponibles', [App\Http\Controllers\ProductoController::class, 'unidadesMedidaDisponibles']);
+        Route::get('/estado/{estado}', [App\Http\Controllers\ProductoController::class, 'getByEstado']);
+        Route::get('/categoria/{categoriaId}', [App\Http\Controllers\ProductoController::class, 'getByCategoria']);
+        Route::get('/marca/{marcaId}', [App\Http\Controllers\ProductoController::class, 'getByMarca']);
+        Route::get('/proveedor/{proveedorId}', [App\Http\Controllers\ProductoController::class, 'getByProveedor']);
+        Route::get('/stock-bajo', [App\Http\Controllers\ProductoController::class, 'getConStockBajo']);
+        Route::get('/sin-stock', [App\Http\Controllers\ProductoController::class, 'getSinStock']);
+        Route::get('/por-vencer', [App\Http\Controllers\ProductoController::class, 'getPorVencer']);
+        Route::get('/vencidos', [App\Http\Controllers\ProductoController::class, 'getVencidos']);
+        Route::put('/{id}/stock', [App\Http\Controllers\ProductoController::class, 'updateStock']);
+        Route::get('/{id}', [App\Http\Controllers\ProductoController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\ProductoController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\ProductoController::class, 'destroy']);
+    });
+
+    // Proveedores
+    Route::prefix('proveedores')->group(function () {
+        Route::get('/', [App\Http\Controllers\ProveedorController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\ProveedorController::class, 'store']);
+        Route::get('/estadisticas', [App\Http\Controllers\ProveedorController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ProveedorController::class, 'cambiarEstadoMasivo']);
+        Route::get('/tipos-persona-disponibles', [App\Http\Controllers\ProveedorController::class, 'tiposPersonaDisponibles']);
+        Route::get('/categorias-disponibles', [App\Http\Controllers\ProveedorController::class, 'categoriasDisponibles']);
+        Route::get('/estados-disponibles', [App\Http\Controllers\ProveedorController::class, 'estadosDisponibles']);
+        Route::get('/condiciones-iva-disponibles', [App\Http\Controllers\ProveedorController::class, 'condicionesIvaDisponibles']);
+        Route::get('/estado/{estado}', [App\Http\Controllers\ProveedorController::class, 'getByEstado']);
+        Route::get('/categoria/{categoria}', [App\Http\Controllers\ProveedorController::class, 'getByCategoria']);
+        Route::get('/tipo-persona/{tipo}', [App\Http\Controllers\ProveedorController::class, 'getByTipoPersona']);
+        Route::get('/condicion-iva/{condicion}', [App\Http\Controllers\ProveedorController::class, 'getByCondicionIva']);
+        Route::get('/con-credito', [App\Http\Controllers\ProveedorController::class, 'getConCredito']);
+        Route::get('/sin-credito', [App\Http\Controllers\ProveedorController::class, 'getSinCredito']);
+        Route::get('/ciudad/{ciudad}', [App\Http\Controllers\ProveedorController::class, 'getByCiudad']);
+        Route::get('/provincia/{provincia}', [App\Http\Controllers\ProveedorController::class, 'getByProvincia']);
+        Route::get('/{id}', [App\Http\Controllers\ProveedorController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\ProveedorController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\ProveedorController::class, 'destroy']);
+    });
+
+    // Clientes
+    Route::prefix('clientes')->group(function () {
+        Route::get('/', [App\Http\Controllers\ClienteController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\ClienteController::class, 'store']);
+        Route::get('/estadisticas', [App\Http\Controllers\ClienteController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ClienteController::class, 'cambiarEstadoMasivo']);
+        Route::get('/tipos-persona-disponibles', [App\Http\Controllers\ClienteController::class, 'tiposPersonaDisponibles']);
+        Route::get('/categorias-disponibles', [App\Http\Controllers\ClienteController::class, 'categoriasDisponibles']);
+        Route::get('/estados-disponibles', [App\Http\Controllers\ClienteController::class, 'estadosDisponibles']);
+        Route::get('/condiciones-iva-disponibles', [App\Http\Controllers\ClienteController::class, 'condicionesIvaDisponibles']);
+        Route::get('/generos-disponibles', [App\Http\Controllers\ClienteController::class, 'generosDisponibles']);
+        Route::get('/grupos-sanguineos-disponibles', [App\Http\Controllers\ClienteController::class, 'gruposSanguineosDisponibles']);
+        Route::get('/factores-rh-disponibles', [App\Http\Controllers\ClienteController::class, 'factoresRhDisponibles']);
+        Route::get('/estado/{estado}', [App\Http\Controllers\ClienteController::class, 'getByEstado']);
+        Route::get('/categoria/{categoria}', [App\Http\Controllers\ClienteController::class, 'getByCategoria']);
+        Route::get('/tipo-persona/{tipo}', [App\Http\Controllers\ClienteController::class, 'getByTipoPersona']);
+        Route::get('/condicion-iva/{condicion}', [App\Http\Controllers\ClienteController::class, 'getByCondicionIva']);
+        Route::get('/con-credito', [App\Http\Controllers\ClienteController::class, 'getConCredito']);
+        Route::get('/sin-credito', [App\Http\Controllers\ClienteController::class, 'getSinCredito']);
+        Route::get('/con-saldo', [App\Http\Controllers\ClienteController::class, 'getConSaldo']);
+        Route::get('/sin-saldo', [App\Http\Controllers\ClienteController::class, 'getSinSaldo']);
+        Route::get('/con-obra-social', [App\Http\Controllers\ClienteController::class, 'getConObraSocial']);
+        Route::get('/ciudad/{ciudad}', [App\Http\Controllers\ClienteController::class, 'getByCiudad']);
+        Route::get('/provincia/{provincia}', [App\Http\Controllers\ClienteController::class, 'getByProvincia']);
+        Route::get('/recurrentes', [App\Http\Controllers\ClienteController::class, 'getRecurrentes']);
+        Route::get('/nuevos', [App\Http\Controllers\ClienteController::class, 'getNuevos']);
+        Route::get('/frecuentes', [App\Http\Controllers\ClienteController::class, 'getFrecuentes']);
+        Route::get('/vip', [App\Http\Controllers\ClienteController::class, 'getVIP']);
+        Route::get('/con-ultima-compra', [App\Http\Controllers\ClienteController::class, 'getConUltimaCompra']);
+        Route::get('/sin-ultima-compra', [App\Http\Controllers\ClienteController::class, 'getSinUltimaCompra']);
+        Route::get('/{id}', [App\Http\Controllers\ClienteController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\ClienteController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\ClienteController::class, 'destroy']);
+    });
 }); 

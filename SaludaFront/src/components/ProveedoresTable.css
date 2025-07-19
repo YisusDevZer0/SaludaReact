@@ -1,0 +1,128 @@
+/* Estilos para ProveedoresTable */
+
+.proveedores-table-container {
+  padding: 20px;
+}
+
+.proveedores-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.proveedores-table-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.proveedores-table-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.proveedores-table-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.proveedores-table-modal {
+  max-width: 800px;
+  width: 90%;
+}
+
+.proveedores-table-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.proveedores-table-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.proveedores-table-status.active {
+  color: #4caf50;
+}
+
+.proveedores-table-status.inactive {
+  color: #f44336;
+}
+
+.proveedores-table-export {
+  margin-top: 10px;
+}
+
+.proveedores-table-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.proveedores-table-empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.proveedores-table-business-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.proveedores-table-contact-info {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.proveedores-table-category {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.proveedores-table-category.mayorista {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.proveedores-table-category.minorista {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.proveedores-table-category.distribuidor {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .proveedores-table-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .proveedores-table-filters {
+    flex-direction: column;
+  }
+  
+  .proveedores-table-actions {
+    flex-direction: column;
+  }
+  
+  .proveedores-table-form {
+    grid-template-columns: 1fr;
+  }
+} 

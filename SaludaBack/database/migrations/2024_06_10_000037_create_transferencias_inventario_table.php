@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('numero_transferencia', 50)->unique();
             $table->foreignId('sucursal_origen_id')->constrained('sucursales')->onDelete('cascade');
             $table->foreignId('sucursal_destino_id')->constrained('sucursales')->onDelete('cascade');
-            $table->foreignId('almacen_origen_id')->constrained('almacenes')->onDelete('cascade');
-            $table->foreignId('almacen_destino_id')->constrained('almacenes')->onDelete('cascade');
+            $table->foreignId('almacen_origen_id')->constrained('almacenes', 'Almacen_ID')->onDelete('cascade');
+            $table->foreignId('almacen_destino_id')->constrained('almacenes', 'Almacen_ID')->onDelete('cascade');
             $table->foreignId('personal_id')->constrained('personal_pos')->onDelete('cascade');
             
             // Información de la transferencia

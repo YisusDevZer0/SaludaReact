@@ -4,99 +4,115 @@ namespace App\Http\Controllers\Api\V2\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use App\Models\PersonalPos;
+use App\Models\Role;
 use Symfony\Component\HttpFoundation\Response;
 
-class PersonalPOSCreateAdminController extends Controller
+class PersonalPosCreateAdminController extends Controller
 {
     public function __invoke(Request $request)
     {
         $request->validate([
-            'nombre_apellidos' => 'required|string|max:255',
-            'email' => 'required|email|unique:PersonalPOS,Correo_Electronico',
-            'password' => 'required|min:8|confirmed',
-            'telefono' => 'required|string|max:20',
-            'fecha_nacimiento' => 'required|date',
-            'fk_sucursal' => 'required|integer',
-            'id_h_o_d' => 'required|string'
+            'codigo' => 'required|string|max:20|unique:personal_pos,codigo',
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100',
+            'email' => 'required|email|unique:personal_pos,email',
+            'password' => 'required|string|min:6',
+            'telefono' => 'nullable|string|max:20',
+            'dni' => 'nullable|string|max:20|unique:personal_pos,dni',
+            'fecha_nacimiento' => 'nullable|date',
+            'genero' => 'nullable|in:masculino,femenino,otro',
+            'direccion' => 'nullable|string',
+            'ciudad' => 'nullable|string|max:50',
+            'provincia' => 'nullable|string|max:50',
+            'codigo_postal' => 'nullable|string|max:10',
+            'pais' => 'nullable|string|max:50',
+            'sucursal_id' => 'nullable|exists:sucursales,id',
+            'role_id' => 'nullable|exists:roles,id',
+            'fecha_ingreso' => 'nullable|date',
+            'salario' => 'nullable|numeric',
+            'tipo_contrato' => 'nullable|string|max:50',
+            'notas' => 'nullable|string'
         ]);
 
-        // Verificar si ya existe un rol de administrador
-        $rolAdmin = DB::table('Roles_Puestos')
-            ->where('Nombre_rol', 'Administrador')
-            ->where('Estado', 'Activo')
-            ->first();
+        // Verificar si ya existe un administrador
+        $adminExists = PersonalPos::where('can_manage_users', true)->exists();
+        
+        if ($adminExists && !$request->has('force_create')) {
+            return response()->json([
+                'message' => 'Ya existe un administrador en el sistema'
+            ], Response::HTTP_CONFLICT);
+        }
 
-        if (!$rolAdmin) {
-            // Crear rol de administrador si no existe
-            $rolAdminId = DB::table('Roles_Puestos')->insertGetId([
-                'Nombre_rol' => 'Administrador',
-                'Estado' => 'Vigente',
-                'Sistema' => json_encode([
-                    'dashboard' => true,
-                    'usuarios' => true,
-                    'roles' => true,
-                    'configuracion' => true
-                ]),
-                'ID_H_O_D' => $request->id_h_o_d,
-                'Agrego' => 'Sistema',
-                'created_at' => now(),
-                'updated_at' => now()
+        // Crear o obtener rol de administrador
+        $adminRole = Role::where('nombre', 'Administrador')->first();
+        if (!$adminRole) {
+            $adminRole = Role::create([
+                'nombre' => 'Administrador',
+                'descripcion' => 'Rol con todos los permisos del sistema',
+                'estado' => 'activo',
+                'nivel_acceso' => 10,
+                'permisos' => [
+                    'can_login',
+                    'can_sell',
+                    'can_refund',
+                    'can_manage_inventory',
+                    'can_manage_users',
+                    'can_view_reports',
+                    'can_manage_settings'
+                ],
+                'codigo' => 'ADMIN',
+                'tipo_rol' => 'sistema'
             ]);
-        } else {
-            $rolAdminId = $rolAdmin->ID_rol;
         }
 
         // Crear el usuario administrador
-        $userId = DB::table('PersonalPOS')->insertGetId([
-            'Nombre_Apellidos' => $request->nombre_apellidos,
-            'Correo_Electronico' => $request->email,
-            'Password' => Hash::make($request->password),
-            'Telefono' => $request->telefono,
-            'Fecha_Nacimiento' => $request->fecha_nacimiento,
-            'Fk_Usuario' => $rolAdminId,
-            'Fk_Sucursal' => $request->fk_sucursal,
-            'ID_H_O_D' => $request->id_h_o_d,
-            'Estatus' => 'Vigente',
-            'ColorEstatus' => '#28a745',
-            'Permisos' => json_encode([
-                'crear' => true,
-                'editar' => true,
-                'eliminar' => true,
-                'ver' => true
-            ]),
-            'Perm_Elim' => true,
-            'Perm_Edit' => true,
-            'AgregadoPor' => 'Sistema',
-            'AgregadoEl' => now(),
-            'created_at' => now(),
-            'updated_at' => now()
+        $admin = PersonalPos::create([
+            'codigo' => $request->codigo,
+            'nombre' => $request->nombre,
+            'apellido' => $request->apellido,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'telefono' => $request->telefono,
+            'dni' => $request->dni,
+            'fecha_nacimiento' => $request->fecha_nacimiento,
+            'genero' => $request->genero,
+            'direccion' => $request->direccion,
+            'ciudad' => $request->ciudad,
+            'provincia' => $request->provincia,
+            'codigo_postal' => $request->codigo_postal,
+            'pais' => $request->pais ?? 'Argentina',
+            'sucursal_id' => $request->sucursal_id,
+            'role_id' => $adminRole->id,
+            'fecha_ingreso' => $request->fecha_ingreso ?? now(),
+            'estado_laboral' => 'activo',
+            'salario' => $request->salario,
+            'tipo_contrato' => $request->tipo_contrato,
+            'is_active' => true,
+            'can_login' => true,
+            'can_sell' => true,
+            'can_refund' => true,
+            'can_manage_inventory' => true,
+            'can_manage_users' => true,
+            'can_view_reports' => true,
+            'can_manage_settings' => true,
+            'session_timeout' => 480, // 8 horas
+            'notas' => $request->notas ?? 'Administrador creado por sistema'
         ]);
 
-        // Obtener el usuario creado
-        $user = DB::table('PersonalPOS')
-            ->where('Pos_ID', $userId)
-            ->first();
-
-        // Obtener el rol
-        $rol = DB::table('Roles_Puestos')
-            ->where('ID_rol', $rolAdminId)
-            ->first();
-
         return response()->json([
-            'message' => 'Usuario administrador creado exitosamente',
-            'user' => [
-                'Pos_ID' => $user->Pos_ID,
-                'Nombre_Apellidos' => $user->Nombre_Apellidos,
-                'Correo_Electronico' => $user->Correo_Electronico,
-                'Fk_Usuario' => $user->Fk_Usuario,
-                'Estatus' => $user->Estatus,
-                'Permisos' => $user->Permisos,
+            'message' => 'Administrador creado exitosamente',
+            'admin' => [
+                'id' => $admin->id,
+                'codigo' => $admin->codigo,
+                'nombre_completo' => $admin->nombre_completo,
+                'email' => $admin->email,
                 'role' => [
-                    'ID_rol' => $rol->ID_rol,
-                    'Nombre_rol' => $rol->Nombre_rol,
-                    'Permisos' => $rol->Sistema
+                    'id' => $adminRole->id,
+                    'nombre' => $adminRole->nombre,
+                    'descripcion' => $adminRole->descripcion
                 ]
             ]
         ], Response::HTTP_CREATED);

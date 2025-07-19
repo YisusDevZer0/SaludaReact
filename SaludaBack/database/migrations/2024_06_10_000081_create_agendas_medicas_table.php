@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('agendas_medicas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('agenda_id')->constrained('agendas')->onDelete('cascade');
-            $table->foreignId('doctor_id')->constrained('doctores')->onDelete('cascade');
-            $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->onDelete('set null');
-            $table->foreignId('consultorio_id')->nullable()->constrained('consultorios')->onDelete('set null');
-            $table->foreignId('enfermero_id')->nullable()->constrained('enfermeros')->onDelete('set null');
+            // $table->foreignId('agenda_id')->constrained('agendas', 'Agenda_ID')->onDelete('cascade');
+            // $table->foreignId('doctor_id')->constrained('doctores')->onDelete('cascade');
+            // $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->onDelete('set null');
+            // $table->foreignId('consultorio_id')->nullable()->constrained('consultorios')->onDelete('set null');
+            // $table->foreignId('enfermero_id')->nullable()->constrained('enfermeros')->onDelete('set null');
+            $table->unsignedBigInteger('agenda_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->unsignedBigInteger('consultorio_id')->nullable();
+            $table->unsignedBigInteger('enfermero_id')->nullable();
             
             // Información de la cita
             $table->enum('tipo_cita', ['primera_vez', 'control', 'emergencia', 'seguimiento', 'procedimiento'])->default('control');
@@ -34,7 +39,8 @@ return new class extends Migration
             $table->text('observaciones_medico')->nullable();
             
             // Procedimientos
-            $table->foreignId('procedimiento_id')->nullable()->constrained('procedimientos_medicos')->onDelete('set null');
+            // $table->foreignId('procedimiento_id')->nullable()->constrained('procedimientos_medicos')->onDelete('set null');
+            $table->unsignedBigInteger('procedimiento_id')->nullable();
             $table->text('procedimientos_adicionales')->nullable();
             $table->text('equipamiento_requerido')->nullable();
             

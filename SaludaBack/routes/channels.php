@@ -16,3 +16,10 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+// Canal para personal por licencia
+Broadcast::channel('personal.licencia.{licencia}', function ($user, $licencia) {
+    // Verificar que el usuario pertenece a esa licencia
+    $userLicencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+    return $userLicencia == $licencia;
+});

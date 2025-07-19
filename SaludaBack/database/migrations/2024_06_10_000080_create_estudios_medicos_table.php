@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('estudios_medicos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
-            $table->foreignId('receta_id')->nullable()->constrained('recetas_medicas')->onDelete('set null');
+            // $table->foreignId('paciente_id')->constrained('pacientes', 'Paciente_ID')->onDelete('cascade');
+            // $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
+            // $table->foreignId('receta_id')->nullable()->constrained('recetas_medicas')->onDelete('set null');
+            $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->unsignedBigInteger('receta_id')->nullable();
             
             // Información del estudio
             $table->string('nombre_estudio', 255);

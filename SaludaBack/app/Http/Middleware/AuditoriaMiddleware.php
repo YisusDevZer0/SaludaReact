@@ -28,8 +28,8 @@ class AuditoriaMiddleware
             $userId = $user->id;
             $licencia = $user->ID_H_O_D ?? null;
         } elseif ($personalpos) {
-            $userId = $personalpos->Pos_ID;
-            $licencia = $personalpos->ID_H_O_D ?? null;
+                    $userId = $personalpos->id;
+        $licencia = $personalpos->Id_Licencia ?? null;
         } else {
             $userId = null;
             $licencia = null;

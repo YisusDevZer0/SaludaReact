@@ -1,0 +1,94 @@
+/* Estilos para ClientesTable */
+
+.clientes-table-container {
+  padding: 20px;
+}
+
+.clientes-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.clientes-table-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.clientes-table-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.clientes-table-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.clientes-table-modal {
+  max-width: 800px;
+  width: 90%;
+}
+
+.clientes-table-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.clientes-table-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.clientes-table-status.active {
+  color: #4caf50;
+}
+
+.clientes-table-status.inactive {
+  color: #f44336;
+}
+
+.clientes-table-export {
+  margin-top: 10px;
+}
+
+.clientes-table-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.clientes-table-empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .clientes-table-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .clientes-table-filters {
+    flex-direction: column;
+  }
+  
+  .clientes-table-actions {
+    flex-direction: column;
+  }
+  
+  .clientes-table-form {
+    grid-template-columns: 1fr;
+  }
+} 

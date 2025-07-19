@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\PersonalPOS;
+use App\Models\PersonalPos;
 use Symfony\Component\HttpFoundation\Response;
 
-class PersonalPOSLoginController extends Controller
+class PersonalPosLoginController extends Controller
 {
     public function __invoke(Request $request)
     {
@@ -19,80 +19,120 @@ class PersonalPOSLoginController extends Controller
             'password' => 'required'
         ]);
 
-        // Buscar usuario en PersonalPOS usando Eloquent
-        $user = PersonalPOS::where('Correo_Electronico', $request->email)->first();
+        // Buscar usuario en personal_pos usando Eloquent
+        $user = PersonalPos::where('email', $request->email)
+            ->orWhere('codigo', $request->email)
+            ->first();
 
-        if (!$user || !Hash::check($request->password, $user->Password)) {
+        if (!$user) {
             return response()->json([
                 'message' => 'Credenciales inválidas'
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Verificar si el usuario está activo
-        if ($user->Estatus !== 'Vigente') {
+        // Verificar contraseña
+        if (!Hash::check($request->password, $user->password)) {
+            // Incrementar intentos fallidos
+            $user->incrementFailedLoginAttempts();
+            
             return response()->json([
-                'message' => 'Usuario inactivo'
+                'message' => 'Credenciales inválidas'
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Genera el token Passport
-        if (method_exists($user, 'createToken')) {
-            $tokenResult = $user->createToken('PersonalPOSToken');
-            $token = $tokenResult->accessToken;
-        } else {
+        // Verificar si el usuario está bloqueado
+        if ($user->isLocked()) {
+            $lockedUntil = $user->locked_until->format('H:i:s');
             return response()->json([
-                'message' => 'No se pudo generar el token'
-            ], 500);
+                'message' => "Cuenta bloqueada temporalmente hasta las {$lockedUntil}"
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Obtener información del rol del usuario
-        $userWithRole = DB::table('PersonalPOS as p')
-            ->leftJoin('Roles_Puestos as r', 'p.Fk_Usuario', '=', 'r.ID_rol')
-            ->where('p.Pos_ID', $user->Pos_ID)
-            ->select([
-                'p.Pos_ID',
-                'p.Nombre_Apellidos',
-                'p.Correo_Electronico',
-                'p.avatar_url',
-                'p.Telefono',
-                'p.Fecha_Nacimiento',
-                'p.Fk_Sucursal',
-                'p.ID_H_O_D',
-                'p.Estatus',
-                'p.ColorEstatus',
-                'p.Permisos',
-                'p.Perm_Elim',
-                'p.Perm_Edit',
-                'r.ID_rol',
-                'r.Nombre_rol',
-                'r.Estado as role_estado',
-                'r.Descripcion as role_descripcion'
-            ])
+        // Verificar si el usuario puede hacer login
+        if (!$user->canLogin()) {
+            return response()->json([
+                'message' => 'Usuario inactivo o sin permisos de acceso'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Resetear intentos fallidos al acceder correctamente
+        $user->resetFailedLoginAttempts();
+
+        // Actualizar último login
+        $user->updateLastLogin($request->ip());
+
+        // Generar token Passport
+        $tokenResult = $user->createToken('PersonalPosToken');
+        $token = $tokenResult->accessToken;
+
+        // Cargar relaciones necesarias (sin licencia por ahora)
+        $userWithRelations = PersonalPos::with(['sucursal', 'role'])
+            ->where('id', $user->id)
             ->first();
+
+        // Preparar datos del usuario para la respuesta
+        $userData = [
+            'id' => $userWithRelations->id,
+            'codigo' => $userWithRelations->codigo,
+            'nombre' => $userWithRelations->nombre,
+            'apellido' => $userWithRelations->apellido,
+            'nombre_completo' => $userWithRelations->nombre_completo,
+            'email' => $userWithRelations->email,
+            'telefono' => $userWithRelations->telefono,
+            'dni' => $userWithRelations->dni,
+            'fecha_nacimiento' => $userWithRelations->fecha_nacimiento,
+            'genero' => $userWithRelations->genero,
+            'direccion' => $userWithRelations->direccion,
+            'ciudad' => $userWithRelations->ciudad,
+            'provincia' => $userWithRelations->provincia,
+            'codigo_postal' => $userWithRelations->codigo_postal,
+            'pais' => $userWithRelations->pais,
+            'fecha_ingreso' => $userWithRelations->fecha_ingreso,
+            'fecha_salida' => $userWithRelations->fecha_salida,
+            'estado_laboral' => $userWithRelations->estado_laboral,
+            'salario' => $userWithRelations->salario,
+            'tipo_contrato' => $userWithRelations->tipo_contrato,
+            'last_login_at' => $userWithRelations->last_login_at,
+            'last_login_ip' => $userWithRelations->last_login_ip,
+            'session_timeout' => $userWithRelations->session_timeout,
+            'preferences' => $userWithRelations->preferences,
+            'notas' => $userWithRelations->notas,
+            'foto_perfil' => $userWithRelations->foto_perfil,
+            'can_sell' => $userWithRelations->can_sell,
+            'can_refund' => $userWithRelations->can_refund,
+            'can_manage_inventory' => $userWithRelations->can_manage_inventory,
+            'can_manage_users' => $userWithRelations->can_manage_users,
+            'can_view_reports' => $userWithRelations->can_view_reports,
+            'can_manage_settings' => $userWithRelations->can_manage_settings,
+            'sucursal' => $userWithRelations->sucursal ? [
+                'id' => $userWithRelations->sucursal->id,
+                'nombre' => $userWithRelations->sucursal->nombre,
+                'direccion' => $userWithRelations->sucursal->direccion,
+                'ciudad' => $userWithRelations->sucursal->ciudad,
+                'provincia' => $userWithRelations->sucursal->provincia,
+                'codigo_postal' => $userWithRelations->sucursal->codigo_postal,
+                'pais' => $userWithRelations->sucursal->pais,
+                'telefono' => $userWithRelations->sucursal->telefono,
+                'email' => $userWithRelations->sucursal->email,
+                'estado' => $userWithRelations->sucursal->estado
+            ] : null,
+            'role' => $userWithRelations->role ? [
+                'id' => $userWithRelations->role->id,
+                'nombre' => $userWithRelations->role->nombre,
+                'descripcion' => $userWithRelations->role->descripcion,
+                'estado' => $userWithRelations->role->estado,
+                'permisos' => $userWithRelations->role->permisos ?? []
+            ] : null,
+            'licencia' => null // Temporalmente deshabilitado
+        ];
 
         return response()->json([
             'access_token' => $token,
-            'user' => [
-                'Pos_ID' => $userWithRole->Pos_ID,
-                'Nombre_Apellidos' => $userWithRole->Nombre_Apellidos,
-                'Correo_Electronico' => $userWithRole->Correo_Electronico,
-                'avatar_url' => $userWithRole->avatar_url,
-                'Telefono' => $userWithRole->Telefono,
-                'Fecha_Nacimiento' => $userWithRole->Fecha_Nacimiento,
-                'Fk_Sucursal' => $userWithRole->Fk_Sucursal,
-                'ID_H_O_D' => $userWithRole->ID_H_O_D,
-                'Estatus' => $userWithRole->Estatus,
-                'ColorEstatus' => $userWithRole->ColorEstatus,
-                'Permisos' => $userWithRole->Permisos,
-                'Perm_Elim' => $userWithRole->Perm_Elim,
-                'Perm_Edit' => $userWithRole->Perm_Edit,
-                'role' => [
-                    'ID_rol' => $userWithRole->ID_rol,
-                    'Nombre_rol' => $userWithRole->Nombre_rol,
-                    'Estado' => $userWithRole->role_estado,
-                    'Descripcion' => $userWithRole->role_descripcion
-                ]
-            ]
+            'token_type' => 'Bearer',
+            'expires_in' => $tokenResult->token->expires_at ? 
+                $tokenResult->token->expires_at->diffInSeconds(now()) : 
+                config('auth.passport.tokens.access_token.lifetime', 3600),
+            'user' => $userData
         ]);
     }
 } 

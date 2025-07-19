@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('numero_ajuste', 50)->unique();
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
-            $table->foreignId('almacen_id')->constrained('almacenes')->onDelete('cascade');
+            $table->foreignId('almacen_id')->constrained('almacenes', 'Almacen_ID')->onDelete('cascade');
             $table->foreignId('personal_id')->constrained('personal_pos')->onDelete('cascade');
             
             // Información del ajuste

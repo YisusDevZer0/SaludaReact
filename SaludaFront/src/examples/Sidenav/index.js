@@ -345,29 +345,82 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           to="/"
           sx={{ mb: 1 }}
         >
+          {/* Debug: Mostrar datos del usuario */}
+          {console.log('Sidenav - Datos del usuario:', userData)}
+          {console.log('Sidenav - Sucursal:', userData?.sucursal)}
+          {console.log('Sidenav - Licencia:', userData?.licencia)}
+          {/* Logo de la empresa */}
           <Avatar
-            src={userData?.logo_url || defaultLogo}
+            src={userData?.licencia?.logo_url || userData?.logo_url || defaultLogo}
             alt="Logo Empresa"
-            sx={{ width: 56, height: 56, mb: 1, boxShadow: 2, bgcolor: "white" }}
+            sx={{ 
+              width: 64, 
+              height: 64, 
+              mb: 1, 
+              boxShadow: 3, 
+              bgcolor: "white",
+              border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[1]} solid ${white.main}`,
+              "&:hover": {
+                transform: "scale(1.05)",
+                transition: "transform 0.2s ease-in-out"
+              }
+            }}
           />
+          
+          {/* Nombre de la empresa/licencia */}
           <MDTypography
             component="h5"
             variant="h5"
             fontWeight="bold"
             color={textColor}
-            sx={{ fontSize: "1.35rem", lineHeight: 1.2, textAlign: 'center', mt: 1 }}
+            sx={{ 
+              fontSize: "1.25rem", 
+              lineHeight: 1.2, 
+              textAlign: 'center', 
+              mt: 1,
+              textShadow: "0 1px 2px rgba(0,0,0,0.3)"
+            }}
           >
-            {userData?.ID_H_O_D || "Licencia"}
+            {userData?.licencia?.nombre || userData?.licencia?.h_o_d || "Empresa"}
           </MDTypography>
+          
+          {/* Sucursal */}
           <MDTypography
             component="h6"
             variant="subtitle1"
             fontWeight="medium"
             color={textColor}
-            sx={{ fontSize: "1.1rem", lineHeight: 1.1, textAlign: 'center', mb: 1 }}
+            sx={{ 
+              fontSize: "1rem", 
+              lineHeight: 1.1, 
+              textAlign: 'center', 
+              mb: 1,
+              opacity: 0.9
+            }}
           >
-            {userData?.sucursal?.Nombre_Sucursal || "Sucursal"}
+            {userData?.sucursal?.nombre || userData?.sucursal?.Nombre_Sucursal || "Sucursal"}
           </MDTypography>
+          
+          {/* Indicador de sistema activo */}
+          <MDBox 
+            display="flex" 
+            alignItems="center" 
+            justifyContent="center"
+            bgcolor="rgba(76, 175, 80, 0.2)"
+            borderRadius={1}
+            px={1}
+            py={0.5}
+            mb={1}
+          >
+            <MDBox
+              width={6}
+              height={6}
+              borderRadius="50%"
+              bgcolor="success.main"
+              mr={0.5}
+            />
+           
+          </MDBox>
         </MDBox>
       </MDBox>
       <Divider
@@ -380,7 +433,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       {/* Perfil de usuario (solo si hay sesión activa) */}
       {userData && (
         <MDBox p={2} textAlign="center">
-          <MDBox mb={1} display="flex" justifyContent="center">
+          <MDBox mb={1} display="flex" justifyContent="center" position="relative">
             {/* Mostrar la URL del avatar para depuración */}
             {console.log('Avatar URL Sidenav:', userData.avatar_url)}
             <MDAvatar
@@ -390,18 +443,83 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
               bgColor={userData?.avatar_url ? "transparent" : "info"}
               sx={{ border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}` }}
             />
+            {/* Indicador de estado online */}
+            <MDBox
+              position="absolute"
+              bottom={0}
+              right={0}
+              width={16}
+              height={16}
+              borderRadius="50%"
+              bgcolor="success.main"
+              border={({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}`}
+              sx={{
+                animation: "pulse 2s infinite",
+                "@keyframes pulse": {
+                  "0%": {
+                    boxShadow: "0 0 0 0 rgba(76, 175, 80, 0.7)"
+                  },
+                  "70%": {
+                    boxShadow: "0 0 0 10px rgba(76, 175, 80, 0)"
+                  },
+                  "100%": {
+                    boxShadow: "0 0 0 0 rgba(76, 175, 80, 0)"
+                  }
+                }
+              }}
+            />
           </MDBox>
-          <MDTypography variant="h6" color={textColor} fontWeight="medium">
-            {userData.name}
+          
+          {/* Nombre del usuario */}
+          <MDTypography variant="h6" color={textColor} fontWeight="medium" mb={0.5}>
+            {userData.nombre_completo || userData.name}
           </MDTypography>
-          <MDTypography variant="caption" color="text">
+          
+          {/* Puesto/Cargo */}
+          <MDTypography variant="caption" color="text" display="block" mb={0.5}>
             {userRole === "admin" ? "Administrador" :
              userRole === "seller" ? "Vendedor" :
              userRole === "nurse" ? "Enfermero" :
              userRole === "doctor" ? "Doctor" :
              userRole === "pharmacist" ? "Farmacéutico" :
-             userRole === "Administrador Agendas" ? "Administrador Agendas" : "Usuario"}
+             userRole === "Administrador Agendas" ? "Administrador Agendas" :
+             userRole === "user" ? "Usuario" : "Usuario"}
           </MDTypography>
+          
+          {/* Estado online */}
+          <MDBox display="flex" alignItems="center" justifyContent="center" mb={1}>
+            <MDBox
+              width={8}
+              height={8}
+              borderRadius="50%"
+              bgcolor="success.main"
+              mr={1}
+            />
+            <MDTypography variant="caption" color="success.main" fontWeight="medium">
+              En línea
+            </MDTypography>
+          </MDBox>
+          
+          {/* Sucursal actual */}
+          {userData.sucursal && (
+            <MDBox 
+              bgcolor="rgba(255,255,255,0.1)" 
+              borderRadius={1} 
+              p={1} 
+              mb={1}
+              sx={{ backdropFilter: "blur(10px)" }}
+            >
+              <MDTypography variant="caption" color={textColor} fontWeight="medium" display="block">
+                Sucursal: {userData.sucursal.nombre || userData.sucursal.Nombre_Sucursal}
+              </MDTypography>
+              {userData.sucursal.ciudad && (
+                <MDTypography variant="caption" color="text" fontSize="0.7rem">
+                  {userData.sucursal.ciudad}
+                </MDTypography>
+              )}
+            </MDBox>
+          )}
+          
           <Divider sx={{ my: 1 }} />
         </MDBox>
       )}

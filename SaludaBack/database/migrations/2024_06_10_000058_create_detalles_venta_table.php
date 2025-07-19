@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('detalles_venta', function (Blueprint $table) {
             $table->id();
             $table->foreignId('venta_id')->constrained('ventas')->onDelete('cascade');
-            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
-            $table->foreignId('inventario_id')->nullable()->constrained('inventario')->onDelete('set null');
+            // $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            // $table->foreignId('inventario_id')->nullable()->constrained('inventario')->onDelete('set null');
+            $table->unsignedBigInteger('producto_id')->nullable();
+            $table->unsignedBigInteger('inventario_id')->nullable();
             
             // Información del producto
             $table->string('codigo_producto', 50);
@@ -56,7 +58,8 @@ return new class extends Migration
             $table->text('indicaciones_receta')->nullable();
             $table->boolean('requiere_receta')->default(false);
             $table->boolean('receta_validada')->default(false);
-            $table->foreignId('validado_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            // $table->foreignId('validado_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            $table->unsignedBigInteger('validado_por')->nullable();
             
             // Estado del detalle
             $table->enum('estado', ['pendiente', 'confirmado', 'anulado', 'devuelto'])->default('pendiente');
@@ -64,7 +67,8 @@ return new class extends Migration
             $table->decimal('monto_devuelto', 12, 2)->default(0.00);
             $table->text('motivo_devolucion')->nullable();
             $table->timestamp('fecha_devolucion')->nullable();
-            $table->foreignId('devolucion_autorizada_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            // $table->foreignId('devolucion_autorizada_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            $table->unsignedBigInteger('devolucion_autorizada_por')->nullable();
             
             // Información adicional
             $table->text('observaciones')->nullable();

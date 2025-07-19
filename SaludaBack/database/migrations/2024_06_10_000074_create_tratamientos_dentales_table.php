@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('tratamientos_dentales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('credito_dental_id')->constrained('creditos_dentales')->onDelete('cascade');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
+            // $table->foreignId('credito_dental_id')->constrained('creditos_dentales')->onDelete('cascade');
+            // $table->foreignId('doctor_id')->nullable()->constrained('doctores', 'Doctor_ID')->onDelete('set null');
+            // $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
+            $table->unsignedBigInteger('credito_dental_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->unsignedBigInteger('paciente_id')->nullable();
             
             // Información del tratamiento
             $table->string('nombre_tratamiento', 255);

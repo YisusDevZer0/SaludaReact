@@ -21,3 +21,6 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/auditorias', [AuditoriaController::class, 'index'])->name('auditorias.index');
 });
+
+// Ruta pública para count de personal activo (sin autenticación)
+Route::get('/api/personal/active/count', [App\Http\Controllers\PersonalPOSController::class, 'countActive']);

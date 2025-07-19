@@ -53,6 +53,9 @@ import {
   setTransparentNavbar,
   setMiniSidenav,
   setOpenConfigurator,
+  setNavbarColor,
+  setNavbarShadow,
+  setNavbarPosition,
 } from "context";
 import MDButton from "components/MDButton";
 import { AuthContext } from "context";
@@ -70,7 +73,16 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const authContext = useContext(AuthContext);
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
-  const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
+  const { 
+    miniSidenav, 
+    transparentNavbar, 
+    fixedNavbar, 
+    openConfigurator, 
+    darkMode,
+    navbarColor,
+    navbarShadow,
+    navbarPosition
+  } = controller;
   const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
   const [currentTime, setCurrentTime] = useState("");
@@ -201,13 +213,16 @@ function DashboardNavbar({ absolute, light, isMini }) {
 
   return (
     <AppBar
-      position={absolute ? "absolute" : navbarType}
+      position={absolute ? "absolute" : navbarPosition}
       color="inherit"
       sx={(theme) => ({
         ...navbar(theme, { transparentNavbar, absolute, light, darkMode }),
-        background: `linear-gradient(135deg, ${SALUDA_COLORS.primary} 0%, ${SALUDA_COLORS.secondary} 100%)`,
-        boxShadow: "0 5px 15px rgba(0, 0, 0, 0.2)",
-        borderRadius: "0px 0px 15px 15px"
+        background: navbarColor === 'info' 
+          ? `linear-gradient(135deg, ${SALUDA_COLORS.primary} 0%, ${SALUDA_COLORS.secondary} 100%)`
+          : `linear-gradient(135deg, ${theme.palette[navbarColor]?.main || SALUDA_COLORS.primary} 0%, ${theme.palette[navbarColor]?.dark || SALUDA_COLORS.secondary} 100%)`,
+        boxShadow: navbarShadow ? "0 5px 15px rgba(0, 0, 0, 0.2)" : "none",
+        borderRadius: "0px 0px 15px 15px",
+        opacity: transparentNavbar ? 0.9 : 1
       })}
     >
       <Toolbar sx={(theme) => navbarContainer(theme)}>

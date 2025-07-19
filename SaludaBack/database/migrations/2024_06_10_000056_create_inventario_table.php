@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('inventario', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            // $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
+            $table->unsignedBigInteger('producto_id')->nullable();
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
-            $table->foreignId('almacen_id')->nullable()->constrained('almacenes')->onDelete('set null');
+            $table->foreignId('almacen_id')->nullable()->constrained('almacenes', 'Almacen_ID')->onDelete('set null');
             
             // Información de stock
             $table->integer('stock_actual')->default(0);

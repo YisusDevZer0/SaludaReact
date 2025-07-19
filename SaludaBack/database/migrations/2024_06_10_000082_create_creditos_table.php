@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('creditos', function (Blueprint $table) {
             $table->id();
             $table->string('numero_credito', 50)->unique();
-            $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
-            $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->onDelete('set null');
-            $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
+            // $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+            // $table->foreignId('paciente_id')->nullable()->constrained('pacientes', 'Paciente_ID')->onDelete('set null');
+            // $table->foreignId('doctor_id')->nullable()->constrained('doctores')->onDelete('set null');
+            $table->unsignedBigInteger('cliente_id')->nullable();
+            $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
             
             // Información del crédito
@@ -51,7 +54,8 @@ return new class extends Migration
             $table->decimal('descuento_porcentaje', 5, 2)->default(0.00);
             $table->decimal('descuento_monto', 10, 2)->default(0.00);
             $table->string('motivo_descuento', 255)->nullable();
-            $table->foreignId('autorizado_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            // $table->foreignId('autorizado_por')->nullable()->constrained('personal_pos')->onDelete('set null');
+            $table->unsignedBigInteger('autorizado_por')->nullable();
             
             // Información médica
             $table->text('diagnostico')->nullable();

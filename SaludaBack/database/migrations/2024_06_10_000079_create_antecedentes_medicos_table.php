@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('antecedentes_medicos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
+            // $table->foreignId('paciente_id')->constrained('pacientes', 'Paciente_ID')->onDelete('cascade');
+            $table->unsignedBigInteger('paciente_id')->nullable();
             
             // Información personal
             $table->text('antecedentes_personales')->nullable();

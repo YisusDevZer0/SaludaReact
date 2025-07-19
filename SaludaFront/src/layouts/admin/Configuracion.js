@@ -133,7 +133,15 @@ function Configuracion() {
 
   const handleSubmitRol = async () => {
     try {
-      const userData = JSON.parse(localStorage.getItem("userData"));
+      let userData = null;
+      try {
+        const storedUserData = localStorage.getItem("userData");
+        if (storedUserData) {
+          userData = JSON.parse(storedUserData);
+        }
+      } catch (error) {
+        console.error("Error parsing userData from localStorage:", error);
+      }
       const id_hod = userData?.ID_H_O_D;
       
       const response = await fetch("http://localhost:8000/api/roles-puestos", {
@@ -173,7 +181,14 @@ function Configuracion() {
           usuarios: rol.Usuarios || "-",
           permisos: (
             <MDTypography variant="caption" color="info" fontWeight="medium">
-              {rol.Sistema ? Object.keys(JSON.parse(rol.Sistema)).join(", ") : "-"}
+              {rol.Sistema ? (() => {
+                try {
+                  return Object.keys(JSON.parse(rol.Sistema)).join(", ");
+                } catch (error) {
+                  console.error("Error parsing rol.Sistema:", error);
+                  return "Error al cargar permisos";
+                }
+              })() : "-"}
             </MDTypography>
           ),
           ultimoCambio: rol.updated_at ? rol.updated_at.split("T")[0] : "-",
@@ -243,7 +258,14 @@ function Configuracion() {
           usuarios: rol.Usuarios || "-",
           permisos: (
             <MDTypography variant="caption" color="info" fontWeight="medium">
-              {rol.Sistema ? Object.keys(JSON.parse(rol.Sistema)).join(", ") : "-"}
+              {rol.Sistema ? (() => {
+                try {
+                  return Object.keys(JSON.parse(rol.Sistema)).join(", ");
+                } catch (error) {
+                  console.error("Error parsing rol.Sistema:", error);
+                  return "Error al cargar permisos";
+                }
+              })() : "-"}
             </MDTypography>
           ),
           ultimoCambio: rol.updated_at ? rol.updated_at.split("T")[0] : "-",

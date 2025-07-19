@@ -1,0 +1,264 @@
+/* Estilos para la página de Proveedores */
+
+.proveedores-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.proveedores-page-header {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.proveedores-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.proveedores-page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.proveedores-page-content {
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+.proveedores-page-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.proveedores-page-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.proveedores-page-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.proveedores-page-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.proveedores-page-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.proveedores-page-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff9800;
+  margin: 0;
+}
+
+.proveedores-page-card-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.proveedores-page-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.proveedores-page-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.2s ease;
+}
+
+.proveedores-page-button.primary {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+}
+
+.proveedores-page-button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.proveedores-page-button.secondary {
+  background: white;
+  color: #ff9800;
+  border: 2px solid #ff9800;
+}
+
+.proveedores-page-button.secondary:hover {
+  background: #ff9800;
+  color: white;
+}
+
+.proveedores-page-filters {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.proveedores-page-filters-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.proveedores-page-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.proveedores-page-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.proveedores-page-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 12px;
+}
+
+.proveedores-page-error {
+  text-align: center;
+  padding: 3rem;
+  color: #f44336;
+  background: white;
+  border-radius: 12px;
+}
+
+.proveedores-page-category {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.proveedores-page-category.mayorista {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.proveedores-page-category.minorista {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.proveedores-page-category.distribuidor {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+.proveedores-page-category.fabricante {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.proveedores-page-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.proveedores-page-status.active {
+  color: #4caf50;
+}
+
+.proveedores-page-status.inactive {
+  color: #f44336;
+}
+
+.proveedores-page-business-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.proveedores-page-contact-info {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.proveedores-page-rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.proveedores-page-rating .star {
+  color: #ffc107;
+}
+
+.proveedores-page-rating .star.empty {
+  color: #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .proveedores-page-content {
+    padding: 0 1rem;
+  }
+  
+  .proveedores-page-title {
+    font-size: 2rem;
+  }
+  
+  .proveedores-page-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .proveedores-page-actions {
+    flex-direction: column;
+  }
+  
+  .proveedores-page-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .proveedores-page-header {
+    padding: 1.5rem 0;
+  }
+  
+  .proveedores-page-title {
+    font-size: 1.75rem;
+  }
+  
+  .proveedores-page-subtitle {
+    font-size: 1rem;
+  }
+} 

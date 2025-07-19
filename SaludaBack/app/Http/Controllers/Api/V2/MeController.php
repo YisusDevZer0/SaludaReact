@@ -89,7 +89,7 @@ class MeController extends Controller
     }
 
     /**
-     * Método personalizado para usuarios de PersonalPOS
+     * Método personalizado para usuarios de PersonalPos
      * @param Request $request
      * @return JsonResponse
      */
@@ -97,34 +97,21 @@ class MeController extends Controller
     {
         $user = $request->get('auth_user');
         
-        // Obtener información adicional del usuario
-        $userWithRelations = \DB::table('PersonalPOS as p')
-            ->join('Roles_Puestos as r', 'p.Fk_Usuario', '=', 'r.ID_rol')
-            ->join('Sucursales as s', 'p.Fk_Sucursal', '=', 's.ID_SucursalC')
-            ->where('p.Pos_ID', $user->Pos_ID)
-            ->select([
-                'p.*',
-                'r.Nombre_rol',
-                'r.Estado as Rol_Estado',
-                'r.Sistema as Rol_Permisos',
-                's.Nombre_Sucursal',
-                's.Direccion',
-                's.Telefono as Sucursal_Telefono',
-                's.Correo as Sucursal_Correo',
-                's.Sucursal_Activa'
-            ])
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado'
+            ], 401);
+        }
+
+        // Cargar relaciones usando Eloquent
+        $userWithRelations = \App\Models\PersonalPos::with(['sucursal', 'role', 'licencia'])
+            ->where('id', $user->id)
             ->first();
 
-        // Buscar la organización/licencia y su logo
-        $organizacion = null;
-        $logoUrl = null;
-        if ($user->ID_H_O_D) {
-            $organizacion = \DB::table('Hospital_Organizacion_Dueño')
-                ->where('H_O_D', $user->ID_H_O_D)
-                ->first();
-            if ($organizacion && $organizacion->Logo_identidad) {
-                $logoUrl = url('storage/logos/' . $organizacion->Logo_identidad);
-            }
+        if (!$userWithRelations) {
+            return response()->json([
+                'message' => 'Usuario no encontrado'
+            ], 404);
         }
 
         $responseData = [
@@ -132,40 +119,74 @@ class MeController extends Controller
                 'version' => '1.0'
             ],
             'data' => [
-                'id' => (string)$user->Pos_ID,
+                'id' => (string)$userWithRelations->id,
                 'type' => 'users',
                 'attributes' => [
-                    'name' => $user->Nombre_Apellidos,
-                    'email' => $user->Correo_Electronico,
-                    'avatar_url' => $user->avatar_url,
-                    'telefono' => $user->Telefono,
-                    'fecha_nacimiento' => $user->Fecha_Nacimiento,
-                    'estatus' => $user->Estatus,
-                    'color_estatus' => $user->ColorEstatus,
-                    'permisos' => $user->Permisos,
-                    'perm_elim' => $user->Perm_Elim,
-                    'perm_edit' => $user->Perm_Edit,
-                    'fk_sucursal' => $user->Fk_Sucursal,
-                    'id_h_o_d' => $user->ID_H_O_D,
-                    'nombre_sucursal' => $userWithRelations->Nombre_Sucursal ?? null,
-                    'licencia' => $user->ID_H_O_D ?? 'Licencia Saluda',
-                    'logo_url' => $logoUrl,
-                    'role' => [
-                        'id' => $user->Fk_Usuario,
-                        'nombre' => $userWithRelations->Nombre_rol ?? null,
-                        'estado' => $userWithRelations->Rol_Estado ?? null,
-                        'permisos' => $userWithRelations->Rol_Permisos ?? null
-                    ],
-                    'sucursal' => [
-                        'id' => $user->Fk_Sucursal,
-                        'nombre' => $userWithRelations->Nombre_Sucursal ?? null,
-                        'direccion' => $userWithRelations->Direccion ?? null,
-                        'telefono' => $userWithRelations->Sucursal_Telefono ?? null,
-                        'correo' => $userWithRelations->Sucursal_Correo ?? null,
-                        'activa' => $userWithRelations->Sucursal_Activa ?? null
-                    ],
-                    'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at
+                    'codigo' => $userWithRelations->codigo,
+                    'nombre' => $userWithRelations->nombre,
+                    'apellido' => $userWithRelations->apellido,
+                    'nombre_completo' => $userWithRelations->nombre_completo,
+                    'email' => $userWithRelations->email,
+                    'telefono' => $userWithRelations->telefono,
+                    'dni' => $userWithRelations->dni,
+                    'fecha_nacimiento' => $userWithRelations->fecha_nacimiento,
+                    'genero' => $userWithRelations->genero,
+                    'direccion' => $userWithRelations->direccion,
+                    'ciudad' => $userWithRelations->ciudad,
+                    'provincia' => $userWithRelations->provincia,
+                    'codigo_postal' => $userWithRelations->codigo_postal,
+                    'pais' => $userWithRelations->pais,
+                    'fecha_ingreso' => $userWithRelations->fecha_ingreso,
+                    'fecha_salida' => $userWithRelations->fecha_salida,
+                    'estado_laboral' => $userWithRelations->estado_laboral,
+                    'salario' => $userWithRelations->salario,
+                    'tipo_contrato' => $userWithRelations->tipo_contrato,
+                    'last_login_at' => $userWithRelations->last_login_at,
+                    'last_login_ip' => $userWithRelations->last_login_ip,
+                    'session_timeout' => $userWithRelations->session_timeout,
+                    'preferences' => $userWithRelations->preferences,
+                    'notas' => $userWithRelations->notas,
+                    'foto_perfil' => $userWithRelations->foto_perfil,
+                    'can_sell' => $userWithRelations->can_sell,
+                    'can_refund' => $userWithRelations->can_refund,
+                    'can_manage_inventory' => $userWithRelations->can_manage_inventory,
+                    'can_manage_users' => $userWithRelations->can_manage_users,
+                    'can_view_reports' => $userWithRelations->can_view_reports,
+                    'can_manage_settings' => $userWithRelations->can_manage_settings,
+                    'sucursal' => $userWithRelations->sucursal ? [
+                        'id' => $userWithRelations->sucursal->id,
+                        'nombre' => $userWithRelations->sucursal->nombre,
+                        'direccion' => $userWithRelations->sucursal->direccion,
+                        'ciudad' => $userWithRelations->sucursal->ciudad,
+                        'provincia' => $userWithRelations->sucursal->provincia,
+                        'codigo_postal' => $userWithRelations->sucursal->codigo_postal,
+                        'pais' => $userWithRelations->sucursal->pais,
+                        'telefono' => $userWithRelations->sucursal->telefono,
+                        'email' => $userWithRelations->sucursal->email,
+                        'estado' => $userWithRelations->sucursal->estado
+                    ] : null,
+                    'role' => $userWithRelations->role ? [
+                        'id' => $userWithRelations->role->id,
+                        'nombre' => $userWithRelations->role->nombre,
+                        'descripcion' => $userWithRelations->role->descripcion,
+                        'estado' => $userWithRelations->role->estado,
+                        'permisos' => $userWithRelations->role->permisos ?? []
+                    ] : null,
+                    'licencia' => $userWithRelations->licencia ? [
+                        'id' => $userWithRelations->licencia->Id_Licencia,
+                        'h_o_d' => $userWithRelations->licencia->H_O_D,
+                        'nombre' => $userWithRelations->licencia->nombre,
+                        'codigo' => $userWithRelations->licencia->codigo,
+                        'logo_url' => $userWithRelations->licencia->Logo ? url('storage/logos/' . $userWithRelations->licencia->Logo) : null,
+                        'direccion' => $userWithRelations->licencia->direccion,
+                        'telefono' => $userWithRelations->licencia->telefono,
+                        'email' => $userWithRelations->licencia->email,
+                        'responsable' => $userWithRelations->licencia->responsable,
+                        'tipo' => $userWithRelations->licencia->tipo,
+                        'estado' => $userWithRelations->licencia->estado
+                    ] : null,
+                    'created_at' => $userWithRelations->created_at,
+                    'updated_at' => $userWithRelations->updated_at
                 ]
             ]
         ];

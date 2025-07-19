@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('sesiones_dentales', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tratamiento_dental_id')->constrained('tratamientos_dentales')->onDelete('cascade');
-            $table->foreignId('doctor_id')->constrained('doctores')->onDelete('cascade');
-            $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
-            $table->foreignId('consultorio_id')->nullable()->constrained('consultorios')->onDelete('set null');
+            // $table->foreignId('tratamiento_dental_id')->constrained('tratamientos_dentales')->onDelete('cascade');
+            // $table->foreignId('doctor_id')->constrained('doctores', 'Doctor_ID')->onDelete('cascade');
+            // $table->foreignId('paciente_id')->constrained('pacientes')->onDelete('cascade');
+            // $table->foreignId('consultorio_id')->nullable()->constrained('consultorios')->onDelete('set null');
+            $table->unsignedBigInteger('tratamiento_dental_id')->nullable();
+            $table->unsignedBigInteger('doctor_id')->nullable();
+            $table->unsignedBigInteger('paciente_id')->nullable();
+            $table->unsignedBigInteger('consultorio_id')->nullable();
             
             // Información de la sesión
             $table->integer('numero_sesion');

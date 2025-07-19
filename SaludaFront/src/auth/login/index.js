@@ -224,8 +224,13 @@ function Login() {
       setIntentosFallidos(0);
       
       // Realizar el login en el contexto de autenticación
-      setTimeout(() => {
-        authContext.login(response.access_token, response.refresh_token, response.user);
+      setTimeout(async () => {
+        try {
+          await authContext.login(response.access_token, response.refresh_token, response.user);
+        } catch (error) {
+          console.error('Error en login del contexto:', error);
+          showNotification("Error al procesar el login", "error");
+        }
       }, 1500);
       
     } catch (res) {

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('numero_reserva', 50)->unique();
             $table->foreignId('producto_id')->constrained('productos')->onDelete('cascade');
             $table->foreignId('sucursal_id')->constrained('sucursales')->onDelete('cascade');
-            $table->foreignId('almacen_id')->constrained('almacenes')->onDelete('cascade');
+            $table->foreignId('almacen_id')->constrained('almacenes', 'Almacen_ID')->onDelete('cascade');
             $table->foreignId('cliente_id')->nullable()->constrained('clientes')->onDelete('set null');
             $table->foreignId('paciente_id')->nullable()->constrained('pacientes')->onDelete('set null');
             $table->foreignId('personal_id')->constrained('personal_pos')->onDelete('cascade');

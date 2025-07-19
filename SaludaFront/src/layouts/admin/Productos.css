@@ -1,0 +1,252 @@
+/* Estilos para la página de Productos */
+
+.productos-page {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.productos-page-header {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.productos-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.productos-page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.productos-page-content {
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+.productos-page-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.productos-page-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.productos-page-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.productos-page-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.productos-page-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.productos-page-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4caf50;
+  margin: 0;
+}
+
+.productos-page-card-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.productos-page-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.productos-page-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: none;
+  transition: all 0.2s ease;
+}
+
+.productos-page-button.primary {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border: none;
+}
+
+.productos-page-button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.productos-page-button.secondary {
+  background: white;
+  color: #4caf50;
+  border: 2px solid #4caf50;
+}
+
+.productos-page-button.secondary:hover {
+  background: #4caf50;
+  color: white;
+}
+
+.productos-page-filters {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.productos-page-filters-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.productos-page-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.productos-page-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.productos-page-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: white;
+  border-radius: 12px;
+}
+
+.productos-page-error {
+  text-align: center;
+  padding: 3rem;
+  color: #f44336;
+  background: white;
+  border-radius: 12px;
+}
+
+.productos-page-category {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.productos-page-category.medicamento {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.productos-page-category.equipo {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.productos-page-category.consumible {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.productos-page-category.otro {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.productos-page-stock {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.productos-page-stock.high {
+  color: #4caf50;
+}
+
+.productos-page-stock.medium {
+  color: #ff9800;
+}
+
+.productos-page-stock.low {
+  color: #f44336;
+}
+
+.productos-page-price {
+  font-weight: 600;
+  color: #333;
+}
+
+.productos-page-discount {
+  color: #f44336;
+  font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .productos-page-content {
+    padding: 0 1rem;
+  }
+  
+  .productos-page-title {
+    font-size: 2rem;
+  }
+  
+  .productos-page-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .productos-page-actions {
+    flex-direction: column;
+  }
+  
+  .productos-page-filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .productos-page-header {
+    padding: 1.5rem 0;
+  }
+  
+  .productos-page-title {
+    font-size: 1.75rem;
+  }
+  
+  .productos-page-subtitle {
+    font-size: 1rem;
+  }
+} 

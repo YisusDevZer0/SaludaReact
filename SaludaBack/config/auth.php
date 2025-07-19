@@ -66,11 +66,11 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\PersonalPOS::class,
+            'model' => App\Models\PersonalPos::class,
         ],
         'personalpos' => [
             'driver' => 'eloquent',
-            'model' => App\Models\PersonalPOS::class,
+            'model' => App\Models\PersonalPos::class,
         ],
 
         // 'users' => [

@@ -46,6 +46,10 @@ import {
   setFixedNavbar,
   setSidenavColor,
   setDarkMode,
+  setTransparentNavbar,
+  setNavbarColor,
+  setNavbarShadow,
+  setNavbarPosition,
 } from "context";
 
 function Configurator() {
@@ -57,6 +61,10 @@ function Configurator() {
     transparentSidenav,
     whiteSidenav,
     darkMode,
+    transparentNavbar,
+    navbarColor,
+    navbarShadow,
+    navbarPosition,
   } = controller;
   const [disabled, setDisabled] = useState(false);
   const sidenavColors = ["primary", "dark", "info", "success", "warning", "error"];
@@ -93,6 +101,10 @@ function Configurator() {
   };
   const handleFixedNavbar = () => setFixedNavbar(dispatch, !fixedNavbar);
   const handleDarkMode = () => setDarkMode(dispatch, !darkMode);
+  const handleTransparentNavbar = () => setTransparentNavbar(dispatch, !transparentNavbar);
+  const handleNavbarShadow = () => setNavbarShadow(dispatch, !navbarShadow);
+  const handleNavbarPosition = (position) => setNavbarPosition(dispatch, position);
+  const handleNavbarColor = (color) => setNavbarColor(dispatch, color);
 
   // sidenav type buttons styles
   const sidenavTypeButtonsStyles = ({
@@ -285,6 +297,137 @@ function Configurator() {
           <Switch checked={darkMode} onChange={handleDarkMode} />
         </MDBox>
         <Divider />
+
+        {/* Configuración de Navbar */}
+        <MDBox mt={3} lineHeight={1}>
+          <MDTypography variant="h6">Navbar Colors</MDTypography>
+
+          <MDBox mb={0.5}>
+            {sidenavColors.map((color) => (
+              <IconButton
+                key={color}
+                sx={({
+                  borders: { borderWidth },
+                  palette: { white, dark, background },
+                  transitions,
+                }) => ({
+                  width: "24px",
+                  height: "24px",
+                  padding: 0,
+                  border: `${borderWidth[1]} solid ${darkMode ? background.sidenav : white.main}`,
+                  borderColor: () => {
+                    let borderColorValue = navbarColor === color && dark.main;
+
+                    if (darkMode && navbarColor === color) {
+                      borderColorValue = white.main;
+                    }
+
+                    return borderColorValue;
+                  },
+                  transition: transitions.create("border-color", {
+                    easing: transitions.easing.sharp,
+                    duration: transitions.duration.shorter,
+                  }),
+                  backgroundImage: ({ functions: { linearGradient }, palette: { gradients } }) =>
+                    linearGradient(gradients[color].main, gradients[color].state),
+
+                  "&:not(:last-child)": {
+                    mr: 1,
+                  },
+
+                  "&:hover, &:focus, &:active": {
+                    borderColor: darkMode ? white.main : dark.main,
+                  },
+                })}
+                onClick={() => handleNavbarColor(color)}
+              />
+            ))}
+          </MDBox>
+        </MDBox>
+
+        <MDBox
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={3}
+          lineHeight={1}
+        >
+          <MDTypography variant="h6">Navbar Transparent</MDTypography>
+
+          <Switch checked={transparentNavbar} onChange={handleTransparentNavbar} />
+        </MDBox>
+
+        <MDBox
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          lineHeight={1}
+        >
+          <MDTypography variant="h6">Navbar Shadow</MDTypography>
+
+          <Switch checked={navbarShadow} onChange={handleNavbarShadow} />
+        </MDBox>
+
+        <MDBox mt={3} lineHeight={1}>
+          <MDTypography variant="h6">Navbar Position</MDTypography>
+          <MDTypography variant="button" color="text">
+            Choose navbar position.
+          </MDTypography>
+
+          <MDBox
+            sx={{
+              display: "flex",
+              mt: 2,
+              mr: 1,
+            }}
+          >
+            <MDButton
+              color="dark"
+              variant="gradient"
+              onClick={() => handleNavbarPosition('fixed')}
+              disabled={disabled}
+              fullWidth
+              sx={
+                navbarPosition === 'fixed'
+                  ? sidenavTypeActiveButtonStyles
+                  : sidenavTypeButtonsStyles
+              }
+            >
+              Fixed
+            </MDButton>
+            <MDBox sx={{ mx: 1, width: "8rem", minWidth: "8rem" }}>
+              <MDButton
+                color="dark"
+                variant="gradient"
+                onClick={() => handleNavbarPosition('static')}
+                disabled={disabled}
+                fullWidth
+                sx={
+                  navbarPosition === 'static'
+                    ? sidenavTypeActiveButtonStyles
+                    : sidenavTypeButtonsStyles
+                }
+              >
+                Static
+              </MDButton>
+            </MDBox>
+            <MDButton
+              color="dark"
+              variant="gradient"
+              onClick={() => handleNavbarPosition('absolute')}
+              disabled={disabled}
+              fullWidth
+              sx={
+                navbarPosition === 'absolute'
+                  ? sidenavTypeActiveButtonStyles
+                  : sidenavTypeButtonsStyles
+              }
+            >
+              Absolute
+            </MDButton>
+          </MDBox>
+        </MDBox>
+        <Divider />
         <MDBox mt={3} mb={2}>
           <MDButton
             component={Link}
@@ -311,7 +454,7 @@ function Configurator() {
         </MDBox>
         <MDBox mt={2} textAlign="center">
           <MDBox mb={0.5}>
-            <MDTypography variant="h6">Thank you for sharing!</MDTypography>
+            
           </MDBox>
 
           <MDBox display="flex" justifyContent="center">
