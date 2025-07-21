@@ -26,6 +26,19 @@ use App\Http\Controllers\ComponenteActivoController;
 use App\Http\Controllers\TipoController;
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\VentaController;
+use App\Http\Controllers\CompraController;
+use App\Http\Controllers\CajaController;
+use App\Http\Controllers\GastoController;
+use App\Http\Controllers\AlmacenController;
+use App\Http\Controllers\ProveedorController;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\EncargoController;
+use App\Http\Controllers\InventarioController;
+use App\Http\Controllers\MovimientoInventarioController;
+use App\Http\Controllers\AjusteInventarioController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -414,15 +427,15 @@ Route::prefix('componentes')->group(function () {
 
     // Almacenes
     Route::prefix('almacenes')->group(function () {
-        Route::get('/', [App\Http\Controllers\AlmacenController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\AlmacenController::class, 'store']);
-        Route::get('/estadisticas', [App\Http\Controllers\AlmacenController::class, 'estadisticas']);
-        Route::get('/tipos-disponibles', [App\Http\Controllers\AlmacenController::class, 'tiposDisponibles']);
-        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\AlmacenController::class, 'cambiarEstadoMasivo']);
-        Route::get('/tipo/{tipo}', [App\Http\Controllers\AlmacenController::class, 'porTipo']);
-        Route::get('/{id}', [App\Http\Controllers\AlmacenController::class, 'show']);
-        Route::put('/{id}', [App\Http\Controllers\AlmacenController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\AlmacenController::class, 'destroy']);
+        Route::get('/', [AlmacenController::class, 'index']);
+        Route::post('/', [AlmacenController::class, 'store']);
+        Route::get('/estadisticas', [AlmacenController::class, 'estadisticas']);
+        Route::get('/tipos-disponibles', [AlmacenController::class, 'tiposDisponibles']);
+        Route::post('/cambiar-estado-masivo', [AlmacenController::class, 'cambiarEstadoMasivo']);
+        Route::get('/tipo/{tipo}', [AlmacenController::class, 'porTipo']);
+        Route::get('/{id}', [AlmacenController::class, 'show']);
+        Route::put('/{id}', [AlmacenController::class, 'update']);
+        Route::delete('/{id}', [AlmacenController::class, 'destroy']);
     });
 
     // Auditoría (ya estaba protegida)
@@ -430,81 +443,299 @@ Route::prefix('componentes')->group(function () {
 
     // Productos
     Route::prefix('productos')->group(function () {
-        Route::get('/', [App\Http\Controllers\ProductoController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\ProductoController::class, 'store']);
-        Route::get('/estadisticas', [App\Http\Controllers\ProductoController::class, 'estadisticas']);
-        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ProductoController::class, 'cambiarEstadoMasivo']);
-        Route::get('/estados-disponibles', [App\Http\Controllers\ProductoController::class, 'estadosDisponibles']);
-        Route::get('/unidades-medida-disponibles', [App\Http\Controllers\ProductoController::class, 'unidadesMedidaDisponibles']);
-        Route::get('/estado/{estado}', [App\Http\Controllers\ProductoController::class, 'getByEstado']);
-        Route::get('/categoria/{categoriaId}', [App\Http\Controllers\ProductoController::class, 'getByCategoria']);
-        Route::get('/marca/{marcaId}', [App\Http\Controllers\ProductoController::class, 'getByMarca']);
-        Route::get('/proveedor/{proveedorId}', [App\Http\Controllers\ProductoController::class, 'getByProveedor']);
-        Route::get('/stock-bajo', [App\Http\Controllers\ProductoController::class, 'getConStockBajo']);
-        Route::get('/sin-stock', [App\Http\Controllers\ProductoController::class, 'getSinStock']);
-        Route::get('/por-vencer', [App\Http\Controllers\ProductoController::class, 'getPorVencer']);
-        Route::get('/vencidos', [App\Http\Controllers\ProductoController::class, 'getVencidos']);
-        Route::put('/{id}/stock', [App\Http\Controllers\ProductoController::class, 'updateStock']);
-        Route::get('/{id}', [App\Http\Controllers\ProductoController::class, 'show']);
-        Route::put('/{id}', [App\Http\Controllers\ProductoController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\ProductoController::class, 'destroy']);
+        Route::get('/', [ProductoController::class, 'index']);
+        Route::post('/', [ProductoController::class, 'store']);
+        Route::get('/estadisticas', [ProductoController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [ProductoController::class, 'cambiarEstadoMasivo']);
+        Route::get('/estados-disponibles', [ProductoController::class, 'estadosDisponibles']);
+        Route::get('/unidades-medida-disponibles', [ProductoController::class, 'unidadesMedidaDisponibles']);
+        Route::get('/estado/{estado}', [ProductoController::class, 'getByEstado']);
+        Route::get('/categoria/{categoriaId}', [ProductoController::class, 'getByCategoria']);
+        Route::get('/marca/{marcaId}', [ProductoController::class, 'getByMarca']);
+        Route::get('/proveedor/{proveedorId}', [ProductoController::class, 'getByProveedor']);
+        Route::get('/stock-bajo', [ProductoController::class, 'getConStockBajo']);
+        Route::get('/sin-stock', [ProductoController::class, 'getSinStock']);
+        Route::get('/por-vencer', [ProductoController::class, 'getPorVencer']);
+        Route::get('/vencidos', [ProductoController::class, 'getVencidos']);
+        Route::put('/{id}/stock', [ProductoController::class, 'updateStock']);
+        Route::get('/{id}', [ProductoController::class, 'show']);
+        Route::put('/{id}', [ProductoController::class, 'update']);
+        Route::delete('/{id}', [ProductoController::class, 'destroy']);
     });
 
     // Proveedores
     Route::prefix('proveedores')->group(function () {
-        Route::get('/', [App\Http\Controllers\ProveedorController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\ProveedorController::class, 'store']);
-        Route::get('/estadisticas', [App\Http\Controllers\ProveedorController::class, 'estadisticas']);
-        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ProveedorController::class, 'cambiarEstadoMasivo']);
-        Route::get('/tipos-persona-disponibles', [App\Http\Controllers\ProveedorController::class, 'tiposPersonaDisponibles']);
-        Route::get('/categorias-disponibles', [App\Http\Controllers\ProveedorController::class, 'categoriasDisponibles']);
-        Route::get('/estados-disponibles', [App\Http\Controllers\ProveedorController::class, 'estadosDisponibles']);
-        Route::get('/condiciones-iva-disponibles', [App\Http\Controllers\ProveedorController::class, 'condicionesIvaDisponibles']);
-        Route::get('/estado/{estado}', [App\Http\Controllers\ProveedorController::class, 'getByEstado']);
-        Route::get('/categoria/{categoria}', [App\Http\Controllers\ProveedorController::class, 'getByCategoria']);
-        Route::get('/tipo-persona/{tipo}', [App\Http\Controllers\ProveedorController::class, 'getByTipoPersona']);
-        Route::get('/condicion-iva/{condicion}', [App\Http\Controllers\ProveedorController::class, 'getByCondicionIva']);
-        Route::get('/con-credito', [App\Http\Controllers\ProveedorController::class, 'getConCredito']);
-        Route::get('/sin-credito', [App\Http\Controllers\ProveedorController::class, 'getSinCredito']);
-        Route::get('/ciudad/{ciudad}', [App\Http\Controllers\ProveedorController::class, 'getByCiudad']);
-        Route::get('/provincia/{provincia}', [App\Http\Controllers\ProveedorController::class, 'getByProvincia']);
-        Route::get('/{id}', [App\Http\Controllers\ProveedorController::class, 'show']);
-        Route::put('/{id}', [App\Http\Controllers\ProveedorController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\ProveedorController::class, 'destroy']);
+        Route::get('/', [ProveedorController::class, 'index']);
+        Route::post('/', [ProveedorController::class, 'store']);
+        Route::get('/estadisticas', [ProveedorController::class, 'estadisticas']);
+        Route::post('/cambiar-estado-masivo', [ProveedorController::class, 'cambiarEstadoMasivo']);
+        Route::get('/tipos-persona-disponibles', [ProveedorController::class, 'tiposPersonaDisponibles']);
+        Route::get('/categorias-disponibles', [ProveedorController::class, 'categoriasDisponibles']);
+        Route::get('/estados-disponibles', [ProveedorController::class, 'estadosDisponibles']);
+        Route::get('/condiciones-iva-disponibles', [ProveedorController::class, 'condicionesIvaDisponibles']);
+        Route::get('/estado/{estado}', [ProveedorController::class, 'getByEstado']);
+        Route::get('/categoria/{categoria}', [ProveedorController::class, 'getByCategoria']);
+        Route::get('/tipo-persona/{tipo}', [ProveedorController::class, 'getByTipoPersona']);
+        Route::get('/condicion-iva/{condicion}', [ProveedorController::class, 'getByCondicionIva']);
+        Route::get('/con-credito', [ProveedorController::class, 'getConCredito']);
+        Route::get('/sin-credito', [ProveedorController::class, 'getSinCredito']);
+        Route::get('/ciudad/{ciudad}', [ProveedorController::class, 'getByCiudad']);
+        Route::get('/provincia/{provincia}', [ProveedorController::class, 'getByProvincia']);
+        Route::get('/{id}', [ProveedorController::class, 'show']);
+        Route::put('/{id}', [ProveedorController::class, 'update']);
+        Route::delete('/{id}', [ProveedorController::class, 'destroy']);
     });
 
     // Clientes
     Route::prefix('clientes')->group(function () {
-        Route::get('/', [App\Http\Controllers\ClienteController::class, 'index']);
-        Route::post('/', [App\Http\Controllers\ClienteController::class, 'store']);
-        Route::get('/estadisticas', [App\Http\Controllers\ClienteController::class, 'estadisticas']);
-        Route::post('/cambiar-estado-masivo', [App\Http\Controllers\ClienteController::class, 'cambiarEstadoMasivo']);
-        Route::get('/tipos-persona-disponibles', [App\Http\Controllers\ClienteController::class, 'tiposPersonaDisponibles']);
-        Route::get('/categorias-disponibles', [App\Http\Controllers\ClienteController::class, 'categoriasDisponibles']);
-        Route::get('/estados-disponibles', [App\Http\Controllers\ClienteController::class, 'estadosDisponibles']);
-        Route::get('/condiciones-iva-disponibles', [App\Http\Controllers\ClienteController::class, 'condicionesIvaDisponibles']);
-        Route::get('/generos-disponibles', [App\Http\Controllers\ClienteController::class, 'generosDisponibles']);
-        Route::get('/grupos-sanguineos-disponibles', [App\Http\Controllers\ClienteController::class, 'gruposSanguineosDisponibles']);
-        Route::get('/factores-rh-disponibles', [App\Http\Controllers\ClienteController::class, 'factoresRhDisponibles']);
-        Route::get('/estado/{estado}', [App\Http\Controllers\ClienteController::class, 'getByEstado']);
-        Route::get('/categoria/{categoria}', [App\Http\Controllers\ClienteController::class, 'getByCategoria']);
-        Route::get('/tipo-persona/{tipo}', [App\Http\Controllers\ClienteController::class, 'getByTipoPersona']);
-        Route::get('/condicion-iva/{condicion}', [App\Http\Controllers\ClienteController::class, 'getByCondicionIva']);
-        Route::get('/con-credito', [App\Http\Controllers\ClienteController::class, 'getConCredito']);
-        Route::get('/sin-credito', [App\Http\Controllers\ClienteController::class, 'getSinCredito']);
-        Route::get('/con-saldo', [App\Http\Controllers\ClienteController::class, 'getConSaldo']);
-        Route::get('/sin-saldo', [App\Http\Controllers\ClienteController::class, 'getSinSaldo']);
-        Route::get('/con-obra-social', [App\Http\Controllers\ClienteController::class, 'getConObraSocial']);
-        Route::get('/ciudad/{ciudad}', [App\Http\Controllers\ClienteController::class, 'getByCiudad']);
-        Route::get('/provincia/{provincia}', [App\Http\Controllers\ClienteController::class, 'getByProvincia']);
-        Route::get('/recurrentes', [App\Http\Controllers\ClienteController::class, 'getRecurrentes']);
-        Route::get('/nuevos', [App\Http\Controllers\ClienteController::class, 'getNuevos']);
-        Route::get('/frecuentes', [App\Http\Controllers\ClienteController::class, 'getFrecuentes']);
-        Route::get('/vip', [App\Http\Controllers\ClienteController::class, 'getVIP']);
-        Route::get('/con-ultima-compra', [App\Http\Controllers\ClienteController::class, 'getConUltimaCompra']);
-        Route::get('/sin-ultima-compra', [App\Http\Controllers\ClienteController::class, 'getSinUltimaCompra']);
-        Route::get('/{id}', [App\Http\Controllers\ClienteController::class, 'show']);
-        Route::put('/{id}', [App\Http\Controllers\ClienteController::class, 'update']);
-        Route::delete('/{id}', [App\Http\Controllers\ClienteController::class, 'destroy']);
+        Route::get('/', [ClienteController::class, 'index']);
+        Route::post('/', [ClienteController::class, 'store']);
+        Route::get('/estadisticas', [ClienteController::class, 'statistics']);
+        Route::get('/por-categoria', [ClienteController::class, 'byCategory']);
+        Route::get('/top-ventas', [ClienteController::class, 'topBySales']);
+        Route::get('/{id}', [ClienteController::class, 'show']);
+        Route::put('/{id}', [ClienteController::class, 'update']);
+        Route::delete('/{id}', [ClienteController::class, 'destroy']);
     });
+
+    // Usuarios
+    Route::prefix('usuarios')->group(function () {
+        Route::get('/', [UsuarioController::class, 'index']);
+        Route::post('/', [UsuarioController::class, 'store']);
+        Route::get('/estadisticas', [UsuarioController::class, 'statistics']);
+        Route::get('/por-rol', [UsuarioController::class, 'byRole']);
+        Route::get('/perfil', [UsuarioController::class, 'profile']);
+        Route::put('/perfil', [UsuarioController::class, 'updateProfile']);
+        Route::put('/cambiar-contrasena', [UsuarioController::class, 'changePassword']);
+        Route::get('/{id}', [UsuarioController::class, 'show']);
+        Route::put('/{id}', [UsuarioController::class, 'update']);
+        Route::delete('/{id}', [UsuarioController::class, 'destroy']);
+        Route::put('/{id}/estado', [UsuarioController::class, 'changeStatus']);
+        Route::put('/{id}/restablecer-contrasena', [UsuarioController::class, 'resetPassword']);
+    });
+}); 
+
+// Rutas de Productos
+Route::prefix('productos')->group(function () {
+    Route::get('/', [ProductoController::class, 'index']);
+    Route::post('/', [ProductoController::class, 'store']);
+    Route::get('/{id}', [ProductoController::class, 'show']);
+    Route::put('/{id}', [ProductoController::class, 'update']);
+    Route::delete('/{id}', [ProductoController::class, 'destroy']);
+    Route::put('/{id}/stock', [ProductoController::class, 'updateStock']);
+    Route::get('/estadisticas/statistics', [ProductoController::class, 'statistics']);
+    Route::get('/por-categoria/getByCategoria', [ProductoController::class, 'getByCategoria']);
+    Route::get('/por-marca/getByMarca', [ProductoController::class, 'getByMarca']);
+    Route::get('/por-proveedor/getByProveedor', [ProductoController::class, 'getByProveedor']);
+    Route::get('/con-stock-bajo/getConStockBajo', [ProductoController::class, 'getConStockBajo']);
+    Route::get('/sin-stock/getSinStock', [ProductoController::class, 'getSinStock']);
+    Route::get('/por-vencer/getPorVencer', [ProductoController::class, 'getPorVencer']);
+    Route::get('/vencidos/getVencidos', [ProductoController::class, 'getVencidos']);
+    Route::get('/estados-disponibles/estadosDisponibles', [ProductoController::class, 'estadosDisponibles']);
+    Route::get('/unidades-medida-disponibles/unidadesMedidaDisponibles', [ProductoController::class, 'unidadesMedidaDisponibles']);
+    Route::post('/cambiar-estado-masivo/cambiarEstadoMasivo', [ProductoController::class, 'cambiarEstadoMasivo']);
+});
+
+// Rutas de Ventas
+Route::prefix('ventas')->group(function () {
+    Route::get('/', [VentaController::class, 'index']);
+    Route::post('/', [VentaController::class, 'store']);
+    Route::get('/{id}', [VentaController::class, 'show']);
+    Route::put('/{id}', [VentaController::class, 'update']);
+    Route::delete('/{id}', [VentaController::class, 'destroy']);
+    Route::put('/{id}/confirmar', [VentaController::class, 'confirmar']);
+    Route::put('/{id}/anular', [VentaController::class, 'anular']);
+    Route::get('/estadisticas/statistics', [VentaController::class, 'statistics']);
+    Route::get('/por-rango/getPorRango', [VentaController::class, 'getPorRango']);
+    Route::get('/por-cliente/getPorCliente', [VentaController::class, 'getPorCliente']);
+    Route::get('/por-vendedor/getPorVendedor', [VentaController::class, 'getPorVendedor']);
+});
+
+// Rutas de Compras
+Route::prefix('compras')->group(function () {
+    Route::get('/', [CompraController::class, 'index']);
+    Route::post('/', [CompraController::class, 'store']);
+    Route::get('/{id}', [CompraController::class, 'show']);
+    Route::put('/{id}', [CompraController::class, 'update']);
+    Route::delete('/{id}', [CompraController::class, 'destroy']);
+    Route::put('/{id}/confirmar', [CompraController::class, 'confirmar']);
+    Route::put('/{id}/anular', [CompraController::class, 'anular']);
+    Route::get('/estadisticas/statistics', [CompraController::class, 'statistics']);
+    Route::get('/por-rango/getPorRango', [CompraController::class, 'getPorRango']);
+    Route::get('/por-proveedor/getByProveedor', [CompraController::class, 'getByProveedor']);
+    Route::get('/por-comprador/getPorComprador', [CompraController::class, 'getByComprador']);
+});
+
+// Rutas de Cajas
+Route::prefix('cajas')->group(function () {
+    Route::get('/', [CajaController::class, 'index']);
+    Route::post('/', [CajaController::class, 'store']);
+    Route::get('/{id}', [CajaController::class, 'show']);
+    Route::put('/{id}', [CajaController::class, 'update']);
+    Route::delete('/{id}', [CajaController::class, 'destroy']);
+    Route::put('/{id}/abrir', [CajaController::class, 'abrir']);
+    Route::put('/{id}/cerrar', [CajaController::class, 'cerrar']);
+    Route::get('/{id}/saldo', [CajaController::class, 'saldo']);
+    Route::get('/estadisticas/statistics', [CajaController::class, 'statistics']);
+    Route::get('/por-sucursal/getPorSucursal', [CajaController::class, 'getPorSucursal']);
+    Route::get('/metodos-pago-disponibles/metodosPagoDisponibles', [CajaController::class, 'metodosPagoDisponibles']);
+    Route::get('/monedas-disponibles/monedasDisponibles', [CajaController::class, 'monedasDisponibles']);
+});
+
+// Rutas de Gastos
+Route::prefix('gastos')->group(function () {
+    Route::get('/', [GastoController::class, 'index']);
+    Route::post('/', [GastoController::class, 'store']);
+    Route::get('/{id}', [GastoController::class, 'show']);
+    Route::put('/{id}', [GastoController::class, 'update']);
+    Route::delete('/{id}', [GastoController::class, 'destroy']);
+    Route::put('/{id}/marcar-pagado', [GastoController::class, 'marcarPagado']);
+    Route::get('/estadisticas/statistics', [GastoController::class, 'statistics']);
+    Route::get('/por-rango/getPorRango', [GastoController::class, 'getPorRango']);
+    Route::get('/por-categoria/getPorCategoria', [GastoController::class, 'getPorCategoria']);
+    Route::get('/por-proveedor/getPorProveedor', [GastoController::class, 'getPorProveedor']);
+    Route::get('/pendientes/getPendientes', [GastoController::class, 'getPendientes']);
+    Route::get('/vencidos/getVencidos', [GastoController::class, 'getVencidos']);
+    Route::get('/por-vencer/getPorVencer', [GastoController::class, 'getPorVencer']);
+    Route::get('/prioridades-disponibles/prioridadesDisponibles', [GastoController::class, 'prioridadesDisponibles']);
+    Route::get('/recurrencias-disponibles/recurrenciasDisponibles', [GastoController::class, 'recurrenciasDisponibles']);
+});
+
+// Rutas de Almacenes
+Route::prefix('almacenes')->group(function () {
+    Route::get('/', [AlmacenController::class, 'index']);
+    Route::post('/', [AlmacenController::class, 'store']);
+    Route::get('/{id}', [AlmacenController::class, 'show']);
+    Route::put('/{id}', [AlmacenController::class, 'update']);
+    Route::delete('/{id}', [AlmacenController::class, 'destroy']);
+    Route::get('/{id}/inventario', [AlmacenController::class, 'inventario']);
+    Route::get('/{id}/capacidad', [AlmacenController::class, 'capacidad']);
+    Route::get('/{id}/movimientos', [AlmacenController::class, 'movimientos']);
+    Route::get('/estadisticas/statistics', [AlmacenController::class, 'statistics']);
+    Route::get('/tipos-almacen-disponibles/tiposAlmacenDisponibles', [AlmacenController::class, 'tiposAlmacenDisponibles']);
+    Route::get('/unidades-capacidad-disponibles/unidadesCapacidadDisponibles', [AlmacenController::class, 'unidadesCapacidadDisponibles']);
+});
+
+// Rutas de Encargos
+Route::prefix('encargos')->group(function () {
+    Route::get('/', [EncargoController::class, 'index']);
+    Route::post('/', [EncargoController::class, 'store']);
+    Route::get('/{id}', [EncargoController::class, 'show']);
+    Route::put('/{id}', [EncargoController::class, 'update']);
+    Route::delete('/{id}', [EncargoController::class, 'destroy']);
+    Route::put('/{id}/cambiar-estado', [EncargoController::class, 'cambiarEstado']);
+    Route::put('/{id}/marcar-entregado', [EncargoController::class, 'marcarEntregado']);
+    Route::get('/estadisticas/statistics', [EncargoController::class, 'statistics']);
+    Route::get('/por-cliente/getPorCliente', [EncargoController::class, 'getPorCliente']);
+    Route::get('/urgentes/getUrgentes', [EncargoController::class, 'getUrgentes']);
+    Route::get('/vencidos/getVencidos', [EncargoController::class, 'getVencidos']);
+    Route::get('/por-vencer/getPorVencer', [EncargoController::class, 'getPorVencer']);
+    Route::get('/estados-disponibles/estadosDisponibles', [EncargoController::class, 'estadosDisponibles']);
+    Route::get('/prioridades-disponibles/prioridadesDisponibles', [EncargoController::class, 'prioridadesDisponibles']);
+});
+
+// Rutas de Inventario
+Route::prefix('inventario')->group(function () {
+    Route::get('/', [InventarioController::class, 'index']);
+    Route::post('/', [InventarioController::class, 'store']);
+    Route::get('/{id}', [InventarioController::class, 'show']);
+    Route::put('/{id}', [InventarioController::class, 'update']);
+    Route::delete('/{id}', [InventarioController::class, 'destroy']);
+    Route::put('/{id}/ajustar-stock', [InventarioController::class, 'ajustarStock']);
+    Route::get('/estadisticas/statistics', [InventarioController::class, 'statistics']);
+    Route::get('/por-producto/getPorProducto', [InventarioController::class, 'getPorProducto']);
+    Route::get('/por-sucursal/getPorSucursal', [InventarioController::class, 'getPorSucursal']);
+    Route::get('/con-stock-bajo/getConStockBajo', [InventarioController::class, 'getConStockBajo']);
+    Route::get('/sin-stock/getSinStock', [InventarioController::class, 'getSinStock']);
+    Route::get('/por-vencer/getPorVencer', [InventarioController::class, 'getPorVencer']);
+    Route::get('/vencidos/getVencidos', [InventarioController::class, 'getVencidos']);
+    Route::get('/estados-disponibles/estadosDisponibles', [InventarioController::class, 'estadosDisponibles']);
+});
+
+// Rutas de Movimientos de Inventario
+Route::prefix('movimientos-inventario')->group(function () {
+    Route::get('/', [MovimientoInventarioController::class, 'index']);
+    Route::post('/', [MovimientoInventarioController::class, 'store']);
+    Route::get('/{id}', [MovimientoInventarioController::class, 'show']);
+    Route::put('/{id}', [MovimientoInventarioController::class, 'update']);
+    Route::delete('/{id}', [MovimientoInventarioController::class, 'destroy']);
+    Route::put('/{id}/confirmar', [MovimientoInventarioController::class, 'confirmar']);
+    Route::put('/{id}/anular', [MovimientoInventarioController::class, 'anular']);
+    Route::get('/estadisticas/statistics', [MovimientoInventarioController::class, 'statistics']);
+    Route::get('/por-producto/getPorProducto', [MovimientoInventarioController::class, 'getPorProducto']);
+    Route::get('/por-sucursal/getPorSucursal', [MovimientoInventarioController::class, 'getPorSucursal']);
+    Route::get('/tipos-movimiento-disponibles/tiposMovimientoDisponibles', [MovimientoInventarioController::class, 'tiposMovimientoDisponibles']);
+    Route::get('/categorias-movimiento-disponibles/categoriasMovimientoDisponibles', [MovimientoInventarioController::class, 'categoriasMovimientoDisponibles']);
+    Route::get('/estados-disponibles/estadosDisponibles', [MovimientoInventarioController::class, 'estadosDisponibles']);
+});
+
+// Rutas de Ajustes de Inventario
+Route::prefix('ajustes-inventario')->group(function () {
+    Route::get('/', [AjusteInventarioController::class, 'index']);
+    Route::post('/', [AjusteInventarioController::class, 'store']);
+    Route::get('/{id}', [AjusteInventarioController::class, 'show']);
+    Route::put('/{id}', [AjusteInventarioController::class, 'update']);
+    Route::delete('/{id}', [AjusteInventarioController::class, 'destroy']);
+    Route::put('/{id}/confirmar', [AjusteInventarioController::class, 'confirmar']);
+    Route::put('/{id}/anular', [AjusteInventarioController::class, 'anular']);
+    Route::get('/estadisticas/statistics', [AjusteInventarioController::class, 'statistics']);
+    Route::get('/por-producto/getPorProducto', [AjusteInventarioController::class, 'getPorProducto']);
+    Route::get('/por-sucursal/getPorSucursal', [AjusteInventarioController::class, 'getPorSucursal']);
+    Route::get('/tipos-ajuste-disponibles/tiposAjusteDisponibles', [AjusteInventarioController::class, 'tiposAjusteDisponibles']);
+    Route::get('/estados-disponibles/estadosDisponibles', [AjusteInventarioController::class, 'estadosDisponibles']);
+});
+
+// Rutas de Proveedores
+Route::prefix('proveedores')->group(function () {
+    Route::get('/', [ProveedorController::class, 'index']);
+    Route::post('/', [ProveedorController::class, 'store']);
+    Route::get('/{id}', [ProveedorController::class, 'show']);
+    Route::put('/{id}', [ProveedorController::class, 'update']);
+    Route::delete('/{id}', [ProveedorController::class, 'destroy']);
+    Route::get('/estadisticas/statistics', [ProveedorController::class, 'statistics']);
+    Route::get('/por-categoria/getByCategoria', [ProveedorController::class, 'getByCategoria']);
+    Route::get('/por-ciudad/getByCiudad', [ProveedorController::class, 'getByCiudad']);
+    Route::get('/por-estado/getByEstado', [ProveedorController::class, 'getByEstado']);
+    Route::get('/activos/getActivos', [ProveedorController::class, 'getActivos']);
+    Route::get('/inactivos/getInactivos', [ProveedorController::class, 'getInactivos']);
+    Route::get('/estados-disponibles/estadosDisponibles', [ProveedorController::class, 'estadosDisponibles']);
+    Route::get('/categorias-disponibles/categoriasDisponibles', [ProveedorController::class, 'categoriasDisponibles']);
+    Route::post('/cambiar-estado-masivo/cambiarEstadoMasivo', [ProveedorController::class, 'cambiarEstadoMasivo']);
+});
+
+// Rutas de Clientes
+Route::prefix('clientes')->group(function () {
+    Route::get('/', [ClienteController::class, 'index']);
+    Route::post('/', [ClienteController::class, 'store']);
+    Route::get('/{id}', [ClienteController::class, 'show']);
+    Route::put('/{id}', [ClienteController::class, 'update']);
+    Route::delete('/{id}', [ClienteController::class, 'destroy']);
+    Route::get('/estadisticas/statistics', [ClienteController::class, 'statistics']);
+    Route::get('/por-categoria/getByCategoria', [ClienteController::class, 'getByCategoria']);
+    Route::get('/por-ciudad/getByCiudad', [ClienteController::class, 'getByCiudad']);
+    Route::get('/por-estado/getByEstado', [ClienteController::class, 'getByEstado']);
+    Route::get('/activos/getActivos', [ClienteController::class, 'getActivos']);
+    Route::get('/inactivos/getInactivos', [ClienteController::class, 'getInactivos']);
+    Route::get('/estados-disponibles/estadosDisponibles', [ClienteController::class, 'estadosDisponibles']);
+    Route::get('/categorias-disponibles/categoriasDisponibles', [ClienteController::class, 'categoriasDisponibles']);
+    Route::post('/cambiar-estado-masivo/cambiarEstadoMasivo', [ClienteController::class, 'cambiarEstadoMasivo']);
+});
+
+// Rutas de Usuarios
+Route::prefix('usuarios')->group(function () {
+    Route::get('/', [UsuarioController::class, 'index']);
+    Route::post('/', [UsuarioController::class, 'store']);
+    Route::get('/{id}', [UsuarioController::class, 'show']);
+    Route::put('/{id}', [UsuarioController::class, 'update']);
+    Route::delete('/{id}', [UsuarioController::class, 'destroy']);
+    Route::put('/{id}/cambiar-rol', [UsuarioController::class, 'cambiarRol']);
+    Route::put('/{id}/resetear-password', [UsuarioController::class, 'resetearPassword']);
+    Route::put('/{id}/activar', [UsuarioController::class, 'activar']);
+    Route::put('/{id}/desactivar', [UsuarioController::class, 'desactivar']);
+    Route::get('/estadisticas/statistics', [UsuarioController::class, 'statistics']);
+    Route::get('/por-rol/getByRol', [UsuarioController::class, 'getByRol']);
+    Route::get('/activos/getActivos', [UsuarioController::class, 'getActivos']);
+    Route::get('/inactivos/getInactivos', [UsuarioController::class, 'getInactivos']);
+    Route::get('/roles-disponibles/rolesDisponibles', [UsuarioController::class, 'rolesDisponibles']);
+    Route::post('/cambiar-estado-masivo/cambiarEstadoMasivo', [UsuarioController::class, 'cambiarEstadoMasivo']);
 }); 
