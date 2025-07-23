@@ -5,25 +5,279 @@
  * médicos, incluyendo funcionalidades CRUD, filtros avanzados, y estadísticas.
  */
 
-import React from 'react';
-
-// Componentes propios
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
-import ProductosTable from "components/ProductosTable";
+import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
+import Icon from "@mui/material/Icon";
+import { Grid } from "@mui/material";
 
-// Estilos
-import "./Productos.css";
+// Servicios
+import productosService from "services/productos-service";
 
-function Productos() {
+// Modales
+import GenericModal from "components/Modales/GenericModal";
+
+// Componentes de tabla
+import DataTable from "examples/Tables/DataTable";
+
+export default function Productos() {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedProducto, setSelectedProducto] = useState(null);
+
+  // Configuración de campos para el modal
+  const productoFields = [
+    {
+      name: "nombre",
+      label: "Nombre",
+      type: "text",
+      required: true,
+      validation: (value) => {
+        if (value && value.length > 100) {
+          return "El nombre no puede exceder 100 caracteres";
+        }
+        return null;
+      }
+    },
+    {
+      name: "codigo",
+      label: "Código",
+      type: "text",
+      required: true,
+      validation: (value) => {
+        if (value && value.length > 50) {
+          return "El código no puede exceder 50 caracteres";
+        }
+        return null;
+      }
+    },
+    {
+      name: "descripcion",
+      label: "Descripción",
+      type: "text",
+      multiline: true,
+      rows: 3,
+      validation: (value) => {
+        if (value && value.length > 500) {
+          return "La descripción no puede exceder 500 caracteres";
+        }
+        return null;
+      }
+    },
+    {
+      name: "precio",
+      label: "Precio",
+      type: "number",
+      required: true,
+      validation: (value) => {
+        if (value && isNaN(parseFloat(value))) {
+          return "El precio debe ser un número válido";
+        }
+        if (value && parseFloat(value) < 0) {
+          return "El precio no puede ser negativo";
+        }
+        return null;
+      }
+    },
+    {
+      name: "stock",
+      label: "Stock",
+      type: "number",
+      required: true,
+      validation: (value) => {
+        if (value && isNaN(parseInt(value))) {
+          return "El stock debe ser un número válido";
+        }
+        if (value && parseInt(value) < 0) {
+          return "El stock no puede ser negativo";
+        }
+        return null;
+      }
+    },
+    {
+      name: "categoria_id",
+      label: "Categoría",
+      type: "select",
+      required: true,
+      options: [
+        { value: "1", label: "Medicamentos" },
+        { value: "2", label: "Equipos Médicos" },
+        { value: "3", label: "Insumos" },
+        { value: "4", label: "Cosméticos" }
+      ]
+    },
+    {
+      name: "marca_id",
+      label: "Marca",
+      type: "select",
+      required: true,
+      options: [
+        { value: "1", label: "Genérica" },
+        { value: "2", label: "Pfizer" },
+        { value: "3", label: "Johnson & Johnson" },
+        { value: "4", label: "Bayer" }
+      ]
+    },
+    {
+      name: "estado",
+      label: "Estado",
+      type: "select",
+      required: true,
+      defaultValue: "activo",
+      options: [
+        { value: "activo", label: "Activo" },
+        { value: "inactivo", label: "Inactivo" }
+      ]
+    }
+  ];
+
+  // Cargar datos de productos
+  const loadProductos = async () => {
+    try {
+      setLoading(true);
+      const response = await productosService.getProductos();
+      const formattedData = productosService.formatProductosForTable(response.data || response || []);
+      setProductos(formattedData);
+    } catch (error) {
+      console.error("Error al cargar productos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProductos();
+  }, []);
+
+  // Funciones para manejar modales
+  const handleOpenModal = (mode, productoData = null) => {
+    setModalMode(mode);
+    setSelectedProducto(productoData);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedProducto(null);
+  };
+
+  const handleModalSuccess = () => {
+    loadProductos(); // Recargar datos
+  };
+
+  // Configuración de la tabla
+  const columns = [
+    { Header: "ID", accessor: "id", width: 70 },
+    { Header: "Código", accessor: "codigo" },
+    { Header: "Nombre", accessor: "nombre" },
+    { Header: "Descripción", accessor: "descripcion" },
+    { Header: "Precio", accessor: "precio" },
+    { Header: "Stock", accessor: "stock" },
+    { Header: "Categoría", accessor: "categoria" },
+    { Header: "Marca", accessor: "marca" },
+    { 
+      Header: "Estado", 
+      accessor: "estado",
+      Cell: ({ value }) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={value === "activo" ? "success" : "error"}
+          fontWeight="medium"
+        >
+          {value === "activo" ? "ACTIVO" : "INACTIVO"}
+        </MDBox>
+      )
+    },
+    { Header: "Creado", accessor: "created_at" },
+    { Header: "Actualizado", accessor: "updated_at" },
+    {
+      Header: "Acciones",
+      accessor: "acciones",
+      Cell: ({ row }) => (
+        <MDBox display="flex" alignItems="center">
+          <Icon 
+            sx={{ cursor: "pointer", color: "info.main", mr: 1 }} 
+            onClick={() => handleOpenModal("view", row.original)}
+          >
+            visibility
+          </Icon>
+          <Icon 
+            sx={{ cursor: "pointer", color: "warning.main", mr: 1 }} 
+            onClick={() => handleOpenModal("edit", row.original)}
+          >
+            edit
+          </Icon>
+          <Icon 
+            sx={{ cursor: "pointer", color: "error.main" }} 
+            onClick={() => handleOpenModal("view", row.original)}
+          >
+            delete
+          </Icon>
+        </MDBox>
+      )
+    }
+  ];
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <ProductosTable />
-      <Footer />
+      <MDBox py={4}>
+        <MDTypography variant="h4" fontWeight="bold" color="info" textAlign="center" mb={2}>
+          Gestión de Productos
+        </MDTypography>
+        <MDTypography variant="body1" color="text" textAlign="center" mb={4}>
+          Administra los productos del sistema
+        </MDTypography>
+        
+        {/* Botones de acción */}
+        <Grid container spacing={2} mb={3}>
+          <Grid item xs={12} md={4} display="flex" justifyContent="flex-end">
+            <MDButton 
+              variant="gradient" 
+              color="success" 
+              startIcon={<Icon>add</Icon>}
+              onClick={() => handleOpenModal("create")}
+            >
+              Nuevo Producto
+            </MDButton>
+            <MDBox ml={1}>
+              <MDButton variant="gradient" color="dark" startIcon={<Icon>file_download</Icon>}>
+                Exportar
+              </MDButton>
+            </MDBox>
+          </Grid>
+        </Grid>
+
+        {/* Tabla de productos */}
+        <DataTable
+          table={{ columns, rows: productos }}
+          isSorted={true}
+          entriesPerPage={true}
+          showTotalEntries={true}
+          noEndBorder
+          canSearch
+          loading={loading}
+        />
+
+        {/* Modal genérico */}
+        <GenericModal
+          open={modalOpen}
+          onClose={handleCloseModal}
+          mode={modalMode}
+          data={selectedProducto}
+          onSuccess={handleModalSuccess}
+          title="Producto"
+          fields={productoFields}
+          service={productosService}
+          entityName="producto"
+        />
+      </MDBox>
     </DashboardLayout>
   );
-}
-
-export default Productos; 
+} 

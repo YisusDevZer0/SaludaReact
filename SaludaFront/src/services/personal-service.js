@@ -303,6 +303,54 @@ class PersonalService {
   isSameLicense(empleado, userLicense) {
     return empleado.Id_Licencia === userLicense;
   }
+
+  // Obtener sucursales
+  async getSucursales() {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const response = await fetch(`${this.baseURL}/sucursales`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        return this.handleResponseError(response, 'Error al obtener sucursales');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al obtener sucursales:', error);
+      throw error;
+    }
+  }
+
+  // Obtener roles
+  async getRoles() {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const response = await fetch(`${this.baseURL}/roles`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        return this.handleResponseError(response, 'Error al obtener roles');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al obtener roles:', error);
+      throw error;
+    }
+  }
 }
 
 export default new PersonalService(); 

@@ -36,6 +36,9 @@ import { useMaterialUIController } from "context";
 // Servicios
 import personalService from "services/personal-service";
 
+// Modales
+import PersonalModal from "components/Modales/PersonalModal";
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -68,9 +71,28 @@ function Personal() {
     permisos: 0
   });
   const [licencia, setLicencia] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create"); // "create", "view", "edit"
+  const [selectedPersonal, setSelectedPersonal] = useState(null);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+  };
+
+  // Funciones para manejar modales
+  const handleOpenModal = (mode, personalData = null) => {
+    setModalMode(mode);
+    setSelectedPersonal(personalData);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedPersonal(null);
+  };
+
+  const handleModalSuccess = () => {
+    loadPersonalData(); // Recargar datos
   };
 
   // Cargar datos del personal
@@ -355,13 +377,31 @@ function Personal() {
         fechaContrato: (
           <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
             {personalService.formatDate(empleado.fecha_ingreso)}
-          </MDTypography>
+            </MDTypography>
         ),
         acciones: (
           <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main", mr: 1 }} className="action-icon">visibility</Icon>
-            <Icon sx={{ cursor: "pointer", color: "warning.main", mr: 1 }} className="action-icon">edit</Icon>
-            <Icon sx={{ cursor: "pointer", color: "error.main" }} className="action-icon">delete</Icon>
+            <Icon 
+              sx={{ cursor: "pointer", color: "info.main", mr: 1 }} 
+              className="action-icon"
+              onClick={() => handleOpenModal("view", empleado)}
+            >
+              visibility
+            </Icon>
+            <Icon 
+              sx={{ cursor: "pointer", color: "warning.main", mr: 1 }} 
+              className="action-icon"
+              onClick={() => handleOpenModal("edit", empleado)}
+            >
+              edit
+            </Icon>
+            <Icon 
+              sx={{ cursor: "pointer", color: "error.main" }} 
+              className="action-icon"
+              onClick={() => handleOpenModal("view", empleado)} // Cambiar a soft delete
+            >
+              delete
+            </Icon>
           </MDBox>
         ),
       };
@@ -390,7 +430,12 @@ function Personal() {
             </MDBox>
           </Grid>
           <Grid item xs={12} md={4} display="flex" justifyContent="flex-end">
-            <MDButton variant="gradient" color="success" startIcon={<Icon>person_add</Icon>}>
+            <MDButton 
+              variant="gradient" 
+              color="success" 
+              startIcon={<Icon>person_add</Icon>}
+              onClick={() => handleOpenModal("create")}
+            >
               Nuevo Empleado
             </MDButton>
             <MDBox ml={1}>
@@ -418,17 +463,17 @@ function Personal() {
                       {stats.total}
                     </MDTypography>
                   </MDBox>
-                  <MDBox
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
+                <MDBox
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
                     width="3rem"
                     height="3rem"
                     borderRadius="50%"
                     sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                   >
                     <Icon sx={{ color: "white", fontSize: "1.5rem" }}>people</Icon>
-                  </MDBox>
+                </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
@@ -448,17 +493,17 @@ function Personal() {
                       {stats.activos}
                     </MDTypography>
                   </MDBox>
-                  <MDBox
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
+                <MDBox
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
                     width="3rem"
                     height="3rem"
                     borderRadius="50%"
                     sx={{ background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)" }}
                   >
                     <Icon sx={{ color: "white", fontSize: "1.5rem" }}>check_circle</Icon>
-                  </MDBox>
+                </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
@@ -478,17 +523,17 @@ function Personal() {
                       {stats.inactivos}
                     </MDTypography>
                   </MDBox>
-                  <MDBox
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
+                <MDBox
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
                     width="3rem"
                     height="3rem"
                     borderRadius="50%"
                     sx={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" }}
                   >
                     <Icon sx={{ color: "white", fontSize: "1.5rem" }}>cancel</Icon>
-                  </MDBox>
+                </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
@@ -508,17 +553,17 @@ function Personal() {
                       {stats.vacaciones}
                     </MDTypography>
                   </MDBox>
-                  <MDBox
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
+                <MDBox
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
                     width="3rem"
                     height="3rem"
                     borderRadius="50%"
                     sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                   >
                     <Icon sx={{ color: "white", fontSize: "1.5rem" }}>beach_access</Icon>
-                  </MDBox>
+                </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
@@ -538,9 +583,9 @@ function Personal() {
                     Lista de Personal
                   </MDTypography>
                   <MDBox display="flex" gap={1}>
-                    <MDButton
+                    <MDButton 
                       variant="outlined"
-                      color="info"
+                      color="info" 
                       size="small"
                       startIcon={<Icon>refresh</Icon>}
                       onClick={loadPersonalData}
@@ -565,8 +610,8 @@ function Personal() {
                     <MDTypography variant="body2" color="error">
                       {error}
                     </MDTypography>
-                    <MDButton
-                      variant="outlined"
+                    <MDButton 
+                      variant="outlined" 
                       color="info"
                       size="small"
                       onClick={loadPersonalData}
@@ -574,16 +619,16 @@ function Personal() {
                     >
                       Reintentar
                     </MDButton>
-                  </MDBox>
+              </MDBox>
                 )}
 
                 {!loading && !error && (
                   <div className="personal-table">
-                    <DataTable
+                <DataTable
                       table={personalTableData}
                       isSorted={true}
                       entriesPerPage={true}
-                      showTotalEntries={true}
+                  showTotalEntries={true}
                       noEndBorder={false}
                       canSearch={true}
                       tableHeaderColor={tableHeaderColor || "info"}
@@ -591,12 +636,21 @@ function Personal() {
                     />
                   </div>
                 )}
-              </MDBox>
-            </Card>
+          </MDBox>
+        </Card>
           </Grid>
         </Grid>
       </MDBox>
       <Footer />
+      
+      {/* Modal de Personal */}
+      <PersonalModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        mode={modalMode}
+        personalData={selectedPersonal}
+        onSuccess={handleModalSuccess}
+      />
     </DashboardLayout>
   );
 }
