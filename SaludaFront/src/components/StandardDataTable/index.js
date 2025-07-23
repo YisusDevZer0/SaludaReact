@@ -52,6 +52,8 @@ import MDAlert from 'components/MDAlert';
 import useNotifications from 'hooks/useNotifications';
 import usePantoneColors from 'hooks/usePantoneColors';
 import { useMaterialUIController } from 'context';
+import { useTableTheme } from './TableThemeProvider';
+import ThemedModal from 'components/ThemedModal';
 
 const StandardDataTable = ({
   // Configuración de datos
@@ -108,8 +110,9 @@ const StandardDataTable = ({
 }) => {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
-  const { sucursalesTable } = usePantoneColors();
+  const { customStyles } = useTableTheme();
   const { showSuccess, showError, showWarning, showConfirmation, showLoading } = useNotifications();
+  const { sucursalesTable } = usePantoneColors();
 
   // Estados principales
   const [data, setData] = useState([]);
@@ -409,51 +412,6 @@ const StandardDataTable = ({
     return [...columns, actionsColumn];
   }, [columns, permissions, enableEdit, enableDelete, customActions, onRowClick]);
 
-  // Estilos personalizados para DataTable
-  const customStyles = {
-    header: {
-      style: {
-        backgroundColor: sucursalesTable.header,
-        color: sucursalesTable.headerText,
-        fontSize: '14px',
-        fontWeight: 'bold',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-      },
-    },
-    headRow: {
-      style: {
-        backgroundColor: sucursalesTable.header,
-        borderBottomColor: 'rgba(255, 255, 255, 0.12)',
-      },
-    },
-    headCells: {
-      style: {
-        color: sucursalesTable.headerText,
-        fontSize: '12px',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-      },
-    },
-    cells: {
-      style: {
-        color: sucursalesTable.cellText,
-        fontSize: '14px',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-      },
-    },
-    rows: {
-      style: {
-        '&:hover': {
-          backgroundColor: darkMode ? '#2c2c2c' : '#f5f5f5',
-        },
-      },
-    },
-  };
-
   return (
     <Card {...cardProps}>
       <CardHeader
@@ -565,6 +523,7 @@ const StandardDataTable = ({
           onSelectedRowsChange={handleRowSelected}
           onRowClicked={onRowClick}
           customStyles={customStyles}
+          theme={darkMode ? 'dark' : 'light'}
           dense={dense}
           responsive
           highlightOnHover
@@ -638,54 +597,52 @@ const StandardDataTable = ({
       )}
 
       {/* Modal de filtros */}
-      <Dialog
+      <ThemedModal
         open={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
+        title="Filtros"
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Filtros</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            {availableFilters.map((filter) => (
-              <Grid item xs={12} key={filter.key}>
-                {filter.type === 'select' ? (
-                  <FormControl fullWidth>
-                    <InputLabel>{filter.label}</InputLabel>
-                    <Select
-                      value={filters[filter.key] || ''}
-                      onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                      label={filter.label}
-                    >
-                      <MenuItem value="">Todos</MenuItem>
-                      {filter.options?.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ) : (
-                  <TextField
-                    fullWidth
-                    label={filter.label}
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          {availableFilters.map((filter) => (
+            <Grid item xs={12} key={filter.key}>
+              {filter.type === 'select' ? (
+                <FormControl fullWidth>
+                  <InputLabel>{filter.label}</InputLabel>
+                  <Select
                     value={filters[filter.key] || ''}
                     onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                  />
-                )}
-              </Grid>
-            ))}
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={clearFilters}>
+                    label={filter.label}
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {filter.options?.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : (
+                <TextField
+                  fullWidth
+                  label={filter.label}
+                  value={filters[filter.key] || ''}
+                  onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                />
+              )}
+            </Grid>
+          ))}
+        </Grid>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button onClick={clearFilters} variant="outlined">
             Limpiar Filtros
           </Button>
           <Button onClick={() => setFilterModalOpen(false)} variant="contained">
             Aplicar
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </ThemedModal>
     </Card>
   );
 };

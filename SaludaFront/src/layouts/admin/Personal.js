@@ -14,7 +14,7 @@ import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 
 // React components
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -29,6 +29,12 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+
+// Context
+import { useMaterialUIController } from "context";
+
+// Servicios
+import personalService from "services/personal-service";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -47,306 +53,319 @@ function TabPanel(props) {
 }
 
 function Personal() {
+  const [controller] = useMaterialUIController();
+  const { darkMode, tableHeaderColor } = controller;
+  
   const [tabValue, setTabValue] = useState(0);
+  const [personalData, setPersonalData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    activos: 0,
+    inactivos: 0,
+    vacaciones: 0,
+    permisos: 0
+  });
+  const [licencia, setLicencia] = useState(null);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // Datos simulados para el personal
+  // Cargar datos del personal
+  const loadPersonalData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await personalService.getPersonalWithRelations();
+      const formattedData = personalService.formatPersonalData(response.data || response);
+      
+      setPersonalData(formattedData);
+      setLicencia(response.licencia || 'N/A');
+      
+      // Calcular estadísticas
+      const statsData = {
+        total: formattedData.length,
+        activos: formattedData.filter(emp => emp.estado_laboral?.toLowerCase() === 'activo').length,
+        inactivos: formattedData.filter(emp => emp.estado_laboral?.toLowerCase() === 'inactivo').length,
+        vacaciones: formattedData.filter(emp => emp.estado_laboral?.toLowerCase() === 'vacaciones').length,
+        permisos: formattedData.filter(emp => emp.estado_laboral?.toLowerCase() === 'permiso').length
+      };
+      
+      setStats(statsData);
+    } catch (err) {
+      console.error('Error al cargar datos del personal:', err);
+      if (err.message.includes('Sesión expirada')) {
+        setError('Sesión expirada. Por favor, inicie sesión nuevamente.');
+      } else if (err.message.includes('licencia')) {
+        setError('Error de licencia: ' + err.message);
+      } else {
+        setError('Error al cargar los datos del personal: ' + err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadPersonalData();
+  }, []);
+
+  // Inyectar CSS dinámico para adaptar la tabla al tema
+  useEffect(() => {
+    const styleId = "datatable-personal-style";
+    let styleTag = document.getElementById(styleId);
+    if (styleTag) styleTag.remove();
+    styleTag = document.createElement("style");
+    styleTag.id = styleId;
+    styleTag.innerHTML = `
+      /* Estilos para la tabla de personal adaptados al tema */
+      .personal-table .dataTables_wrapper .dataTable thead th {
+        background-color: ${tableHeaderColor || '#1A73E8'} !important;
+        color: ${darkMode ? '#ffffff' : '#ffffff'} !important;
+        border-bottom: 1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.3)'} !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        font-size: 0.75rem !important;
+        padding: 16px 8px !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTable tbody td {
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+        border-bottom: 1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'} !important;
+        padding: 12px 8px !important;
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.02)' : 'transparent'} !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTable tbody tr:hover {
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'} !important;
+        transition: background-color 0.2s ease;
+      }
+
+      .personal-table .dataTables_wrapper .dataTable tbody tr:nth-child(even) {
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'} !important;
+      }
+
+      /* Estilos para controles de DataTable */
+      .personal-table .dataTables_wrapper .dataTables_length,
+      .personal-table .dataTables_wrapper .dataTables_filter,
+      .personal-table .dataTables_wrapper .dataTables_info,
+      .personal-table .dataTables_wrapper .dataTables_paginate {
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTables_length label,
+      .personal-table .dataTables_wrapper .dataTables_filter label {
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+      }
+
+      /* Estilos para inputs y selects */
+      .personal-table .dataTables_wrapper .dataTables_length select,
+      .personal-table .dataTables_wrapper .dataTables_filter input {
+        background-color: ${darkMode ? '#2c2c2c' : '#ffffff'} !important;
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+        border: 1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'} !important;
+        border-radius: 4px !important;
+        padding: 4px 8px !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTables_length select:focus,
+      .personal-table .dataTables_wrapper .dataTables_filter input:focus {
+        outline: 2px solid ${tableHeaderColor || '#1A73E8'} !important;
+        outline-offset: 2px !important;
+      }
+
+      /* Estilos para paginación */
+      .personal-table .dataTables_wrapper .dataTables_paginate .paginate_button {
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+        background-color: ${darkMode ? '#2c2c2c' : '#ffffff'} !important;
+        border: 1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'} !important;
+        border-radius: 4px !important;
+        margin: 0 2px !important;
+        padding: 6px 12px !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'} !important;
+        color: ${darkMode ? '#ffffff' : '#344767'} !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background-color: ${tableHeaderColor || '#1A73E8'} !important;
+        color: #ffffff !important;
+        border-color: ${tableHeaderColor || '#1A73E8'} !important;
+      }
+
+      .personal-table .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: ${darkMode ? 'rgba(255, 255, 255, 0.38)' : 'rgba(0, 0, 0, 0.38)'} !important;
+        cursor: not-allowed !important;
+        opacity: 0.5 !important;
+      }
+
+      /* Estilos para el wrapper de la tabla */
+      .personal-table .dataTables_wrapper {
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.02)' : 'transparent'} !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+      }
+
+      /* Estilos para el contenedor de la tabla */
+      .personal-table .dataTables_wrapper .dataTable {
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: ${darkMode ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 2px 10px rgba(0, 0, 0, 0.1)'} !important;
+      }
+
+      /* Estilos para estados de empleado */
+      .personal-table .estado-chip {
+        padding: 4px 8px !important;
+        border-radius: 12px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: #ffffff !important;
+      }
+
+      /* Estilos para avatares */
+      .personal-table .employee-avatar {
+        border: 2px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)'} !important;
+      }
+
+      /* Estilos para iconos de acción */
+      .personal-table .action-icon {
+        transition: all 0.2s ease !important;
+        border-radius: 4px !important;
+        padding: 4px !important;
+      }
+
+      .personal-table .action-icon:hover {
+        background-color: ${darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'} !important;
+        transform: scale(1.1) !important;
+      }
+
+      /* Animaciones */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .personal-table {
+        animation: fadeIn 0.3s ease-out !important;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .personal-table .dataTables_wrapper .dataTable thead th,
+        .personal-table .dataTables_wrapper .dataTable tbody td {
+          padding: 8px 6px !important;
+          font-size: 0.75rem !important;
+        }
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      if (document.getElementById(styleId)) {
+        document.getElementById(styleId).remove();
+      }
+    };
+  }, [tableHeaderColor, darkMode]);
+
+  // Datos de la tabla de personal
   const personalTableData = {
     columns: [
       { Header: "Empleado", accessor: "empleado" },
-      { Header: "ID", accessor: "id" },
+      { Header: "Código", accessor: "codigo" },
       { Header: "Puesto", accessor: "puesto" },
-      { Header: "Departamento", accessor: "departamento" },
+      { Header: "Sucursal", accessor: "sucursal" },
       { Header: "Estatus", accessor: "estatus" },
       { Header: "Fecha Contratación", accessor: "fechaContrato" },
       { Header: "Acciones", accessor: "acciones" },
     ],
-    rows: Array.from({ length: 10 }, (_, i) => {
-      const estatusOptions = ["Activo", "Inactivo", "Vacaciones", "Permiso"];
-      const estatus = estatusOptions[i % 4];
-      const estatusColor = estatus === "Activo" ? "success" : estatus === "Inactivo" ? "error" : estatus === "Vacaciones" ? "info" : "warning";
+    rows: personalData.map((empleado) => {
+      const estatusColor = personalService.getEstadoColor(empleado.estado_laboral);
       
       return {
         empleado: (
           <MDBox display="flex" alignItems="center">
             <MDAvatar
-              src={`https://randomuser.me/api/portraits/${i % 2 ? 'men' : 'women'}/${i + 1}.jpg`}
-              alt={`Empleado ${i + 1}`}
+              src={empleado.foto_perfil || `https://randomuser.me/api/portraits/${empleado.genero === 'F' ? 'women' : 'men'}/${empleado.id % 50}.jpg`}
+              alt={empleado.nombre_completo}
               size="sm"
               sx={{ mr: 1 }}
+              className="employee-avatar"
             />
             <MDBox display="flex" flexDirection="column">
-              <MDTypography variant="button" fontWeight="medium">
-                {["Juan Pérez", "María López", "Carlos Ruiz", "Ana Díaz", "Roberto Gómez", "Laura Torres", "Pedro Sánchez", "Elena Martínez", "José Rodríguez", "Carmen Flores"][i]}
+              <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+                {empleado.nombre_completo}
               </MDTypography>
               <MDTypography variant="caption" color="text">
-                {["juan.perez@ejemplo.com", "maria.lopez@ejemplo.com", "carlos.ruiz@ejemplo.com", "ana.diaz@ejemplo.com", "roberto.gomez@ejemplo.com", "laura.torres@ejemplo.com", "pedro.sanchez@ejemplo.com", "elena.martinez@ejemplo.com", "jose.rodriguez@ejemplo.com", "carmen.flores@ejemplo.com"][i]}
+                {empleado.email}
               </MDTypography>
             </MDBox>
           </MDBox>
         ),
-        id: `EMP${(1000 + i).toString()}`,
-        puesto: ["Médico General", "Enfermero/a", "Vendedor", "Farmacéutico", "Administrador", "Recepcionista", "Técnico", "Laboratorista", "Nutricionista", "Contador"][i],
-        departamento: ["Medicina General", "Enfermería", "Ventas", "Farmacia", "Administración", "Recepción", "Soporte Técnico", "Laboratorio", "Nutrición", "Contabilidad"][i],
+        codigo: (
+          <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+            {empleado.codigo || 'N/A'}
+          </MDTypography>
+        ),
+        puesto: (
+          <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+            {empleado.role?.nombre || 'N/A'}
+          </MDTypography>
+        ),
+        sucursal: (
+          <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+            {empleado.sucursal?.nombre || 'N/A'}
+          </MDTypography>
+        ),
         estatus: (
           <MDBox>
             <MDTypography
               variant="caption"
               color={estatusColor}
               fontWeight="medium"
+              className="estado-chip"
               sx={{
                 px: 1,
                 py: 0.5,
                 borderRadius: "5px",
-                backgroundColor: `${estatusColor}.light`,
+                backgroundColor: `${estatusColor}.main`,
+                color: "white",
+                fontSize: "0.75rem",
               }}
             >
-              {estatus}
+              {empleado.estado_laboral || 'N/A'}
             </MDTypography>
           </MDBox>
         ),
-        fechaContrato: ["15/01/2020", "22/03/2020", "10/05/2020", "02/08/2020", "11/11/2020", "05/02/2021", "18/04/2021", "30/06/2021", "14/09/2021", "07/12/2021"][i],
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "success.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      };
-    })
-  };
-
-  // Datos simulados para registro de asistencia
-  const asistenciaTableData = {
-    columns: [
-      { Header: "Empleado", accessor: "empleado" },
-      { Header: "Fecha", accessor: "fecha" },
-      { Header: "Hora Entrada", accessor: "horaEntrada" },
-      { Header: "Hora Salida", accessor: "horaSalida" },
-      { Header: "Horas Trabajadas", accessor: "horasTrabajadas" },
-      { Header: "Observaciones", accessor: "observaciones" },
-    ],
-    rows: Array.from({ length: 10 }, (_, i) => {
-      const horasTrabajadas = 8 + (i % 3 - 1);
-      const observaciones = horasTrabajadas < 8 ? "Salida anticipada" : horasTrabajadas > 8 ? "Horas extra" : "Normal";
-      const observacionesColor = horasTrabajadas < 8 ? "warning" : horasTrabajadas > 8 ? "info" : "success";
-
-      return {
-        empleado: (
-          <MDBox display="flex" alignItems="center">
-            <MDAvatar
-              src={`https://randomuser.me/api/portraits/${i % 2 ? 'men' : 'women'}/${i + 1}.jpg`}
-              alt={`Empleado ${i + 1}`}
-              size="sm"
-              sx={{ mr: 1 }}
-            />
-            <MDTypography variant="button" fontWeight="medium">
-              {["Juan Pérez", "María López", "Carlos Ruiz", "Ana Díaz", "Roberto Gómez", "Laura Torres", "Pedro Sánchez", "Elena Martínez", "José Rodríguez", "Carmen Flores"][i]}
-            </MDTypography>
-          </MDBox>
-        ),
-        fecha: ["01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023", "01/06/2023"][i],
-        horaEntrada: ["08:00", "08:05", "08:10", "07:55", "08:00", "08:15", "08:02", "07:58", "08:12", "08:03"][i],
-        horaSalida: ["16:00", "16:30", "15:45", "16:00", "16:05", "16:15", "17:00", "16:30", "15:30", "16:00"][i],
-        horasTrabajadas: `${horasTrabajadas}:00`,
-        observaciones: (
-          <MDBox>
-            <MDTypography
-              variant="caption"
-              color={observacionesColor}
-              fontWeight="medium"
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: "5px",
-                backgroundColor: `${observacionesColor}.light`,
-              }}
-            >
-              {observaciones}
-            </MDTypography>
-          </MDBox>
-        ),
-      };
-    })
-  };
-
-  // Datos simulados para incidencias
-  const incidenciasTableData = {
-    columns: [
-      { Header: "ID", accessor: "id" },
-      { Header: "Empleado", accessor: "empleado" },
-      { Header: "Tipo", accessor: "tipo" },
-      { Header: "Fecha", accessor: "fecha" },
-      { Header: "Descripción", accessor: "descripcion" },
-      { Header: "Estado", accessor: "estado" },
-      { Header: "Acciones", accessor: "acciones" },
-    ],
-    rows: Array.from({ length: 8 }, (_, i) => {
-      const estadoOptions = ["Pendiente", "En revisión", "Resuelta", "Cerrada"];
-      const estado = estadoOptions[i % 4];
-      const estadoColor = estado === "Pendiente" ? "error" : estado === "En revisión" ? "warning" : estado === "Resuelta" ? "success" : "dark";
-      
-      const tiposIncidencia = ["Retardo", "Falta", "Permiso médico", "Vacaciones", "Incapacidad", "Queja", "Solicitud", "Otro"];
-      
-      return {
-        id: `INC${(100 + i).toString().padStart(3, '0')}`,
-        empleado: (
-          <MDBox display="flex" alignItems="center">
-            <MDAvatar
-              src={`https://randomuser.me/api/portraits/${i % 2 ? 'men' : 'women'}/${i + 10}.jpg`}
-              alt={`Empleado ${i + 1}`}
-              size="sm"
-              sx={{ mr: 1 }}
-            />
-            <MDTypography variant="button" fontWeight="medium">
-              {["Juan Pérez", "María López", "Carlos Ruiz", "Ana Díaz", "Roberto Gómez", "Laura Torres", "Pedro Sánchez", "Elena Martínez"][i]}
-            </MDTypography>
-          </MDBox>
-        ),
-        tipo: tiposIncidencia[i],
-        fecha: ["10/05/2023", "15/05/2023", "18/05/2023", "20/05/2023", "22/05/2023", "25/05/2023", "28/05/2023", "30/05/2023"][i],
-        descripcion: [
-          "Llegada tarde por tráfico", 
-          "Ausencia por enfermedad", 
-          "Cita con especialista", 
-          "Solicitud de vacaciones del 01/06 al 08/06", 
-          "Incapacidad por lesión en mano", 
-          "Queja sobre horario de trabajo", 
-          "Solicitud de cambio de turno", 
-          "Solicitud de equipo nuevo"
-        ][i],
-        estado: (
-          <MDBox>
-            <MDTypography
-              variant="caption"
-              color={estadoColor}
-              fontWeight="medium"
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: "5px",
-                backgroundColor: `${estadoColor}.light`,
-              }}
-            >
-              {estado}
-            </MDTypography>
-          </MDBox>
+        fechaContrato: (
+          <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+            {personalService.formatDate(empleado.fecha_ingreso)}
+          </MDTypography>
         ),
         acciones: (
           <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "success.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "warning.main" }}>flag</Icon>
+            <Icon sx={{ cursor: "pointer", color: "info.main", mr: 1 }} className="action-icon">visibility</Icon>
+            <Icon sx={{ cursor: "pointer", color: "warning.main", mr: 1 }} className="action-icon">edit</Icon>
+            <Icon sx={{ cursor: "pointer", color: "error.main" }} className="action-icon">delete</Icon>
           </MDBox>
         ),
       };
-    })
-  };
-
-  // Datos simulados para soporte técnico
-  const soporteTableData = {
-    columns: [
-      { Header: "ID", accessor: "id" },
-      { Header: "Solicitante", accessor: "solicitante" },
-      { Header: "Asunto", accessor: "asunto" },
-      { Header: "Prioridad", accessor: "prioridad" },
-      { Header: "Fecha Creación", accessor: "fechaCreacion" },
-      { Header: "Estado", accessor: "estado" },
-      { Header: "Progreso", accessor: "progreso" },
-      { Header: "Acciones", accessor: "acciones" },
-    ],
-    rows: Array.from({ length: 6 }, (_, i) => {
-      const estadoOptions = ["Abierto", "En proceso", "Resuelto", "Cerrado"];
-      const estado = estadoOptions[i % 4];
-      const estadoColor = estado === "Abierto" ? "error" : estado === "En proceso" ? "warning" : estado === "Resuelto" ? "success" : "dark";
-      
-      const prioridadOptions = ["Alta", "Media", "Baja"];
-      const prioridad = prioridadOptions[i % 3];
-      const prioridadColor = prioridad === "Alta" ? "error" : prioridad === "Media" ? "warning" : "info";
-      
-      const progreso = estado === "Abierto" ? 0 : estado === "En proceso" ? 50 : estado === "Resuelto" ? 100 : 100;
-      
-      return {
-        id: `ST${(100 + i).toString().padStart(3, '0')}`,
-        solicitante: (
-          <MDBox display="flex" alignItems="center">
-            <MDAvatar
-              src={`https://randomuser.me/api/portraits/${i % 2 ? 'men' : 'women'}/${i + 20}.jpg`}
-              alt={`Solicitante ${i + 1}`}
-              size="sm"
-              sx={{ mr: 1 }}
-            />
-            <MDTypography variant="button" fontWeight="medium">
-              {["Juan Pérez", "María López", "Carlos Ruiz", "Ana Díaz", "Roberto Gómez", "Laura Torres"][i]}
-            </MDTypography>
-          </MDBox>
-        ),
-        asunto: [
-          "Computadora no enciende", 
-          "Problema con impresora", 
-          "Acceso al sistema",  
-          "Error en aplicación", 
-          "Solicitud de capacitación", 
-          "Equipo lento"
-        ][i],
-        prioridad: (
-          <MDBox>
-            <MDTypography
-              variant="caption"
-              color={prioridadColor}
-              fontWeight="medium"
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: "5px",
-                backgroundColor: `${prioridadColor}.light`,
-              }}
-            >
-              {prioridad}
-            </MDTypography>
-          </MDBox>
-        ),
-        fechaCreacion: ["25/05/2023", "26/05/2023", "27/05/2023", "28/05/2023", "29/05/2023", "30/05/2023"][i],
-        estado: (
-          <MDBox>
-            <MDTypography
-              variant="caption"
-              color={estadoColor}
-              fontWeight="medium"
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: "5px",
-                backgroundColor: `${estadoColor}.light`,
-              }}
-            >
-              {estado}
-            </MDTypography>
-          </MDBox>
-        ),
-        progreso: (
-          <MDBox width="8rem" textAlign="left">
-            <MDProgress
-              value={progreso}
-              color={progreso === 100 ? "success" : progreso >= 50 ? "warning" : "error"}
-              variant="gradient"
-              label={false}
-            />
-          </MDBox>
-        ),
-        acciones: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "success.main" }}>edit</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "primary.main" }}>comment</Icon>
-          </MDBox>
-        ),
-      };
-    })
+    }),
   };
 
   return (
@@ -357,12 +376,17 @@ function Personal() {
         <Grid container spacing={2} mb={3}>
           <Grid item xs={12} md={8}>
             <MDBox>
-              <MDTypography variant="h4" fontWeight="medium">
+              <MDTypography variant="h4" fontWeight="medium" color={darkMode ? "white" : "dark"}>
                 Control de Personal
               </MDTypography>
               <MDTypography variant="body2" color="text">
                 Gestión de empleados, asistencia e incidencias
               </MDTypography>
+              {licencia && (
+                <MDTypography variant="caption" color="info" fontWeight="medium" sx={{ mt: 1, display: 'block' }}>
+                  Licencia: {licencia}
+                </MDTypography>
+              )}
             </MDBox>
           </Grid>
           <Grid item xs={12} md={4} display="flex" justifyContent="flex-end">
@@ -379,292 +403,198 @@ function Personal() {
 
         {/* Tarjetas de resumen */}
         <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <MDBox p={3} display="flex" alignItems="center">
-                <MDBox
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  width="4rem"
-                  height="4rem"
-                  variant="gradient"
-                  bgColor="info"
-                  color="white"
-                  shadow="md"
-                  borderRadius="xl"
-                  mr={2}
-                >
-                  <Icon fontSize="medium">people</Icon>
-                </MDBox>
-                <MDBox>
-                  <MDTypography variant="h6" fontWeight="medium">
-                    Total Empleados
-                  </MDTypography>
-                  <MDTypography variant="h4">42</MDTypography>
-                </MDBox>
-              </MDBox>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <MDBox p={3} display="flex" alignItems="center">
-                <MDBox
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  width="4rem"
-                  height="4rem"
-                  variant="gradient"
-                  bgColor="success"
-                  color="white"
-                  shadow="md"
-                  borderRadius="xl"
-                  mr={2}
-                >
-                  <Icon fontSize="medium">check_circle</Icon>
-                </MDBox>
-                <MDBox>
-                  <MDTypography variant="h6" fontWeight="medium">
-                    Asistencia Hoy
-                  </MDTypography>
-                  <MDTypography variant="h4">38</MDTypography>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+              color: darkMode ? 'white' : 'inherit'
+            }}>
+              <MDBox p={3}>
+                <MDBox display="flex" justifyContent="space-between" alignItems="center">
+                  <MDBox>
+                    <MDTypography variant="h6" color={darkMode ? "white" : "text"} fontWeight="medium">
+                      Total Empleados
+                    </MDTypography>
+                    <MDTypography variant="h4" color="info" fontWeight="bold">
+                      {stats.total}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    width="3rem"
+                    height="3rem"
+                    borderRadius="50%"
+                    sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                  >
+                    <Icon sx={{ color: "white", fontSize: "1.5rem" }}>people</Icon>
+                  </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <MDBox p={3} display="flex" alignItems="center">
-                <MDBox
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  width="4rem"
-                  height="4rem"
-                  variant="gradient"
-                  bgColor="warning"
-                  color="white"
-                  shadow="md"
-                  borderRadius="xl"
-                  mr={2}
-                >
-                  <Icon fontSize="medium">flag</Icon>
-                </MDBox>
-                <MDBox>
-                  <MDTypography variant="h6" fontWeight="medium">
-                    Incidencias
-                  </MDTypography>
-                  <MDTypography variant="h4">8</MDTypography>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+              color: darkMode ? 'white' : 'inherit'
+            }}>
+              <MDBox p={3}>
+                <MDBox display="flex" justifyContent="space-between" alignItems="center">
+                  <MDBox>
+                    <MDTypography variant="h6" color={darkMode ? "white" : "text"} fontWeight="medium">
+                      Activos
+                    </MDTypography>
+                    <MDTypography variant="h4" color="success" fontWeight="bold">
+                      {stats.activos}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    width="3rem"
+                    height="3rem"
+                    borderRadius="50%"
+                    sx={{ background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)" }}
+                  >
+                    <Icon sx={{ color: "white", fontSize: "1.5rem" }}>check_circle</Icon>
+                  </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
           </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <MDBox p={3} display="flex" alignItems="center">
-                <MDBox
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  width="4rem"
-                  height="4rem"
-                  variant="gradient"
-                  bgColor="error"
-                  color="white"
-                  shadow="md"
-                  borderRadius="xl"
-                  mr={2}
-                >
-                  <Icon fontSize="medium">support_agent</Icon>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+              color: darkMode ? 'white' : 'inherit'
+            }}>
+              <MDBox p={3}>
+                <MDBox display="flex" justifyContent="space-between" alignItems="center">
+                  <MDBox>
+                    <MDTypography variant="h6" color={darkMode ? "white" : "text"} fontWeight="medium">
+                      Inactivos
+                    </MDTypography>
+                    <MDTypography variant="h4" color="error" fontWeight="bold">
+                      {stats.inactivos}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    width="3rem"
+                    height="3rem"
+                    borderRadius="50%"
+                    sx={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" }}
+                  >
+                    <Icon sx={{ color: "white", fontSize: "1.5rem" }}>cancel</Icon>
+                  </MDBox>
                 </MDBox>
-                <MDBox>
-                  <MDTypography variant="h6" fontWeight="medium">
-                    Tickets Soporte
-                  </MDTypography>
-                  <MDTypography variant="h4">6</MDTypography>
+              </MDBox>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+              color: darkMode ? 'white' : 'inherit'
+            }}>
+              <MDBox p={3}>
+                <MDBox display="flex" justifyContent="space-between" alignItems="center">
+                  <MDBox>
+                    <MDTypography variant="h6" color={darkMode ? "white" : "text"} fontWeight="medium">
+                      Vacaciones
+                    </MDTypography>
+                    <MDTypography variant="h4" color="info" fontWeight="bold">
+                      {stats.vacaciones}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    width="3rem"
+                    height="3rem"
+                    borderRadius="50%"
+                    sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                  >
+                    <Icon sx={{ color: "white", fontSize: "1.5rem" }}>beach_access</Icon>
+                  </MDBox>
                 </MDBox>
               </MDBox>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Pestañas */}
-        <Card>
-          <MDBox p={0}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange}
-              sx={{ 
-                borderBottom: 1, 
-                borderColor: 'divider',
-                "& .MuiTabs-indicator": {
-                  backgroundColor: "info.main"
-                },
-                "& .MuiTab-root.Mui-selected": {
-                  color: "info.main"
-                }
-              }}
-            >
-              <Tab label="Personal" />
-              <Tab label="Reloj Checador" />
-              <Tab label="Incidencias / Reportes" />
-              <Tab label="Soporte Técnico" />
-            </Tabs>
-            
-            {/* Tab 1: Personal */}
-            <TabPanel value={tabValue} index={0}>
+        {/* Contenido principal */}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={{ 
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+              color: darkMode ? 'white' : 'inherit'
+            }}>
               <MDBox p={3}>
-                {/* Área de búsqueda */}
-                <Grid container spacing={3} alignItems="center" mb={3}>
-                  <Grid item xs={12} md={6}>
-                    <MDInput 
-                      label="Buscar empleado" 
-                      fullWidth 
-                      icon={{ component: "search", direction: "left" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <MDInput 
-                      select
-                      label="Departamento"
-                      fullWidth
-                      SelectProps={{ native: true }}
+                <MDBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+                    Lista de Personal
+                  </MDTypography>
+                  <MDBox display="flex" gap={1}>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      startIcon={<Icon>refresh</Icon>}
+                      onClick={loadPersonalData}
+                      disabled={loading}
                     >
-                      <option value="">Todos</option>
-                      <option value="medicina">Medicina General</option>
-                      <option value="enfermeria">Enfermería</option>
-                      <option value="farmacia">Farmacia</option>
-                      <option value="administracion">Administración</option>
-                    </MDInput>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <MDInput 
-                      select
-                      label="Estatus"
-                      fullWidth
-                      SelectProps={{ native: true }}
-                    >
-                      <option value="">Todos</option>
-                      <option value="activo">Activo</option>
-                      <option value="inactivo">Inactivo</option>
-                      <option value="vacaciones">Vacaciones</option>
-                      <option value="permiso">Permiso</option>
-                    </MDInput>
-                  </Grid>
-                </Grid>
-
-                <DataTable
-                  table={personalTableData}
-                  isSorted={false}
-                  entriesPerPage={{
-                    defaultValue: 10,
-                    entries: [5, 10, 15, 20, 25],
-                  }}
-                  showTotalEntries={true}
-                  noEndBorder
-                />
-              </MDBox>
-            </TabPanel>
-            
-            {/* Tab 2: Reloj Checador */}
-            <TabPanel value={tabValue} index={1}>
-              <MDBox p={3}>
-                {/* Área de búsqueda y filtros */}
-                <Grid container spacing={3} alignItems="center" mb={3}>
-                  <Grid item xs={12} md={4}>
-                    <MDInput 
-                      label="Buscar empleado" 
-                      fullWidth 
-                      icon={{ component: "search", direction: "left" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <MDInput 
-                      type="date"
-                      label="Fecha"
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <MDButton 
-                      variant="gradient" 
-                      color="info" 
-                      fullWidth
-                      startIcon={<Icon>search</Icon>}
-                    >
-                      Consultar
+                      Actualizar
                     </MDButton>
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <MDButton 
-                      variant="outlined" 
-                      color="dark" 
-                      fullWidth
-                      startIcon={<Icon>assignment</Icon>}
-                    >
-                      Reporte
-                    </MDButton>
-                  </Grid>
-                </Grid>
+                  </MDBox>
+                </MDBox>
 
-                <DataTable
-                  table={asistenciaTableData}
-                  isSorted={false}
-                  entriesPerPage={{
-                    defaultValue: 10,
-                    entries: [5, 10, 15, 20, 25],
-                  }}
-                  showTotalEntries={true}
-                  noEndBorder
-                />
+                {loading && (
+                  <MDBox display="flex" justifyContent="center" p={3}>
+                    <MDProgress value={0} color="info" />
+                    <MDTypography variant="body2" color="text" ml={2}>
+                      Cargando datos...
+                    </MDTypography>
+                  </MDBox>
+                )}
+
+                {error && (
+                  <MDBox p={3} textAlign="center">
+                    <MDTypography variant="body2" color="error">
+                      {error}
+                    </MDTypography>
+                    <MDButton
+                      variant="outlined"
+                      color="info"
+                      size="small"
+                      onClick={loadPersonalData}
+                      sx={{ mt: 1 }}
+                    >
+                      Reintentar
+                    </MDButton>
+                  </MDBox>
+                )}
+
+                {!loading && !error && (
+                  <div className="personal-table">
+                    <DataTable
+                      table={personalTableData}
+                      isSorted={true}
+                      entriesPerPage={true}
+                      showTotalEntries={true}
+                      noEndBorder={false}
+                      canSearch={true}
+                      tableHeaderColor={tableHeaderColor || "info"}
+                      darkMode={darkMode}
+                    />
+                  </div>
+                )}
               </MDBox>
-            </TabPanel>
-            
-            {/* Tab 3: Incidencias */}
-            <TabPanel value={tabValue} index={2}>
-              <MDBox p={3}>
-                <MDBox mb={3} display="flex" justifyContent="flex-end">
-                  <MDButton variant="gradient" color="primary" startIcon={<Icon>add</Icon>}>
-                    Nueva Incidencia
-                  </MDButton>
-                </MDBox>
-                <DataTable
-                  table={incidenciasTableData}
-                  isSorted={false}
-                  entriesPerPage={{
-                    defaultValue: 10,
-                    entries: [5, 10, 15, 20, 25],
-                  }}
-                  showTotalEntries={true}
-                  noEndBorder
-                />
-              </MDBox>
-            </TabPanel>
-            
-            {/* Tab 4: Soporte Técnico */}
-            <TabPanel value={tabValue} index={3}>
-              <MDBox p={3}>
-                <MDBox mb={3} display="flex" justifyContent="flex-end">
-                  <MDButton variant="gradient" color="error" startIcon={<Icon>add</Icon>}>
-                    Nuevo Ticket
-                  </MDButton>
-                </MDBox>
-                <DataTable
-                  table={soporteTableData}
-                  isSorted={false}
-                  entriesPerPage={{
-                    defaultValue: 10,
-                    entries: [5, 10, 15, 20, 25],
-                  }}
-                  showTotalEntries={true}
-                  noEndBorder
-                />
-              </MDBox>
-            </TabPanel>
-          </MDBox>
-        </Card>
+            </Card>
+          </Grid>
+        </Grid>
       </MDBox>
       <Footer />
     </DashboardLayout>

@@ -27,7 +27,7 @@ import DefaultNavbarLink from "examples/Navbars/DefaultNavbar/DefaultNavbarLink"
 import { useContext } from "react";
 import { AuthContext } from "context";
 
-function DefaultNavbarMobile({ open, close }) {
+function DefaultNavbarMobile({ open, close, light = false }) {
   const authContext = useContext(AuthContext);
   const { width } = open && open.getBoundingClientRect();
 
@@ -49,16 +49,16 @@ function DefaultNavbarMobile({ open, close }) {
     >
       {!authContext.isAuthenticated && (
         <MDBox px={0.5}>
-          <DefaultNavbarLink icon="account_circle" name="register" route="/auth/register" />
-          <DefaultNavbarLink icon="key" name="login" route="/auth/login" />
+          <DefaultNavbarLink icon="account_circle" name="register" route="/auth/register" light={light} />
+          <DefaultNavbarLink icon="key" name="login" route="/auth/login" light={light} />
         </MDBox>
       )}
       {authContext.isAuthenticated && (
         <MDBox px={0.5}>
-          <DefaultNavbarLink icon="donut_large" name="dashboard" route="/dashboard" />
-          <DefaultNavbarLink icon="person" name="profile" route="/profile" />
-          <DefaultNavbarLink icon="account_circle" name="sign up" route="/authentication/sign-up" />
-          <DefaultNavbarLink icon="key" name="sign in" route="/authentication/sign-in" />
+          <DefaultNavbarLink icon="donut_large" name="dashboard" route="/dashboard" light={light} />
+          <DefaultNavbarLink icon="person" name="profile" route="/profile" light={light} />
+          <DefaultNavbarLink icon="account_circle" name="sign up" route="/authentication/sign-up" light={light} />
+          <DefaultNavbarLink icon="key" name="sign in" route="/authentication/sign-in" light={light} />
         </MDBox>
       )}
     </Menu>
@@ -69,6 +69,7 @@ function DefaultNavbarMobile({ open, close }) {
 DefaultNavbarMobile.propTypes = {
   open: PropTypes.oneOfType([PropTypes.bool, PropTypes.object]).isRequired,
   close: PropTypes.oneOfType([PropTypes.func, PropTypes.bool, PropTypes.object]).isRequired,
+  light: PropTypes.bool,
 };
 
 export default DefaultNavbarMobile;

@@ -41,7 +41,7 @@ import breakpoints from "assets/theme/base/breakpoints";
 import { useMaterialUIController } from "context";
 import { AuthContext } from "context";
 
-function DefaultNavbar({ transparent, light, action }) {
+function DefaultNavbar({ transparent = false, light = false, action = false }) {
   const authContext = useContext(AuthContext);
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
@@ -195,17 +195,10 @@ function DefaultNavbar({ transparent, light, action }) {
           <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon>
         </MDBox>
       </MDBox>
-      {mobileView && <DefaultNavbarMobile open={mobileNavbar} close={closeMobileNavbar} />}
+      {mobileView && <DefaultNavbarMobile open={mobileNavbar} close={closeMobileNavbar} light={light} />}
     </Container>
   );
 }
-
-// Setting default values for the props of DefaultNavbar
-DefaultNavbar.defaultProps = {
-  transparent: false,
-  light: false,
-  action: false,
-};
 
 // Typechecking props for the DefaultNavbar
 DefaultNavbar.propTypes = {

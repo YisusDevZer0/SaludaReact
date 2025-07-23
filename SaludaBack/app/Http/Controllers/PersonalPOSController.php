@@ -15,19 +15,116 @@ class PersonalPOSController extends Controller
     // Listar todo el personal
     public function index()
     {
-        return PersonalPos::all();
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Filtrar personal por licencia
+            $personal = PersonalPos::where('Id_Licencia', $licencia)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $personal,
+                'count' => $personal->count(),
+                'licencia' => $licencia
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener personal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Mostrar un registro específico
     public function show($id)
     {
-        return PersonalPos::findOrFail($id);
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Buscar el personal específico que pertenezca a la misma licencia
+            $personal = PersonalPos::where('id', $id)
+                ->where('Id_Licencia', $licencia)
+                ->first();
+
+            if (!$personal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Personal no encontrado o no autorizado'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $personal
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener personal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Crear nuevo personal
     public function store(Request $request)
     {
         try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
             // Validar los datos recibidos
             $request->validate([
                 'Nombre_Apellidos' => 'required|string|max:255',
@@ -48,7 +145,7 @@ class PersonalPOSController extends Controller
             // Hash del password
             $passwordHash = Hash::make($request->Password);
 
-            // Crear el personal
+            // Crear el personal con la licencia del usuario autenticado
             $personal = PersonalPos::create([
                 'nombre' => $request->nombre,
                 'apellido' => $request->apellido,
@@ -68,7 +165,8 @@ class PersonalPOSController extends Controller
                 'can_view_reports' => $request->can_view_reports ?? true,
                 'can_manage_settings' => $request->can_manage_settings ?? false,
                 'session_timeout' => 480,
-                'notas' => $request->notas ?? 'Personal creado por sistema'
+                'notas' => $request->notas ?? 'Personal creado por sistema',
+                'Id_Licencia' => $licencia // Asignar la licencia del usuario autenticado
             ]);
 
             // Obtener el personal creado con sus relaciones
@@ -77,17 +175,13 @@ class PersonalPOSController extends Controller
                 ->first();
 
             // Disparar evento de actualización
-            $licencia = $personal->Id_Licencia ?? $personal->ID_H_O_D ?? null;
-            if ($licencia) {
-                $activeCount = PersonalPos::where('estado_laboral', 'activo')
+            event(new PersonalUpdated($licencia, 
+                PersonalPos::where('estado_laboral', 'activo')
                     ->where('is_active', true)
                     ->where('Id_Licencia', $licencia)
-                    ->count();
-                
-                $totalCount = PersonalPos::where('Id_Licencia', $licencia)->count();
-                
-                event(new PersonalUpdated($licencia, $activeCount, $totalCount));
-            }
+                    ->count(),
+                PersonalPos::where('Id_Licencia', $licencia)->count()
+            ));
 
             return response()->json([
                 'success' => true,
@@ -112,30 +206,120 @@ class PersonalPOSController extends Controller
     // Actualizar personal
     public function update(Request $request, $id)
     {
-        $personal = PersonalPos::findOrFail($id);
-        $personal->update($request->all());
-        
-        // Disparar evento de actualización
-        $licencia = $personal->Id_Licencia ?? $personal->ID_H_O_D ?? null;
-        if ($licencia) {
-            $activeCount = PersonalPos::where('estado_laboral', 'activo')
-                ->where('is_active', true)
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Buscar el personal que pertenezca a la misma licencia
+            $personal = PersonalPos::where('id', $id)
                 ->where('Id_Licencia', $licencia)
-                ->count();
+                ->first();
+
+            if (!$personal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Personal no encontrado o no autorizado'
+                ], 404);
+            }
+
+            $personal->update($request->all());
             
-            $totalCount = PersonalPos::where('Id_Licencia', $licencia)->count();
+            // Disparar evento de actualización
+            event(new PersonalUpdated($licencia, 
+                PersonalPos::where('estado_laboral', 'activo')
+                    ->where('is_active', true)
+                    ->where('Id_Licencia', $licencia)
+                    ->count(),
+                PersonalPos::where('Id_Licencia', $licencia)->count()
+            ));
             
-            event(new PersonalUpdated($licencia, $activeCount, $totalCount));
+            return response()->json([
+                'success' => true,
+                'message' => 'Personal actualizado exitosamente',
+                'data' => $personal
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar personal: ' . $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json($personal, 200);
     }
 
     // Eliminar personal
     public function destroy($id)
     {
-        PersonalPos::destroy($id);
-        return response()->json(null, 204);
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Buscar el personal que pertenezca a la misma licencia
+            $personal = PersonalPos::where('id', $id)
+                ->where('Id_Licencia', $licencia)
+                ->first();
+
+            if (!$personal) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Personal no encontrado o no autorizado'
+                ], 404);
+            }
+
+            $personal->delete();
+            
+            // Disparar evento de actualización
+            event(new PersonalUpdated($licencia, 
+                PersonalPos::where('estado_laboral', 'activo')
+                    ->where('is_active', true)
+                    ->where('Id_Licencia', $licencia)
+                    ->count(),
+                PersonalPos::where('Id_Licencia', $licencia)->count()
+            ));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Personal eliminado exitosamente'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar personal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Contar personal activo
@@ -206,28 +390,88 @@ class PersonalPOSController extends Controller
     // Listar personal con sucursal y rol
     public function listWithSucursalAndRol()
     {
-        $personal = PersonalPos::with(['sucursal', 'role'])->get();
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
 
-        return response()->json([
-            'success' => true,
-            'data' => $personal,
-            'count' => $personal->count()
-        ]);
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Filtrar personal por licencia y cargar relaciones
+            $personal = PersonalPos::with(['sucursal', 'role'])
+                ->where('Id_Licencia', $licencia)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $personal,
+                'count' => $personal->count(),
+                'licencia' => $licencia
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener personal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // Listado para DataTables (con join a sucursal y rol)
     public function indexDataTable(Request $request)
     {
-        if ($request->ajax() || $request->isMethod('get')) {
-            $personal = PersonalPos::with(['sucursal', 'role']);
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
 
-            $dataTablesResponse = DataTables::of($personal)->make(true);
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
 
-            return $dataTablesResponse
-                ->header('Access-Control-Allow-Origin', '*')
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Accept');
+            if ($request->ajax() || $request->isMethod('get')) {
+                // Filtrar personal por licencia y cargar relaciones
+                $personal = PersonalPos::with(['sucursal', 'role'])
+                    ->where('Id_Licencia', $licencia);
+
+                $dataTablesResponse = DataTables::of($personal)->make(true);
+
+                return $dataTablesResponse
+                    ->header('Access-Control-Allow-Origin', '*')
+                    ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                    ->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Authorization, Accept');
+            }
+            return response()->json(['error' => 'Solo peticiones AJAX'], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos: ' . $e->getMessage()
+            ], 500);
         }
-        return response()->json(['error' => 'Solo peticiones AJAX'], 400);
     }
 } 

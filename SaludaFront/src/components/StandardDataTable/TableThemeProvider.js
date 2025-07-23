@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { useMaterialUIController } from 'context';
-import usePantoneColors from 'hooks/usePantoneColors';
+import useTheme from 'hooks/useTheme';
 
 const TableThemeContext = createContext();
 
@@ -13,119 +12,81 @@ export const useTableTheme = () => {
 };
 
 export const TableThemeProvider = ({ children }) => {
-  const [controller] = useMaterialUIController();
-  const { darkMode } = controller;
-  const { sucursalesTable } = usePantoneColors();
+  const { darkMode, colors, componentStyles, utils } = useTheme();
 
   const tableTheme = useMemo(() => {
-    // Colores base del tema
-    const baseColors = {
-      primary: sucursalesTable.header,
-      primaryText: sucursalesTable.headerText,
-      secondary: sucursalesTable.cellText,
-      background: darkMode ? '#1a1a1a' : '#ffffff',
-      surface: darkMode ? '#2c2c2c' : '#f5f5f5',
-      border: darkMode ? '#424242' : '#e0e0e0',
-      hover: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-      selected: darkMode ? 'rgba(25, 118, 210, 0.12)' : 'rgba(25, 118, 210, 0.08)',
-    };
-
-    // Colores de estado
-    const statusColors = {
-      success: {
-        background: darkMode ? 'rgba(46, 125, 50, 0.2)' : '#e8f5e8',
-        color: darkMode ? '#81c784' : '#2e7d32',
-        icon: darkMode ? '#4caf50' : '#2e7d32'
-      },
-      error: {
-        background: darkMode ? 'rgba(211, 47, 47, 0.2)' : '#ffebee',
-        color: darkMode ? '#e57373' : '#d32f2f',
-        icon: darkMode ? '#f44336' : '#d32f2f'
-      },
-      warning: {
-        background: darkMode ? 'rgba(245, 124, 0, 0.2)' : '#fff3e0',
-        color: darkMode ? '#ffb74d' : '#f57c00',
-        icon: darkMode ? '#ff9800' : '#f57c00'
-      },
-      info: {
-        background: darkMode ? 'rgba(25, 118, 210, 0.2)' : '#e3f2fd',
-        color: darkMode ? '#64b5f6' : '#1976d2',
-        icon: darkMode ? '#2196f3' : '#1976d2'
-      }
-    };
-
     // Estilos para react-data-table-component
     const customStyles = {
       table: {
         style: {
-          backgroundColor: baseColors.background,
-          color: baseColors.secondary,
+          backgroundColor: colors.background.table,
+          color: colors.text.primary,
         },
       },
       header: {
         style: {
-          backgroundColor: baseColors.primary,
-          color: baseColors.primaryText,
-          fontSize: '16px',
-          fontWeight: 'bold',
-          paddingLeft: '16px',
-          paddingRight: '16px',
+          backgroundColor: componentStyles.table.header.backgroundColor,
+          color: componentStyles.table.header.color,
+          fontSize: componentStyles.table.header.fontSize,
+          fontWeight: componentStyles.table.header.fontWeight,
+          paddingLeft: componentStyles.table.header.paddingLeft,
+          paddingRight: componentStyles.table.header.paddingRight,
           borderRadius: '8px 8px 0 0',
         },
       },
       headRow: {
         style: {
-          backgroundColor: baseColors.primary,
-          borderBottomColor: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
-          borderBottomWidth: '2px',
+          backgroundColor: componentStyles.table.headerRow.backgroundColor,
+          borderBottomColor: componentStyles.table.headerRow.borderBottomColor,
+          borderBottomWidth: componentStyles.table.headerRow.borderBottomWidth,
         },
       },
       headCells: {
         style: {
-          color: baseColors.primaryText,
-          fontSize: '12px',
-          fontWeight: '600',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
+          color: componentStyles.table.headerCells.color,
+          fontSize: componentStyles.table.headerCells.fontSize,
+          fontWeight: componentStyles.table.headerCells.fontWeight,
+          textTransform: componentStyles.table.headerCells.textTransform,
+          paddingLeft: componentStyles.table.headerCells.paddingLeft,
+          paddingRight: componentStyles.table.headerCells.paddingRight,
           paddingTop: '16px',
           paddingBottom: '16px',
         },
       },
       cells: {
         style: {
-          color: baseColors.secondary,
-          fontSize: '14px',
-          paddingLeft: '16px',
-          paddingRight: '16px',
+          color: componentStyles.table.cells.color,
+          fontSize: componentStyles.table.cells.fontSize,
+          paddingLeft: componentStyles.table.cells.paddingLeft,
+          paddingRight: componentStyles.table.cells.paddingRight,
           paddingTop: '12px',
           paddingBottom: '12px',
-          borderBottomColor: baseColors.border,
-          borderBottomWidth: '1px',
+          borderBottomColor: componentStyles.table.cells.borderBottomColor,
+          borderBottomWidth: componentStyles.table.cells.borderBottomWidth,
         },
       },
       rows: {
         style: {
-          backgroundColor: baseColors.background,
-          '&:hover': {
-            backgroundColor: baseColors.hover,
-            transition: 'background-color 0.2s ease',
+          backgroundColor: componentStyles.table.rows.backgroundColor,
+          color: componentStyles.table.rows.color,
+          '&:hover': componentStyles.table.rows['&:hover'],
+          '&:nth-child(even)': {
+            backgroundColor: colors.background.tableRowAlternate,
           },
         },
         selectedHighlightStyle: {
-          backgroundColor: baseColors.selected,
-          borderBottomColor: baseColors.primary,
-          borderLeftColor: baseColors.primary,
+          backgroundColor: colors.status.info.background,
+          borderBottomColor: componentStyles.table.header.backgroundColor,
+          borderLeftColor: componentStyles.table.header.backgroundColor,
           borderLeftWidth: '3px',
         },
       },
       pagination: {
         style: {
-          backgroundColor: baseColors.background,
-          borderTopColor: baseColors.border,
-          borderTopWidth: '1px',
-          color: baseColors.secondary,
+          backgroundColor: componentStyles.table.pagination.backgroundColor,
+          borderTopColor: componentStyles.table.pagination.borderTopColor,
+          borderTopWidth: componentStyles.table.pagination.borderTopWidth,
+          color: componentStyles.table.pagination.color,
           fontSize: '14px',
           paddingTop: '16px',
           paddingBottom: '16px',
@@ -136,121 +97,60 @@ export const TableThemeProvider = ({ children }) => {
           width: '36px',
           padding: '8px',
           margin: '0 2px',
-          color: baseColors.primary,
-          border: `1px solid ${baseColors.border}`,
-          backgroundColor: baseColors.background,
+          color: componentStyles.table.header.backgroundColor,
+          border: `1px solid ${colors.border.primary}`,
+          backgroundColor: colors.background.table,
           '&:hover:not(:disabled)': {
-            backgroundColor: baseColors.primary,
-            color: baseColors.primaryText,
+            backgroundColor: componentStyles.table.header.backgroundColor,
+            color: componentStyles.table.header.color,
           },
           '&:focus': {
-            outline: `2px solid ${baseColors.primary}`,
+            outline: `2px solid ${componentStyles.table.header.backgroundColor}`,
             outlineOffset: '2px',
           },
         },
       },
-      progress: {
-        style: {
-          color: baseColors.primary,
-          backgroundColor: baseColors.surface,
-        },
-      },
       noData: {
         style: {
-          color: baseColors.secondary,
-          backgroundColor: baseColors.background,
-          padding: '48px 24px',
-          textAlign: 'center',
-          fontSize: '16px',
+          backgroundColor: colors.background.table,
+          color: colors.text.primary,
+        },
+      },
+      progress: {
+        style: {
+          backgroundColor: colors.background.table,
+          color: componentStyles.table.header.backgroundColor,
         },
       },
     };
 
-    // Configuraciones de tabla estándar
+    // Configuración por defecto para react-data-table-component
     const defaultConfig = {
-      // Configuración de paginación
-      pagination: true,
-      paginationPerPage: 15,
-      paginationRowsPerPageOptions: [10, 15, 25, 50, 100],
-      paginationResetDefaultPage: false,
-      
-      // Configuración de UI
-      dense: false,
-      responsive: true,
-      highlightOnHover: true,
-      pointerOnHover: false,
-      striped: false,
-      
-      // Configuración de selección
-      selectableRows: false,
-      selectableRowsHighlight: true,
-      selectableRowsNoSelectAll: false,
-      
-      // Configuración de ordenamiento
-      sortIcon: true,
-      sortFunction: null,
-      
-      // Configuración de progreso
-      progressPending: false,
-      progressComponent: null,
-      
-      // Configuración de datos vacíos
-      noDataComponent: 'No hay datos disponibles',
-      
-      // Configuración de expansión
-      expandableRows: false,
-      expandOnRowClicked: false,
-      expandOnRowDoubleClicked: false,
-      
-      // Configuración de filas
-      fixedHeader: false,
-      fixedHeaderScrollHeight: '100vh',
-      
-      // Configuración de contexto
-      contextActions: null,
-      contextMessage: null,
-      
-      // Configuración de diseño
       theme: darkMode ? 'dark' : 'light',
       direction: 'ltr',
     };
 
     return {
-      colors: baseColors,
-      statusColors,
+      colors,
+      statusColors: colors.status,
       customStyles,
       defaultConfig,
       darkMode,
       
       // Utilidades para crear elementos de estado
-      createStatusChip: (status, text) => {
-        const statusStyle = statusColors[status] || statusColors.info;
-        return {
-          backgroundColor: statusStyle.background,
-          color: statusStyle.color,
-          padding: '4px 8px',
-          borderRadius: '12px',
-          fontSize: '12px',
-          fontWeight: '500',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '4px',
-        };
-      },
+      createStatusChip: utils.createStatusChip,
       
       // Utilidades para botones de acción
       createActionButton: (type) => {
         const actionColors = {
-          edit: statusColors.warning.icon,
-          delete: statusColors.error.icon,
-          view: statusColors.info.icon,
-          create: statusColors.success.icon,
+          edit: colors.status.warning.icon,
+          delete: colors.status.error.icon,
+          view: colors.status.info.icon,
+          create: colors.status.success.icon,
         };
         
         return {
-          color: actionColors[type] || statusColors.info.icon,
+          color: actionColors[type] || colors.status.info.icon,
           padding: '4px',
           borderRadius: '4px',
           transition: 'all 0.2s ease',
@@ -261,7 +161,7 @@ export const TableThemeProvider = ({ children }) => {
           alignItems: 'center',
           justifyContent: 'center',
           '&:hover': {
-            backgroundColor: baseColors.hover,
+            backgroundColor: colors.background.tableRowHover,
             transform: 'scale(1.1)',
           },
         };
@@ -301,7 +201,7 @@ export const TableThemeProvider = ({ children }) => {
         ),
       }),
     };
-  }, [darkMode, sucursalesTable]);
+  }, [darkMode, colors, componentStyles, utils]);
 
   return (
     <TableThemeContext.Provider value={tableTheme}>

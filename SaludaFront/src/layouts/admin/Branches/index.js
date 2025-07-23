@@ -5,7 +5,8 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import SucursalesTable from "components/SucursalesTable";
-import "datatables.net-dt/css/dataTables.dataTables.css";
+import TableThemeProvider from "components/StandardDataTable/TableThemeProvider";
+
 const Branches = () => (
   <DashboardLayout>
     <DashboardNavbar />
@@ -13,7 +14,9 @@ const Branches = () => (
       <MDTypography variant="h4" fontWeight="bold">
         Sucursales
       </MDTypography>
+      <TableThemeProvider>
       <SucursalesTable />
+      </TableThemeProvider>
     </MDBox>
     <Footer />
   </DashboardLayout>

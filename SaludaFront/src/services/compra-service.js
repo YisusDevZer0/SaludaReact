@@ -1,18 +1,9 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+import api from './api';
 
 class CompraService {
     constructor() {
-        this.api = axios.create({
-            baseURL: API_BASE_URL,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
         // Interceptor para manejar errores
-        this.api.interceptors.response.use(
+        api.interceptors.response.use(
             (response) => response,
             (error) => {
                 console.error('Error en CompraService:', error);
@@ -24,122 +15,105 @@ class CompraService {
     // Obtener todas las compras con filtros
     async getCompras(params = {}) {
         try {
-            const response = await this.api.get('/compras', { params });
+            const response = await api.get('/api/compras', { params });
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener compras: ' + error.message);
+            console.error('Error fetching compras:', error);
+            throw error;
         }
     }
 
     // Obtener una compra específica
     async getCompra(id) {
         try {
-            const response = await this.api.get(`/compras/${id}`);
+            const response = await api.get(`/api/compras/${id}`);
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener compra: ' + error.message);
+            console.error('Error fetching compra:', error);
+            throw error;
         }
     }
 
     // Crear una nueva compra
-    async createCompra(compraData) {
+    async createCompra(data) {
         try {
-            const response = await this.api.post('/compras', compraData);
+            const response = await api.post('/api/compras', data);
             return response.data;
         } catch (error) {
-            if (error.response?.data?.errors) {
-                throw new Error('Error de validación: ' + JSON.stringify(error.response.data.errors));
-            }
-            throw new Error('Error al crear compra: ' + error.message);
+            console.error('Error creating compra:', error);
+            throw error;
         }
     }
 
     // Actualizar una compra
-    async updateCompra(id, compraData) {
+    async updateCompra(id, data) {
         try {
-            const response = await this.api.put(`/compras/${id}`, compraData);
+            const response = await api.put(`/api/compras/${id}`, data);
             return response.data;
         } catch (error) {
-            if (error.response?.data?.errors) {
-                throw new Error('Error de validación: ' + JSON.stringify(error.response.data.errors));
-            }
-            throw new Error('Error al actualizar compra: ' + error.message);
+            console.error('Error updating compra:', error);
+            throw error;
         }
     }
 
     // Eliminar una compra
     async deleteCompra(id) {
         try {
-            const response = await this.api.delete(`/compras/${id}`);
+            const response = await api.delete(`/api/compras/${id}`);
             return response.data;
         } catch (error) {
-            throw new Error('Error al eliminar compra: ' + error.message);
-        }
-    }
-
-    // Confirmar una compra
-    async confirmarCompra(id) {
-        try {
-            const response = await this.api.put(`/compras/${id}/confirmar`);
-            return response.data;
-        } catch (error) {
-            throw new Error('Error al confirmar compra: ' + error.message);
-        }
-    }
-
-    // Anular una compra
-    async anularCompra(id) {
-        try {
-            const response = await this.api.put(`/compras/${id}/anular`);
-            return response.data;
-        } catch (error) {
-            throw new Error('Error al anular compra: ' + error.message);
+            console.error('Error deleting compra:', error);
+            throw error;
         }
     }
 
     // Obtener estadísticas de compras
-    async getEstadisticas() {
+    async getCompraStatistics() {
         try {
-            const response = await this.api.get('/compras/estadisticas/statistics');
+            const response = await api.get('/api/compras/estadisticas');
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener estadísticas: ' + error.message);
+            console.error('Error fetching compra statistics:', error);
+            throw error;
         }
     }
 
     // Obtener compras por rango de fechas
-    async getComprasPorRango(fechaInicio, fechaFin) {
+    async getComprasByRange(startDate, endDate) {
         try {
-            const response = await this.api.get('/compras/por-rango/getPorRango', {
-                params: { fecha_inicio: fechaInicio, fecha_fin: fechaFin }
+            const response = await api.get('/api/compras/por-rango', {
+                params: { start_date: startDate, end_date: endDate }
             });
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener compras por rango: ' + error.message);
+            console.error('Error fetching compras by range:', error);
+            throw error;
         }
     }
 
     // Obtener compras por proveedor
-    async getComprasPorProveedor(proveedorId) {
+    async getComprasByProvider(providerId) {
         try {
-            const response = await this.api.get('/compras/por-proveedor/getByProveedor', {
-                params: { proveedor_id: proveedorId }
+            const response = await api.get('/api/compras/por-proveedor', {
+                params: { proveedor_id: providerId }
             });
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener compras por proveedor: ' + error.message);
+            console.error('Error fetching compras by provider:', error);
+            throw error;
         }
     }
 
     // Obtener compras por comprador
-    async getComprasPorComprador(compradorId) {
+    async getComprasByBuyer(buyerId) {
         try {
-            const response = await this.api.get('/compras/por-comprador/getPorComprador', {
-                params: { comprador_id: compradorId }
+            const response = await api.get('/api/compras/por-comprador', {
+                params: { comprador_id: buyerId }
             });
             return response.data;
         } catch (error) {
-            throw new Error('Error al obtener compras por comprador: ' + error.message);
+            console.error('Error fetching compras by buyer:', error);
+            throw error;
         }
     }
 

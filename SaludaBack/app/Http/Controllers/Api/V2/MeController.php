@@ -30,7 +30,7 @@ class MeController extends Controller
  
         $headers = [
             'Accept' => 'application/vnd.api+json',
-            'Authorization' => $headers['authorization']
+            'Authorization' => $headers['authorization'] ?? $request->header('authorization')
         ];
 
         $input = $request->json()->all();
@@ -42,50 +42,56 @@ class MeController extends Controller
             'query' => $request->query()
         ];
         
-        try {
-            $response = $http->get(route('v2.users.show', ['user' => auth()->id()]), $data);
+        // Simplificar para evitar problemas con rutas
+        $user = auth()->user();
         
-            $responseBody = json_decode((string)$response->getBody(), true);
-            $responseStatus = $response->getStatusCode();
-            $responseHeaders = $this->parseHeaders($response->getHeaders());
-
-            // Agregar nombre de sucursal, licencia y logo si es posible
-            $user = auth()->user();
-            $nombreSucursal = null;
-            $logoUrl = null;
-            if ($user && isset($user->Fk_Sucursal)) {
-                $nombreSucursal = \DB::table('Sucursales')
-                    ->where('ID_SucursalC', $user->Fk_Sucursal)
-                    ->value('Nombre_Sucursal');
-            }
-            // Buscar la organización/licencia y su logo
-            $organizacion = null;
-            if ($user && isset($user->ID_H_O_D)) {
-                $organizacion = \DB::table('Hospital_Organizacion_Dueño')
-                    ->where('H_O_D', $user->ID_H_O_D)
-                    ->first();
-                if ($organizacion && $organizacion->Logo_identidad) {
-                    $logoUrl = url('storage/logos/' . $organizacion->Logo_identidad);
-                }
-            }
-            $licencia = $user->ID_H_O_D ?? 'Licencia Saluda';
-
-            if (isset($responseBody['data']['attributes'])) {
-                $responseBody['data']['attributes']['nombre_sucursal'] = $nombreSucursal;
-                $responseBody['data']['attributes']['licencia'] = $licencia;
-                $responseBody['data']['attributes']['logo_url'] = $logoUrl;
-            }
-
-            unset($responseHeaders['Transfer-Encoding']);
-
-            return response()->json($responseBody, $responseStatus)->withHeaders($responseHeaders);
-        } catch (ClientException $e) {
-            $errors = json_decode($e->getResponse()->getBody()->getContents(), true)['errors'];
-            $errors = collect($errors)->map(function ($error) {
-                return Error::fromArray($error);
-            });
-            return ErrorResponse::make($errors);
+        if (!$user) {
+            return response()->json([
+                'message' => 'Usuario no autenticado'
+            ], 401);
         }
+
+        // Agregar nombre de sucursal, licencia y logo si es posible
+        $nombreSucursal = null;
+        $logoUrl = null;
+        if ($user && isset($user->Fk_Sucursal)) {
+            $nombreSucursal = \DB::table('Sucursales')
+                ->where('ID_SucursalC', $user->Fk_Sucursal)
+                ->value('Nombre_Sucursal');
+        }
+        
+        // Buscar la organización/licencia y su logo
+        $organizacion = null;
+        if ($user && isset($user->ID_H_O_D)) {
+            $organizacion = \DB::table('Hospital_Organizacion_Dueño')
+                ->where('H_O_D', $user->ID_H_O_D)
+                ->first();
+            if ($organizacion && $organizacion->Logo_identidad) {
+                $logoUrl = url('storage/logos/' . $organizacion->Logo_identidad);
+            }
+        }
+        $licencia = $user->ID_H_O_D ?? 'Licencia Saluda';
+
+        $responseData = [
+            'jsonapi' => [
+                'version' => '1.0'
+            ],
+            'data' => [
+                'id' => (string)$user->id,
+                'type' => 'users',
+                'attributes' => [
+                    'name' => $user->name ?? $user->nombre ?? 'Usuario',
+                    'email' => $user->email,
+                    'nombre_sucursal' => $nombreSucursal,
+                    'licencia' => $licencia,
+                    'logo_url' => $logoUrl,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at
+                ]
+            ]
+        ];
+
+        return response()->json($responseData);
     }
 
     /**

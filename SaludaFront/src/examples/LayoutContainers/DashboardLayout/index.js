@@ -27,10 +27,14 @@ import MDBox from "components/MDBox";
 // Material Dashboard 2 React context
 import { useMaterialUIController, setLayout } from "context";
 
+// Theme hook
+import useTheme from "hooks/useTheme";
+
 function DashboardLayout({ children }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav } = controller;
   const { pathname } = useLocation();
+  const { colors } = useTheme();
 
   useEffect(() => {
     setLayout(dispatch, "dashboard");
@@ -41,6 +45,16 @@ function DashboardLayout({ children }) {
       sx={({ breakpoints, transitions, functions: { pxToRem } }) => ({
         p: 3,
         position: "relative",
+        backgroundColor: colors.background.primary,
+        color: colors.text.primary,
+        minHeight: '100vh',
+        transition: transitions.create(
+          ["margin-left", "margin-right", "background-color", "color"], 
+          {
+            easing: transitions.easing.easeInOut,
+            duration: transitions.duration.standard,
+          }
+        ),
 
         [breakpoints.up("xl")]: {
           marginLeft: miniSidenav ? pxToRem(120) : pxToRem(274),

@@ -22,6 +22,20 @@ import Productos from "layouts/admin/Productos";
 import Proveedores from "layouts/admin/Proveedores";
 import Clientes from "layouts/admin/Clientes";
 import AdminAgendasDashboard from "layouts/admin-agendas";
+import Personal from "layouts/admin/Personal";
+import Traspasos from "layouts/admin/Traspasos";
+import Inventory from "layouts/admin/Inventory";
+import Sales from "layouts/admin/Sales";
+import Appointments from "layouts/admin/Appointments";
+// import Ventas from "layouts/admin/Ventas";
+// import Compras from "layouts/admin/Compras";
+// import Cajas from "layouts/admin/Cajas";
+// import Gastos from "layouts/admin/Gastos";
+// import Encargos from "layouts/admin/Encargos";
+// import Inventarios from "layouts/admin/Inventarios";
+// import MovimientosInventario from "layouts/admin/MovimientosInventario";
+// import AjustesInventario from "layouts/admin/AjustesInventario";
+// import Usuarios from "layouts/admin/Usuarios";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -104,6 +118,51 @@ const routes = [
     adminOnly: true,
   },
   {
+    type: "collapse",
+    name: "Inventario",
+    key: "inventory",
+    icon: <Icon fontSize="small">inventory_2</Icon>,
+    route: "/admin/inventory",
+    component: <Inventory />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Traspasos",
+    key: "traspasos",
+    icon: <Icon fontSize="small">swap_horiz</Icon>,
+    route: "/admin/traspasos",
+    component: <Traspasos />,
+    adminOnly: true,
+  },
+  // {
+  //   type: "collapse",
+  //   name: "Inventarios",
+  //   key: "inventarios",
+  //   icon: <Icon fontSize="small">assignment</Icon>,
+  //   route: "/admin/inventarios",
+  //   component: <Inventarios />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Movimientos de Inventario",
+  //   key: "movimientos-inventario",
+  //   icon: <Icon fontSize="small">compare_arrows</Icon>,
+  //   route: "/admin/movimientos-inventario",
+  //   component: <MovimientosInventario />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Ajustes de Inventario",
+  //   key: "ajustes-inventario",
+  //   icon: <Icon fontSize="small">tune</Icon>,
+  //   route: "/admin/ajustes-inventario",
+  //   component: <AjustesInventario />,
+  //   adminOnly: true,
+  // },
+  {
     type: "route",
     key: "almacenes-productos",
     route: "/admin/productos",
@@ -171,6 +230,60 @@ const routes = [
     icon: <Icon fontSize="small">business</Icon>,
   },
   {
+    type: "collapse",
+    name: "Ventas",
+    key: "sales",
+    icon: <Icon fontSize="small">shopping_cart</Icon>,
+    route: "/admin/sales",
+    component: <Sales />,
+    adminOnly: true,
+  },
+  // {
+  //   type: "collapse",
+  //   name: "Ventas",
+  //   key: "ventas",
+  //   icon: <Icon fontSize="small">shopping_cart</Icon>,
+  //   route: "/admin/ventas",
+  //   component: <Ventas />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Compras",
+  //   key: "compras",
+  //   icon: <Icon fontSize="small">shopping_basket</Icon>,
+  //   route: "/admin/compras",
+  //   component: <Compras />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Cajas",
+  //   key: "cajas",
+  //   icon: <Icon fontSize="small">account_balance_wallet</Icon>,
+  //   route: "/admin/cajas",
+  //   component: <Cajas />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Gastos",
+  //   key: "gastos",
+  //   icon: <Icon fontSize="small">receipt_long</Icon>,
+  //   route: "/admin/gastos",
+  //   component: <Gastos />,
+  //   adminOnly: true,
+  // },
+  // {
+  //   type: "collapse",
+  //   name: "Encargos",
+  //   key: "encargos",
+  //   icon: <Icon fontSize="small">assignment_turned_in</Icon>,
+  //   route: "/admin/encargos",
+  //   component: <Encargos />,
+  //   adminOnly: true,
+  // },
+  {
     type: "route",
     key: "proveedores",
     route: "/admin/proveedores",
@@ -192,6 +305,15 @@ const routes = [
     title: "Control de personal",
     key: "control-personal-title",
     icon: <Icon fontSize="small">person</Icon>,
+  },
+  {
+    type: "collapse",
+    name: "Personal",
+    key: "personal",
+    icon: <Icon fontSize="small">people</Icon>,
+    route: "/admin/personal",
+    component: <Personal />,
+    adminOnly: true,
   },
   {
     type: "collapse",
@@ -264,6 +386,31 @@ const routes = [
     protected: true,
     adminAgendasOnly: true,
   },
+  {
+    type: "collapse",
+    name: "Citas",
+    key: "appointments",
+    icon: <Icon fontSize="small">event_note</Icon>,
+    route: "/admin/appointments",
+    component: <Appointments />,
+    adminOnly: true,
+  },
+  //INICIA ADMINISTRACIÓN
+  {
+    type: "title",
+    title: "Administración",
+    key: "administracion-title",
+    icon: <Icon fontSize="small">admin_panel_settings</Icon>,
+  },
+  // {
+  //   type: "collapse",
+  //   name: "Usuarios",
+  //   key: "usuarios",
+  //   icon: <Icon fontSize="small">people</Icon>,
+  //   route: "/admin/usuarios",
+  //   component: <Usuarios />,
+  //   adminOnly: true,
+  // },
 ];
 
 export default routes;

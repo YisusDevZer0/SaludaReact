@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PermisosSeeder::class,
             SucursalesSeeder::class,
             PersonalPosSeeder::class, // Incluye tu usuario administrador
+            AdminUsersSeeder::class, // Usuarios administrativos adicionales
             
             // 2. Datos de servicios y productos
             ServiciosSeeder::class,

@@ -60,13 +60,62 @@ import {
 import MDButton from "components/MDButton";
 import { AuthContext } from "context";
 
+// Custom components
+import ThemedModal from "components/ThemedModal";
+
 // Defining SALUDA colors as constants
 const SALUDA_COLORS = {
   primary: "#C80096",
   secondary: "#00a8E1",
   accent: "#00C7B1",
   text: "#2c3e50",
-  light: "#f8f9fa"
+  light: "#f8f9fa",
+  dark: "#344767",
+  success: "#2DCE89",
+  warning: "#FB6340",
+  error: "#F5365C",
+  info: "#11CDEF",
+  darkBlue: "#0A2558",
+  lightBlue: "#E3F2FD",
+  gray: "#6c757d",
+  lightGray: "#f8f9fa",
+  darkGray: "#343a40",
+  white: "#ffffff",
+  black: "#000000",
+  transparent: "transparent",
+  overlay: "rgba(0, 0, 0, 0.5)",
+  shadow: "rgba(0, 0, 0, 0.1)",
+  border: "#e0e0e0",
+  background: "#f5f5f5",
+  surface: "#ffffff",
+  text: {
+    primary: "#344767",
+    secondary: "#67748e",
+    disabled: "#adb5bd",
+    inverse: "#ffffff",
+  },
+  status: {
+    info: {
+      main: "#1A73E8",
+      background: "#E3F2FD",
+      contrastText: "#ffffff",
+    },
+    success: {
+      main: "#2DCE89",
+      background: "#E8F5E8",
+      contrastText: "#ffffff",
+    },
+    warning: {
+      main: "#FB6340",
+      background: "#FFF3E0",
+      contrastText: "#ffffff",
+    },
+    error: {
+      main: "#F5365C",
+      background: "#FFEBEE",
+      contrastText: "#ffffff",
+    },
+  },
 };
 
 function DashboardNavbar({ absolute, light, isMini }) {
@@ -105,7 +154,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
   // Obtener datos de usuario y licencia
   const { userData } = authContext;
   const licencia = userData?.licencia || "";
-  const isDemo = licencia.toLowerCase().includes("demo");
+  const isDemo = typeof licencia === 'string' && licencia.toLowerCase().includes("demo");
 
   useEffect(() => {
     // Establecer un mensaje aleatorio
@@ -337,8 +386,11 @@ function DashboardNavbar({ absolute, light, isMini }) {
           </MDBox>
         )}
       </Toolbar>
-      <Dialog open={logoutModalOpen} onClose={cancelLogout}>
-        <DialogTitle>¿Cerrar sesión?</DialogTitle>
+      <ThemedModal
+        open={logoutModalOpen}
+        onClose={cancelLogout}
+        title="¿Cerrar sesión?"
+      >
         <DialogContent>
           <DialogContentText>
             ¿Estás seguro de que deseas cerrar la sesión? Deberás volver a iniciar sesión para acceder nuevamente.
@@ -352,7 +404,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
             Cerrar Sesión
           </MDButton>
         </DialogActions>
-      </Dialog>
+      </ThemedModal>
     </AppBar>
   );
 }

@@ -26,7 +26,7 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
-function DefaultNavbarLink({ icon, name, route, light }) {
+function DefaultNavbarLink({ icon, name, route, light = false }) {
   return (
     <MDBox
       component={Link}
@@ -63,7 +63,7 @@ DefaultNavbarLink.propTypes = {
   icon: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   route: PropTypes.string.isRequired,
-  light: PropTypes.bool.isRequired,
+  light: PropTypes.bool,
 };
 
 export default DefaultNavbarLink;

@@ -75,6 +75,13 @@ Route::post('/pos/create-admin', [\App\Http\Controllers\Api\V2\Auth\PersonalPosC
 // Ruta de prueba
 Route::get('/pos/test', [\App\Http\Controllers\Api\V2\Auth\TestController::class, '__invoke']);
 
+// Rutas de imágenes de perfil
+Route::middleware(['personalpos.auth'])->group(function () {
+    Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
+    Route::delete('/profile/image/delete', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'delete']);
+    Route::get('/profile/image/{userId?}', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'show']);
+});
+
 // Ruta de logout para PersonalPOS (compatibilidad con frontend)
 Route::post('/logout', function(Request $request) {
     try {
@@ -135,6 +142,11 @@ Route::options('/sucursales', function() {
     return response()->json([], 200);
 });
 Route::get('/sucursales', [SucursalController::class, 'index']);
+Route::post('/sucursales', [SucursalController::class, 'store']);
+Route::get('/sucursales/{id}', [SucursalController::class, 'show']);
+Route::put('/sucursales/{id}', [SucursalController::class, 'update']);
+Route::delete('/sucursales/{id}', [SucursalController::class, 'destroy']);
+Route::get('/sucursales/estadisticas', [SucursalController::class, 'getStats']);
 Route::get('/sucursales/activas', [SucursalController::class, 'getAllActive']);
 
 // Rutas para preferencias de usuario (protegidas con Passport)

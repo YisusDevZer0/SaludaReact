@@ -21,6 +21,9 @@ import Box from '@mui/material/Box';
 import HomeIcon from '@mui/icons-material/Home';
 import Chip from '@mui/material/Chip';
 import CategoriaService from 'services/categoria-service';
+import MDBox from 'components/MDBox';
+import MDTypography from 'components/MDTypography';
+import ThemedModal from 'components/ThemedModal';
 
 const CategoriasTable = () => {
   const tableRef = useRef();
@@ -255,83 +258,82 @@ const CategoriasTable = () => {
       </Box>
 
       {/* Modal para crear/editar categoría */}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth className="categoria-modal">
-        <DialogTitle>
-          {editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }} className="categoria-form">
-            <TextField
-              name="Nom_Cat"
-              label="Nombre de Categoría"
-              value={form.Nom_Cat}
-              onChange={handleChange}
-              fullWidth
-              required
-              margin="normal"
-            />
-            <TextField
-              name="Estado"
-              label="Estado"
-              value={form.Estado}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="Vigente">Vigente</option>
-              <option value="Inactivo">Inactivo</option>
-            </TextField>
-            <TextField
-              name="Cod_Estado"
-              label="Código de Estado"
-              value={form.Cod_Estado}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="V">V (Vigente)</option>
-              <option value="I">I (Inactivo)</option>
-            </TextField>
-            <TextField
-              name="Sistema"
-              label="Sistema"
-              value={form.Sistema}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="POS">POS</option>
-              <option value="SALUD">SALUD</option>
-            </TextField>
-            <TextField
-              name="ID_H_O_D"
-              label="Organización"
-              value={form.ID_H_O_D}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-          </Box>
-        </DialogContent>
+      <ThemedModal
+        open={open}
+        onClose={handleClose}
+        title={editingCategoria ? 'Editar Categoría' : 'Nueva Categoría'}
+      >
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }} className="categoria-form">
+          <TextField
+            name="Nom_Cat"
+            label="Nombre de Categoría"
+            value={form.Nom_Cat}
+            onChange={handleChange}
+            fullWidth
+            required
+            margin="normal"
+          />
+          <TextField
+            name="Estado"
+            label="Estado"
+            value={form.Estado}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="Vigente">Vigente</option>
+            <option value="Inactivo">Inactivo</option>
+          </TextField>
+          <TextField
+            name="Cod_Estado"
+            label="Código de Estado"
+            value={form.Cod_Estado}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="V">V (Vigente)</option>
+            <option value="I">I (Inactivo)</option>
+          </TextField>
+          <TextField
+            name="Sistema"
+            label="Sistema"
+            value={form.Sistema}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="POS">POS</option>
+            <option value="SALUD">SALUD</option>
+          </TextField>
+          <TextField
+            name="ID_H_O_D"
+            label="Organización"
+            value={form.ID_H_O_D}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+          />
+        </Box>
         <DialogActions>
           <Button onClick={handleClose}>Cancelar</Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
             {editingCategoria ? 'Actualizar' : 'Crear'}
           </Button>
         </DialogActions>
-      </Dialog>
+      </ThemedModal>
 
       {loading && <PillLoader message="Cargando categorías..." />}
       <table ref={tableRef} className="display" style={{ width: "100%" }}></table>

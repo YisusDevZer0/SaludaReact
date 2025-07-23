@@ -81,8 +81,8 @@ const AuthContextProvider = ({ children }) => {
             setUserPermissions(storedPermissions);
           }
           
-          // Si está en login, redirigir al dashboard
-          if (location.pathname === '/auth/login' || location.pathname === '/') {
+          // Solo redirigir si está en login y no está en proceso de login
+          if ((location.pathname === '/auth/login' || location.pathname === '/') && !isLoading) {
             // Redirigir según el rol
             if (storedRole === 'Administrador') {
               navigate("/dashboard");
@@ -120,7 +120,7 @@ const AuthContextProvider = ({ children }) => {
     };
 
     checkAuthentication();
-  }, [location.pathname]); // Agregar location.pathname como dependencia
+  }, [location.pathname, isLoading]); // Agregar isLoading como dependencia
 
   const login = async (token, refreshToken, user = {}) => {
     try {
@@ -130,6 +130,7 @@ const AuthContextProvider = ({ children }) => {
       const userRole = user.role?.Nombre_rol || 'user';
       console.log('Rol del usuario a guardar:', userRole); // Debug log del rol
 
+      // Guardar datos en localStorage inmediatamente
       localStorage.setItem("token", token);
       localStorage.setItem("access_token", token); // También guardar como access_token para compatibilidad
       localStorage.setItem("refreshToken", refreshToken);
@@ -140,19 +141,27 @@ const AuthContextProvider = ({ children }) => {
         setUserPermissions(user.role.Permisos);
       }
 
-      // Obtener perfil actualizado (logo_url, licencia, etc.)
-      console.log('Obteniendo perfil del usuario...'); // Debug log
-      const profile = await AuthService.getProfile();
-      console.log('Perfil obtenido:', profile); // Debug log
-      
-      if (profile && profile.data && profile.data.attributes) {
-        const userDataProfile = { ...user, ...profile.data.attributes };
-        console.log('Datos del usuario con perfil:', userDataProfile); // Debug log
-        setUserData(userDataProfile);
-        localStorage.setItem("userData", JSON.stringify(userDataProfile));
-      } else {
-        console.log('No se pudo obtener perfil, usando datos básicos del usuario'); // Debug log
-        setUserData(user);
+      // Actualizar estado inmediatamente
+      setIsAuthenticated(true);
+      setUserRole(userRole);
+      setUserData(user);
+      setIsLoading(false);
+
+      // Obtener perfil actualizado (logo_url, licencia, etc.) en segundo plano
+      try {
+        console.log('Obteniendo perfil del usuario...'); // Debug log
+        const profile = await AuthService.getProfile();
+        console.log('Perfil obtenido:', profile); // Debug log
+        
+        if (profile && profile.data && profile.data.attributes) {
+          const userDataProfile = { ...user, ...profile.data.attributes };
+          console.log('Datos del usuario con perfil:', userDataProfile); // Debug log
+          setUserData(userDataProfile);
+          localStorage.setItem("userData", JSON.stringify(userDataProfile));
+        }
+      } catch (profileError) {
+        console.error("Error al obtener perfil después de login:", profileError);
+        // No fallar el login si no se puede obtener el perfil
       }
 
       // Verificar que el token se guardó correctamente
@@ -163,11 +172,8 @@ const AuthContextProvider = ({ children }) => {
       console.log('Tokens coinciden:', token === savedToken);
       console.log('Roles coinciden:', userRole === savedRole);
 
-      setIsAuthenticated(true);
-      setUserRole(userRole);
-      setIsLoading(false);
-
-      // Redirigir según el rol
+      // Redirigir según el rol inmediatamente
+      console.log('Redirigiendo según rol:', userRole);
       if (userRole === 'Administrador') {
         navigate("/dashboard");
       } else if (userRole === 'RH' || userRole === 'Desarrollo Humano') {
@@ -178,11 +184,21 @@ const AuthContextProvider = ({ children }) => {
         navigate("/dashboard");
       }
     } catch (e) {
-      console.error("Error al obtener perfil después de login:", e);
-      setUserData(user);
-      setIsAuthenticated(true);
-      setUserRole(user.role?.Nombre_rol || 'user');
+      console.error("Error en login:", e);
+      // En caso de error, limpiar localStorage y redirigir a login
+      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("userPermissions");
+      setIsAuthenticated(false);
+      setUserRole(null);
+      setUserData(null);
+      setUserPermissions(null);
       setIsLoading(false);
+      navigate("/auth/login");
+      throw e;
     }
   };
 

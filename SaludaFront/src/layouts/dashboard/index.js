@@ -13,16 +13,16 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
+import React, { useState, useEffect, useContext } from "react";
+
 // @mui material components
-import Grid from "@mui/material/Grid";
-import Icon from "@mui/material/Icon";
-import Card from "@mui/material/Card";
-import { useContext, useEffect, useState } from "react";
+import { Card, Grid, IconButton, Tooltip } from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDAvatar from "components/MDAvatar";
+import ThemedCard from "components/ThemedCard";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -44,7 +44,7 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 // Context
 import { AuthContext } from "context";
 
-// Mock data
+// Services
 import { getMockDataByRole } from "services/mock-user-service";
 import HttpService from "services/htttp.service";
 import DashboardService from "services/dashboard-service";
@@ -56,6 +56,9 @@ import TotalEmpleadosCount from "components/TotalEmpleadosCount";
 // Default avatar image
 import defaultAvatar from "assets/images/zero.png";
 
+// Theme hook
+import useTheme from "hooks/useTheme";
+
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const { userRole, userData } = useContext(AuthContext);
@@ -63,6 +66,7 @@ function Dashboard() {
   const [personalActivo, setPersonalActivo] = useState(0);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const { colors } = useTheme();
 
   // Función para generar iniciales del usuario
   const getInitials = (userData) => {
@@ -241,7 +245,7 @@ function Dashboard() {
     <>
       {/* Información del Usuario */}
       <MDBox mb={3}>
-        <Card>
+        <ThemedCard>
           <MDBox
             mx={2}
             mt={-3}
@@ -262,7 +266,7 @@ function Dashboard() {
                 <Grid item xs={12} md={6}>
                   <MDBox mb={2}>
                     <MDTypography variant="h5" color="text" fontWeight="bold">
-                      {userData.nombre_completo || userData.Nombre_Apellidos}
+                      {userData.nombre_completo || userData.Nombre_Apellidos || `${userData.nombre || ''} ${userData.apellido || ''}`.trim() || 'Usuario'}
                     </MDTypography>
                   </MDBox>
                   <MDBox mb={1}>
@@ -272,41 +276,37 @@ function Dashboard() {
                   </MDBox>
                   <MDBox mb={1}>
                     <MDTypography variant="body1" color="text">
-                      <strong>Email:</strong> {userData.email || userData.Correo_Electronico}
+                      <strong>Email:</strong> {userData.email || userData.Correo_Electronico || 'No disponible'}
                     </MDTypography>
                   </MDBox>
                   <MDBox mb={1}>
                     <MDTypography variant="body1" color="text">
-                      <strong>Teléfono:</strong> {userData.telefono || userData.Telefono}
+                      <strong>Teléfono:</strong> {userData.telefono || userData.Telefono || 'No disponible'}
                     </MDTypography>
                   </MDBox>
                   <MDBox mb={1}>
                     <MDTypography variant="body1" color="text">
-                      <strong>Estado:</strong> {userData.estado_laboral || userData.Estatus}
+                      <strong>Estado:</strong> {userData.estado_laboral || userData.Estado || 'activo'}
                     </MDTypography>
                   </MDBox>
-                  {userData.fecha_ingreso && (
-                    <MDBox mb={1}>
-                      <MDTypography variant="body1" color="text">
-                        <strong>Fecha de Ingreso:</strong> {new Date(userData.fecha_ingreso).toLocaleDateString('es-ES')}
-                      </MDTypography>
-                    </MDBox>
-                  )}
                   <MDBox mb={1}>
                     <MDTypography variant="body1" color="text">
-                      <strong>Sucursal:</strong> {userData.sucursal?.nombre || userData.Fk_Sucursal}
+                      <strong>Fecha de Ingreso:</strong> {userData.fecha_ingreso ? new Date(userData.fecha_ingreso).toLocaleDateString('es-ES') : 'No disponible'}
                     </MDTypography>
                   </MDBox>
-                  {userData.sucursal?.direccion && (
-                    <MDBox mb={1}>
-                      <MDTypography variant="body1" color="text">
-                        <strong>Dirección:</strong> {userData.sucursal.direccion}
-                      </MDTypography>
-                    </MDBox>
-                  )}
                   <MDBox mb={1}>
                     <MDTypography variant="body1" color="text">
-                      <strong>Código:</strong> {userData.codigo}
+                      <strong>Sucursal:</strong> {userData.sucursal?.nombre || userData.sucursal?.Nombre_Sucursal || 'No asignada'}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Dirección:</strong> {userData.direccion || 'No disponible'}
+                    </MDTypography>
+                  </MDBox>
+                  <MDBox mb={1}>
+                    <MDTypography variant="body1" color="text">
+                      <strong>Código:</strong> {userData.codigo || 'No disponible'}
                     </MDTypography>
                   </MDBox>
                 </Grid>
@@ -319,7 +319,7 @@ function Dashboard() {
                   {userData.role && (
                     <MDBox>
                       <MDTypography variant="body1" color="text">
-                        <strong>Estado del Rol:</strong> {userData.role.estado || userData.role.Estado}
+                        <strong>Estado del Rol:</strong> {userData.role.estado || userData.role.Estado || 'activo'}
                       </MDTypography>
                       <MDBox mt={2}>
                         <MDTypography variant="body1" color="text" fontWeight="medium">
@@ -425,7 +425,7 @@ function Dashboard() {
               </Grid>
             )}
           </MDBox>
-        </Card>
+        </ThemedCard>
       </MDBox>
 
       {/* Estadísticas para Administrador */}
@@ -888,7 +888,7 @@ function Dashboard() {
       <MDBox py={3}>
         {/* Encabezado de bienvenida */}
         <MDBox mb={3}>
-          <Card>
+          <ThemedCard>
             <MDBox p={3} display="flex" alignItems="center">
               <MDBox mr={2}>
                 <MDAvatar
@@ -901,20 +901,20 @@ function Dashboard() {
                 </MDAvatar>
               </MDBox>
               <MDBox>
-                <MDTypography variant="h4" fontWeight="medium">
+                <MDTypography variant="h4" fontWeight="medium" color={colors.text.primary}>
                   Bienvenido, {userData?.nombre_completo || userData?.Nombre_Apellidos || "Usuario"}
                 </MDTypography>
-                <MDTypography variant="body2" color="text">
+                <MDTypography variant="body2" color={colors.text.secondary}>
                   {userData?.role?.nombre || userData?.role?.Nombre_rol || "Usuario"}
                 </MDTypography>
                 {userData?.sucursal?.nombre && (
-                  <MDTypography variant="body2" color="text">
+                  <MDTypography variant="body2" color={colors.text.secondary}>
                     Sucursal: {userData.sucursal.nombre}
                   </MDTypography>
                 )}
               </MDBox>
             </MDBox>
-          </Card>
+          </ThemedCard>
         </MDBox>
 
         {/* Contenido específico por rol */}

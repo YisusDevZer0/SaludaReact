@@ -181,4 +181,46 @@ class PersonalPosSimple extends Authenticatable
             ->orWhere('codigo', $username)
             ->first();
     }
+
+    // Mutator para foto_perfil - convertir a URL completa
+    public function getFotoPerfilAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        // Si ya es una URL completa, devolverla tal como está
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        // Si es solo un nombre de archivo, construir la URL completa
+        if (strpos($value, '/') === false) {
+            // Usar la ruta de uploads en lugar de storage
+            return url('uploads/profiles/avatars/' . $value);
+        }
+
+        // Si es una ruta relativa, construir la URL completa
+        return url('uploads/' . $value);
+    }
+
+    // Mutator para establecer foto_perfil - guardar solo el nombre del archivo
+    public function setFotoPerfilAttribute($value)
+    {
+        if (!$value) {
+            $this->attributes['foto_perfil'] = null;
+            return;
+        }
+
+        // Si es una URL completa, extraer solo el nombre del archivo
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $path = parse_url($value, PHP_URL_PATH);
+            $filename = basename($path);
+            $this->attributes['foto_perfil'] = $filename;
+            return;
+        }
+
+        // Si es solo un nombre de archivo, guardarlo tal como está
+        $this->attributes['foto_perfil'] = $value;
+    }
 } 

@@ -95,6 +95,28 @@ function Login() {
     }
   }, []);
 
+  // Verificar si ya está autenticado
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("userData");
+    const userRole = localStorage.getItem("userRole");
+    
+    if (token && userData && userRole) {
+      console.log('Usuario ya autenticado, redirigiendo...'); // Debug log
+      
+      // Redirigir según el rol
+      if (userRole === 'Administrador') {
+        navigate("/dashboard");
+      } else if (userRole === 'RH' || userRole === 'Desarrollo Humano') {
+        navigate("/rh-dashboard");
+      } else if (userRole === 'Administrador Agendas') {
+        navigate("/admin-agendas");
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInputs(prev => ({
@@ -215,6 +237,8 @@ function Login() {
     try {
       const response = await AuthService.login(myData);
       
+      console.log('Login exitoso, respuesta:', response); // Debug log
+      
       // En caso de éxito
       showNotification("¡Bienvenido! Redirigiendo...", "success");
       
@@ -223,17 +247,20 @@ function Login() {
       localStorage.removeItem("tiempoBloqueoInicio");
       setIntentosFallidos(0);
       
-      // Realizar el login en el contexto de autenticación
-      setTimeout(async () => {
-        try {
-          await authContext.login(response.access_token, response.refresh_token, response.user);
-        } catch (error) {
-          console.error('Error en login del contexto:', error);
-          showNotification("Error al procesar el login", "error");
-        }
-      }, 1500);
+      // Realizar el login en el contexto de autenticación inmediatamente
+      try {
+        console.log('Llamando a authContext.login...'); // Debug log
+        await authContext.login(response.access_token, response.refresh_token, response.user);
+        console.log('authContext.login completado exitosamente'); // Debug log
+        // La redirección se maneja automáticamente en el contexto
+      } catch (error) {
+        console.error('Error en login del contexto:', error);
+        showNotification("Error al procesar el login", "error");
+      }
       
     } catch (res) {
+      console.error('Error en login:', res); // Debug log
+      
       // Incrementar intentos fallidos
       const nuevosIntentos = intentosFallidos + 1;
       setIntentosFallidos(nuevosIntentos);

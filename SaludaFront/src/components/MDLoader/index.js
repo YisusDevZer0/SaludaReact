@@ -24,7 +24,7 @@ const SALUDA_COLORS = {
 import PillLoader from "../PillLoader";
 import "../PillLoader.css";
 
-function MDLoader({ open, message, fullScreen }) {
+function MDLoader({ open = false, message = "", fullScreen = true }) {
   const [progress, setProgress] = useState(0);
   const [randomMessage, setRandomMessage] = useState("");
 
@@ -79,13 +79,6 @@ function MDLoader({ open, message, fullScreen }) {
     </Fade>
   );
 }
-
-// Setting default values for the props of MDLoader
-MDLoader.defaultProps = {
-  open: false,
-  message: "",
-  fullScreen: true,
-};
 
 // Typechecking props for the MDLoader
 MDLoader.propTypes = {

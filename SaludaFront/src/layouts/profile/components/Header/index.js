@@ -35,12 +35,44 @@ import MDAvatar from "components/MDAvatar";
 import breakpoints from "assets/theme/base/breakpoints";
 
 // Images
-import burceMars from "assets/images/bruce-mars.jpg";
+import defaultAvatar from "assets/images/zero.png";
 import backgroundImage from "assets/images/bg-profile.jpeg";
 
-function Header({ children }) {
+function Header({ children, userData }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
   const [tabValue, setTabValue] = useState(0);
+
+  // Función para generar iniciales del usuario
+  const getInitials = (userData) => {
+    if (!userData) return "U";
+    
+    const nombre = userData.nombre || userData.nombre_completo || "";
+    const apellido = userData.apellido || "";
+    
+    // Si tenemos nombre completo, extraer las iniciales
+    if (userData.nombre_completo) {
+      const nombres = userData.nombre_completo.split(' ');
+      if (nombres.length >= 2) {
+        return `${nombres[0].charAt(0)}${nombres[nombres.length - 1].charAt(0)}`.toUpperCase();
+      } else if (nombres.length === 1) {
+        return nombres[0].charAt(0).toUpperCase();
+      }
+    }
+    
+    // Fallback a nombre y apellido separados
+    if (nombre && apellido) {
+      return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+    } else if (nombre) {
+      return nombre.charAt(0).toUpperCase();
+    }
+    
+    return "U";
+  };
+
+  // Obtener datos del usuario
+  const userName = userData?.nombre_completo || userData?.nombre || "Usuario";
+  const userRole = userData?.role?.nombre || userData?.role?.Nombre_rol || "Usuario";
+  const userAvatar = userData?.foto_perfil || userData?.avatar_url || null;
 
   useEffect(() => {
     // A function that sets the orientation state of the tabs.
@@ -94,15 +126,23 @@ function Header({ children }) {
       >
         <Grid container spacing={3} alignItems="center">
           <Grid item>
-            <MDAvatar src={burceMars} alt="profile-image" size="xl" shadow="sm" />
+            <MDAvatar 
+              src={userAvatar} 
+              alt="profile-image" 
+              size="xl" 
+              shadow="sm"
+              bgColor={userAvatar ? "transparent" : "info"}
+            >
+              {!userAvatar && getInitials(userData)}
+            </MDAvatar>
           </Grid>
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
-                Richard Davis
+                {userName}
               </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
-                CEO / Co-Founder
+                {userRole}
               </MDTypography>
             </MDBox>
           </Grid>
@@ -146,11 +186,13 @@ function Header({ children }) {
 // Setting default props for the Header
 Header.defaultProps = {
   children: "",
+  userData: null,
 };
 
 // Typechecking props for the Header
 Header.propTypes = {
   children: PropTypes.node,
+  userData: PropTypes.object,
 };
 
 export default Header;

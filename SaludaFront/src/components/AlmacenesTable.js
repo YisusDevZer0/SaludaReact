@@ -53,6 +53,7 @@ import MDAlert from 'components/MDAlert';
 import almacenService from 'services/almacen-service';
 import useNotifications from 'hooks/useNotifications';
 import './AlmacenesTable.css';
+import ThemedModal from 'components/ThemedModal';
 
 const AlmacenesTable = () => {
   // Estados principales
@@ -542,160 +543,134 @@ const AlmacenesTable = () => {
 
   // Componente de filtros expandidos
   const ExpandedFilters = () => (
-    <Dialog 
+    <ThemedModal 
       open={filterModalOpen} 
       onClose={() => setFilterModalOpen(false)}
+      title="Filtros Avanzados"
+      titleIcon={<FilterIcon />}
       maxWidth="md"
       fullWidth
     >
-      <DialogTitle>
-        <MDBox display="flex" alignItems="center" gap={1}>
-          <FilterIcon />
-          <MDTypography variant="h5">Filtros Avanzados</MDTypography>
-        </MDBox>
-      </DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} mt={1}>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Almacén</InputLabel>
-              <Select
-                value={filters.tipo}
-                label="Tipo de Almacén"
-                onChange={(e) => handleFilterChange('tipo', e.target.value)}
-              >
-                <MenuItem value="">Todos los tipos</MenuItem>
-                {Object.entries(tiposDisponibles).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>{label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Estado</InputLabel>
-              <Select
-                value={filters.estado}
-                label="Estado"
-                onChange={(e) => handleFilterChange('estado', e.target.value)}
-              >
-                <MenuItem value="">Todos los estados</MenuItem>
-                <MenuItem value="Activo">Activo</MenuItem>
-                <MenuItem value="Inactivo">Inactivo</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Responsable"
-              value={filters.responsable}
-              onChange={(e) => handleFilterChange('responsable', e.target.value)}
-              placeholder="Buscar por responsable..."
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Capacidad Definida</InputLabel>
-              <Select
-                value={filters.con_capacidad}
-                label="Capacidad Definida"
-                onChange={(e) => handleFilterChange('con_capacidad', e.target.value)}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="true">Con capacidad definida</MenuItem>
-                <MenuItem value="false">Sin capacidad definida</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+      <Grid container spacing={2} mt={1}>
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel>Tipo de Almacén</InputLabel>
+            <Select
+              value={filters.tipo}
+              label="Tipo de Almacén"
+              onChange={(e) => handleFilterChange('tipo', e.target.value)}
+            >
+              <MenuItem value="">Todos los tipos</MenuItem>
+              {Object.entries(tiposDisponibles).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={clearFilters} color="warning">
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel>Estado</InputLabel>
+            <Select
+              value={filters.estado}
+              label="Estado"
+              onChange={(e) => handleFilterChange('estado', e.target.value)}
+            >
+              <MenuItem value="">Todos los estados</MenuItem>
+              <MenuItem value="Activo">Activo</MenuItem>
+              <MenuItem value="Inactivo">Inactivo</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Responsable"
+            value={filters.responsable}
+            onChange={(e) => handleFilterChange('responsable', e.target.value)}
+            placeholder="Buscar por responsable..."
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel>Capacidad Definida</InputLabel>
+            <Select
+              value={filters.con_capacidad}
+              label="Capacidad Definida"
+              onChange={(e) => handleFilterChange('con_capacidad', e.target.value)}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="true">Con capacidad definida</MenuItem>
+              <MenuItem value="false">Sin capacidad definida</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button onClick={clearFilters} color="warning" variant="outlined">
           Limpiar Filtros
         </Button>
-        <Button onClick={() => setFilterModalOpen(false)} color="primary">
+        <Button onClick={() => setFilterModalOpen(false)} color="primary" variant="contained">
           Aplicar Filtros
         </Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </ThemedModal>
   );
 
   // Componente del modal de estadísticas
   const StatsModal = () => (
-    <Dialog 
+    <ThemedModal 
       open={statsModalOpen} 
       onClose={() => setStatsModalOpen(false)}
+      title="Estadísticas de Almacenes"
+      titleIcon={<StatsIcon />}
       maxWidth="lg"
       fullWidth
     >
-      <DialogTitle>
-        <MDBox display="flex" alignItems="center" gap={1}>
-          <StatsIcon />
-          <MDTypography variant="h5">Estadísticas de Almacenes</MDTypography>
-        </MDBox>
-      </DialogTitle>
-      <DialogContent>
-        {estadisticas && (
-          <Grid container spacing={3} mt={1}>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-                <MDTypography variant="h3" color="primary">
-                  {estadisticas.generales?.total || 0}
-                </MDTypography>
-                <MDTypography variant="button">
-                  Total Almacenes
-                </MDTypography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-                <MDTypography variant="h3" color="success">
-                  {estadisticas.generales?.activos || 0}
-                </MDTypography>
-                <MDTypography variant="button">
-                  Almacenes Activos
-                </MDTypography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-                <MDTypography variant="h3" color="info">
-                  {Object.keys(estadisticas.generales?.por_tipo || {}).length}
-                </MDTypography>
-                <MDTypography variant="button">
-                  Tipos Diferentes
-                </MDTypography>
-              </Paper>
-            </Grid>
+      {estadisticas && (
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+              <MDTypography variant="h3" color="primary">
+                {estadisticas.generales?.total || 0}
+              </MDTypography>
+              <MDTypography variant="button">
+                Total Almacenes
+              </MDTypography>
+            </Paper>
           </Grid>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setStatsModalOpen(false)} color="primary">
-          Cerrar
-        </Button>
-      </DialogActions>
-    </Dialog>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+              <MDTypography variant="h3" color="success">
+                {estadisticas.generales?.activos || 0}
+              </MDTypography>
+              <MDTypography variant="button">
+                Almacenes Activos
+              </MDTypography>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
+              <MDTypography variant="h3" color="info">
+                {Object.keys(estadisticas.generales?.por_tipo || {}).length}
+              </MDTypography>
+              <MDTypography variant="button">
+                Tipos Diferentes
+              </MDTypography>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+    </ThemedModal>
   );
 
   // Componente del modal de formulario
   const FormModal = () => (
-    <Dialog 
-      open={modalOpen} 
+    <ThemedModal
+      open={modalOpen}
       onClose={() => setModalOpen(false)}
-      maxWidth="md"
-      fullWidth
+      title={editingAlmacen ? 'Editar Almacén' : 'Nuevo Almacén'}
     >
-      <DialogTitle>
-        <MDBox display="flex" alignItems="center" gap={1}>
-          <WarehouseIcon />
-          <MDTypography variant="h5">
-            {editingAlmacen ? 'Editar Almacén' : 'Nuevo Almacén'}
-          </MDTypography>
-        </MDBox>
-      </DialogTitle>
-      <DialogContent>
+      <MDBox>
         <Grid container spacing={2} mt={1}>
           <Grid item xs={12} md={6}>
             <TextField
@@ -819,7 +794,7 @@ const AlmacenesTable = () => {
             />
           </Grid>
         </Grid>
-      </DialogContent>
+      </MDBox>
       <DialogActions>
         <Button 
           onClick={() => setModalOpen(false)} 
@@ -835,7 +810,7 @@ const AlmacenesTable = () => {
           {editingAlmacen ? 'Actualizar' : 'Crear'}
         </Button>
       </DialogActions>
-    </Dialog>
+    </ThemedModal>
   );
 
   return (

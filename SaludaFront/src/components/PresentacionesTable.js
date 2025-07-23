@@ -5,22 +5,160 @@ import "datatables.net";
 import { getDataTablesConfig } from "utils/dataTablesLanguage";
 import { useMaterialUIController } from "context";
 import usePantoneColors from "hooks/usePantoneColors";
-import './SucursalesTable.css'; // Reutilizar estilos base
-import './PresentacionesTable.css'; // Estilos específicos de presentaciones
+import './PresentacionesTable.css';
 import PillLoader from './PillLoader';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Icon from '@mui/material/Icon';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import HomeIcon from '@mui/icons-material/Home';
-import Chip from '@mui/material/Chip';
-import PresentacionService from 'services/presentacion-service';
+import {
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Icon,
+  Chip,
+  Alert,
+  CircularProgress,
+  Tooltip,
+  IconButton,
+  Typography,
+  Divider,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Badge,
+  Switch,
+  FormControlLabel,
+  Slider,
+  Rating,
+  LinearProgress,
+  Skeleton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tabs,
+  Tab,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  MobileStepper,
+  Breadcrumbs,
+  Link,
+  Pagination,
+  TablePagination,
+  Autocomplete,
+  Checkbox,
+  Radio,
+  RadioGroup,
+  FormGroup,
+  FormLabel,
+  FormHelperText,
+  InputAdornment,
+  OutlinedInput,
+  FilledInput,
+  Input,
+  InputBase,
+  NativeSelect,
+  Box,
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as ViewIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Sort as SortIcon,
+  Refresh as RefreshIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  CheckCircle as CheckIcon,
+  Error as ErrorIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  LocalOffer as LocalOfferIcon,
+  Category as CategoryIcon,
+  Branding as BrandingIcon,
+  Business as BusinessIcon,
+  Language as LanguageIcon,
+  Web as WebIcon,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Description as DescriptionIcon,
+  Code as CodeIcon,
+  Settings as SettingsIcon,
+  Security as SecurityIcon,
+  Speed as SpeedIcon,
+  Storage as StorageIcon,
+  Memory as MemoryIcon,
+  Hdd as HddIcon,
+  Dns as DnsIcon,
+  Router as RouterIcon,
+  Hub as HubIcon,
+  AccountTree as AccountTreeIcon,
+  Folder as FolderIcon,
+  FolderOpen as FolderOpenIcon,
+  CreateNewFolder as CreateFolderIcon,
+  DriveFileRenameOutline as RenameIcon,
+  ContentCopy as CopyIcon,
+  Archive as ArchiveIcon,
+  Unarchive as UnarchiveIcon,
+  Lock as LockIcon,
+  LockOpen as LockOpenIcon,
+  Public as PublicIcon,
+  Private as PrivateIcon,
+  Verified as VerifiedIcon,
+  GppBad as GppBadIcon,
+  GppMaybe as GppMaybeIcon,
+  GppGood as GppGoodIcon,
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  ErrorOutline as ErrorOutlineIcon,
+  HelpOutline as HelpOutlineIcon,
+  InfoOutline as InfoOutlineIcon,
+  WarningAmber as WarningAmberIcon,
+  Notifications as NotificationsIcon,
+  NotificationsActive as NotificationsActiveIcon,
+  NotificationsNone as NotificationsNoneIcon,
+  NotificationsOff as NotificationsOffIcon,
+  NotificationsPaused as NotificationsPausedIcon,
+  NotificationsImportant as NotificationsImportantIcon,
+  NotificationsNoneOutlined as NotificationsNoneOutlinedIcon,
+  NotificationsActiveOutlined as NotificationsActiveOutlinedIcon,
+  NotificationsOffOutlined as NotificationsOffOutlinedIcon,
+  NotificationsPausedOutlined as NotificationsPausedOutlinedIcon,
+  NotificationsImportantOutlined as NotificationsImportantOutlinedIcon,
+  NotificationsNoneRounded as NotificationsNoneRoundedIcon,
+  NotificationsActiveRounded as NotificationsActiveRoundedIcon,
+  NotificationsOffRounded as NotificationsOffRoundedIcon,
+  NotificationsPausedRounded as NotificationsPausedRoundedIcon,
+  NotificationsImportantRounded as NotificationsImportantRoundedIcon,
+  NotificationsNoneSharp as NotificationsNoneSharpIcon,
+  NotificationsActiveSharp as NotificationsActiveSharpIcon,
+  NotificationsOffSharp as NotificationsOffSharpIcon,
+  NotificationsPausedSharp as NotificationsPausedSharpIcon,
+  NotificationsImportantSharp as NotificationsImportantSharpIcon,
+  NotificationsNoneTwoTone as NotificationsNoneTwoToneIcon,
+  NotificationsActiveTwoTone as NotificationsActiveTwoToneIcon,
+  NotificationsOffTwoTone as NotificationsOffTwoToneIcon,
+  NotificationsPausedTwoTone as NotificationsPausedTwoToneIcon,
+  NotificationsImportantTwoTone as NotificationsImportantTwoToneIcon,
+} from '@mui/icons-material';
+import MDBox from 'components/MDBox';
+import MDTypography from 'components/MDTypography';
+import MDButton from 'components/MDButton';
+import MDAlert from 'components/MDAlert';
+import MDLoader from 'components/MDLoader';
+import ThemedModal from 'components/ThemedModal';
+import presentacionService from 'services/presentacion-service';
 import notificationService from 'services/notification-service';
 
 const PresentacionesTable = () => {
@@ -156,7 +294,7 @@ const PresentacionesTable = () => {
 
   const handleEdit = async (id) => {
     try {
-      const response = await PresentacionService.getPresentacion(id);
+      const response = await presentacionService.getPresentacion(id);
       if (response.success) {
         setEditingPresentacion(response.data);
         setForm({
@@ -178,7 +316,7 @@ const PresentacionesTable = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta presentación?')) {
       try {
-        const response = await PresentacionService.eliminarPresentacion(id);
+        const response = await presentacionService.eliminarPresentacion(id);
         if (response.success) {
           notificationService.success('Presentación eliminada exitosamente');
           // Recargar la tabla
@@ -205,10 +343,10 @@ const PresentacionesTable = () => {
       let response;
       if (editingPresentacion) {
         // Actualizar
-        response = await PresentacionService.actualizarPresentacion(editingPresentacion.Pprod_ID, form);
+        response = await presentacionService.actualizarPresentacion(editingPresentacion.Pprod_ID, form);
       } else {
         // Crear
-        response = await PresentacionService.crearPresentacion(form);
+        response = await presentacionService.crearPresentacion(form);
       }
 
       if (response.success) {
@@ -265,91 +403,94 @@ const PresentacionesTable = () => {
       </Box>
 
       {/* Modal para crear/editar presentación */}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth className="presentacion-modal">
-        <DialogTitle>
-          {editingPresentacion ? 'Editar Presentación' : 'Nueva Presentación'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }} className="presentacion-form">
-            <TextField
-              name="Nom_Presentacion"
-              label="Nombre de Presentación"
-              value={form.Nom_Presentacion}
-              onChange={handleChange}
-              fullWidth
-              required
-              margin="normal"
-            />
-            <TextField
-              name="Siglas"
-              label="Siglas"
-              value={form.Siglas}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-            <TextField
-              name="Estado"
-              label="Estado"
-              value={form.Estado}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="Vigente">Vigente</option>
-              <option value="Inactivo">Inactivo</option>
-            </TextField>
-            <TextField
-              name="Cod_Estado"
-              label="Código de Estado"
-              value={form.Cod_Estado}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="V">V (Vigente)</option>
-              <option value="I">I (Inactivo)</option>
-            </TextField>
-            <TextField
-              name="Sistema"
-              label="Sistema"
-              value={form.Sistema}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              select
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="POS">POS</option>
-              <option value="SALUD">SALUD</option>
-            </TextField>
-            <TextField
-              name="ID_H_O_D"
-              label="Organización"
-              value={form.ID_H_O_D}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancelar</Button>
+      <ThemedModal
+        open={open}
+        onClose={handleClose}
+        title={editingPresentacion ? 'Editar Presentación' : 'Nueva Presentación'}
+        maxWidth="sm"
+        fullWidth
+      >
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }} className="presentacion-form">
+          <TextField
+            name="Nom_Presentacion"
+            label="Nombre de Presentación"
+            value={form.Nom_Presentacion}
+            onChange={handleChange}
+            fullWidth
+            required
+            margin="normal"
+          />
+          <TextField
+            name="Siglas"
+            label="Siglas"
+            value={form.Siglas}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            name="Estado"
+            label="Estado"
+            value={form.Estado}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="Vigente">Vigente</option>
+            <option value="Inactivo">Inactivo</option>
+          </TextField>
+          <TextField
+            name="Cod_Estado"
+            label="Código de Estado"
+            value={form.Cod_Estado}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="V">V (Vigente)</option>
+            <option value="I">I (Inactivo)</option>
+          </TextField>
+          <TextField
+            name="Sistema"
+            label="Sistema"
+            value={form.Sistema}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+            select
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="POS">POS</option>
+            <option value="SALUD">SALUD</option>
+          </TextField>
+          <TextField
+            name="ID_H_O_D"
+            label="Organización"
+            value={form.ID_H_O_D}
+            onChange={handleChange}
+            fullWidth
+            margin="normal"
+          />
+        </Box>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+          <Button onClick={handleClose} variant="outlined">
+            Cancelar
+          </Button>
           <Button onClick={handleSubmit} variant="contained" color="primary">
             {editingPresentacion ? 'Actualizar' : 'Crear'}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </ThemedModal>
 
       {loading && <PillLoader message="Cargando presentaciones..." />}
       <table ref={tableRef} className="display" style={{ width: "100%" }}></table>

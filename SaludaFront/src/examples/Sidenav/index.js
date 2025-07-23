@@ -64,6 +64,33 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   // Acceso al contexto de autenticación
   const { userRole, userData, logout } = useContext(AuthContext);
 
+  // Función para generar iniciales del usuario
+  const getInitials = (userData) => {
+    if (!userData) return "U";
+    
+    const nombre = userData.nombre || userData.nombre_completo || "";
+    const apellido = userData.apellido || "";
+    
+    // Si tenemos nombre completo, extraer las iniciales
+    if (userData.nombre_completo) {
+      const nombres = userData.nombre_completo.split(' ');
+      if (nombres.length >= 2) {
+        return `${nombres[0].charAt(0)}${nombres[nombres.length - 1].charAt(0)}`.toUpperCase();
+      } else if (nombres.length === 1) {
+        return nombres[0].charAt(0).toUpperCase();
+      }
+    }
+    
+    // Fallback a nombre y apellido separados
+    if (nombre && apellido) {
+      return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+    } else if (nombre) {
+      return nombre.charAt(0).toUpperCase();
+    }
+    
+    return "U";
+  };
+
   let textColor = "white";
 
   if (transparentSidenav || (whiteSidenav && !darkMode)) {
@@ -115,7 +142,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const roleMenuTitles = getRoleMenuTitles();
 
   // Filtrar rutas según el rol RH o Administrador Agendas
-  const normalizedRole = (userRole || "").toLowerCase();
+          const normalizedRole = typeof userRole === 'string' ? userRole.toLowerCase() : "";
   let filteredRoutes = routes;
   
   console.log('Sidenav - Rol del usuario:', userRole);
@@ -435,14 +462,16 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
         <MDBox p={2} textAlign="center">
           <MDBox mb={1} display="flex" justifyContent="center" position="relative">
             {/* Mostrar la URL del avatar para depuración */}
-            {console.log('Avatar URL Sidenav:', userData.avatar_url)}
+            {console.log('Avatar URL Sidenav:', userData.foto_perfil)}
             <MDAvatar
-              src={userData.avatar_url && userData.avatar_url !== "" ? userData.avatar_url : defaultAvatar}
-              alt={userData.name}
+              src={userData.foto_perfil && userData.foto_perfil !== "" ? userData.foto_perfil : defaultAvatar}
+              alt={userData.nombre_completo || userData.name}
               size="lg"
-              bgColor={userData?.avatar_url ? "transparent" : "info"}
+              bgColor={userData?.foto_perfil ? "transparent" : "info"}
               sx={{ border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}` }}
-            />
+            >
+              {!userData?.foto_perfil && getInitials(userData)}
+            </MDAvatar>
             {/* Indicador de estado online */}
             <MDBox
               position="absolute"

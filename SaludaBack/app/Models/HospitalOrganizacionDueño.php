@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HospitalOrganizacionDueño extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'Hospital_Organizacion_Dueño';
     protected $primaryKey = 'H_O_D';
     public $timestamps = true;

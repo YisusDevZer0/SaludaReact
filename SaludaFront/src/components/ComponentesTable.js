@@ -5,7 +5,6 @@ import "datatables.net";
 import { getDataTablesConfig } from "utils/dataTablesLanguage";
 import { useMaterialUIController } from "context";
 import usePantoneColors from "hooks/usePantoneColors";
-import './SucursalesTable.css';
 import './ComponentesTable.css';
 import PillLoader from './PillLoader';
 import Button from '@mui/material/Button';
