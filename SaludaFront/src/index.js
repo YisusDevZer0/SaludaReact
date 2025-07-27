@@ -23,6 +23,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 // Material Dashboard 2 React Context  Provider
 import { MaterialUIControllerProvider } from "context";
 
+// Debug: Verificar configuración de API URL
+import "./services/debug-api-url";
+
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 

@@ -1,7 +1,9 @@
 import Axios from "axios";
 
-// Forzar la URL base para desarrollo
-const API_BASE = "http://localhost:8000/api";
+// Usar variable de entorno o fallback a localhost para desarrollo
+const API_BASE = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/api`
+  : "http://localhost:8000/api";
 
 // Para depuración
 console.log("Entorno:", process.env.NODE_ENV);
