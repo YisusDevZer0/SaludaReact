@@ -22,6 +22,7 @@ import MDAvatar from 'components/MDAvatar';
 
 // Services
 import ProfileImageService from 'services/profile-image-service';
+import PersonalService from 'services/personal-service';
 
 function ProfileImageUpload({ 
   currentImageUrl, 
@@ -30,7 +31,9 @@ function ProfileImageUpload({
   size = 'lg',
   showUploadButton = true,
   showDeleteButton = true,
-  disabled = false 
+  disabled = false,
+  context = 'profile', // 'profile' o 'personal'
+  userId = null // ID del usuario para personal
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
@@ -73,13 +76,21 @@ function ProfileImageUpload({
       // Comprimir imagen
       const compressedFile = await ProfileImageService.compressImage(file);
 
-      // Subir imagen
-      const response = await ProfileImageService.uploadProfileImage(compressedFile);
+      let response;
+      
+      // Usar servicio diferente según el contexto
+      if (context === 'personal' && userId) {
+        // Usar servicio de personal
+        response = await PersonalService.uploadPersonalImage(userId, compressedFile);
+      } else {
+        // Usar servicio de perfil general
+        response = await ProfileImageService.uploadProfileImage(compressedFile);
+      }
 
-      if (response.success) {
+      if (response.success || response.foto_perfil) {
         setSuccess('Imagen de perfil actualizada exitosamente');
         if (onImageUpdate) {
-          onImageUpdate(response.data.foto_perfil);
+          onImageUpdate(response.foto_perfil || response.data?.foto_perfil);
         }
       } else {
         setError(response.message || 'Error al subir la imagen');
@@ -102,7 +113,16 @@ function ProfileImageUpload({
       setSuccess(null);
       setUploading(true);
 
-      const response = await ProfileImageService.deleteProfileImage();
+      let response;
+      
+      // Usar servicio diferente según el contexto
+      if (context === 'personal' && userId) {
+        // Usar servicio de personal
+        response = await PersonalService.deletePersonalImage(userId);
+      } else {
+        // Usar servicio de perfil general
+        response = await ProfileImageService.deleteProfileImage();
+      }
 
       if (response.success) {
         setSuccess('Imagen de perfil eliminada exitosamente');
@@ -273,6 +293,8 @@ ProfileImageUpload.propTypes = {
   showUploadButton: PropTypes.bool,
   showDeleteButton: PropTypes.bool,
   disabled: PropTypes.bool,
+  context: PropTypes.oneOf(['profile', 'personal']),
+  userId: PropTypes.number,
 };
 
 export default ProfileImageUpload; 

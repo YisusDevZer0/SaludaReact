@@ -25,6 +25,10 @@ import {
   IconButton,
   Chip,
   Divider,
+  Card,
+  CardContent,
+  CardMedia,
+  FormHelperText,
 } from "@mui/material";
 import { Close as CloseIcon, Edit as EditIcon, Visibility as ViewIcon } from "@mui/icons-material";
 
@@ -33,12 +37,16 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import MDInput from "components/MDInput";
+import MDAvatar from "components/MDAvatar";
 
 // Context
 import { useMaterialUIController } from "context";
 
 // Servicios
 import personalService from "services/personal-service";
+
+// Componente de carga de imágenes
+import ProfileImageUpload from "components/ProfileImageUpload";
 
 const PersonalModal = ({ 
   open, 
@@ -78,7 +86,8 @@ const PersonalModal = ({
     can_manage_users: false,
     can_view_reports: true,
     can_manage_settings: false,
-    notas: ""
+    notas: "",
+    foto_perfil: ""
   });
 
   const [errors, setErrors] = useState({});
@@ -117,7 +126,8 @@ const PersonalModal = ({
         can_manage_users: personalData.can_manage_users ?? false,
         can_view_reports: personalData.can_view_reports ?? true,
         can_manage_settings: personalData.can_manage_settings ?? false,
-        notas: personalData.notas || ""
+        notas: personalData.notas || "",
+        foto_perfil: personalData.foto_perfil || ""
       });
     }
   }, [open, personalData, mode]);
@@ -176,6 +186,11 @@ const PersonalModal = ({
     }
   };
 
+  // Manejar actualización de imagen
+  const handleImageUpdate = (newImageUrl) => {
+    handleInputChange("foto_perfil", newImageUrl);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -189,6 +204,7 @@ const PersonalModal = ({
     if (!formData.telefono.trim()) newErrors.telefono = "El teléfono es requerido";
     if (!formData.sucursal_id) newErrors.sucursal_id = "La sucursal es requerida";
     if (!formData.role_id) newErrors.role_id = "El rol es requerido";
+    if (!formData.genero) newErrors.genero = "El género es requerido";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -199,16 +215,23 @@ const PersonalModal = ({
 
     setLoading(true);
     try {
+      console.log('Enviando datos:', formData); // Log para debug
+      console.log('Datos formateados:', JSON.stringify(formData, null, 2)); // Log detallado
+      console.log('Género seleccionado:', formData.genero); // Log específico del género
+      
       if (mode === "create") {
-        await personalService.createPersonal(formData);
+        const result = await personalService.createPersonal(formData);
+        console.log('Respuesta del servidor:', result); // Log de respuesta
       } else if (mode === "edit") {
-        await personalService.updatePersonal(personalData.id, formData);
+        const result = await personalService.updatePersonal(personalData.id, formData);
+        console.log('Respuesta del servidor:', result); // Log de respuesta
       }
       
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error al guardar personal:", error);
+      console.error("Detalles del error:", error.response || error); // Log detallado del error
       // Aquí podrías mostrar un mensaje de error
     } finally {
       setLoading(false);
@@ -246,11 +269,187 @@ const PersonalModal = ({
 
   const isViewMode = mode === "view";
 
+  // Función para generar avatar por defecto
+  const generateDefaultAvatar = (empleado) => {
+    if (empleado?.foto_perfil) {
+      return empleado.foto_perfil;
+    }
+    
+    const nombre = empleado?.nombre_completo || `${empleado?.nombre} ${empleado?.apellido}`;
+    const genero = empleado?.genero;
+    
+    if (genero === 'femenino') {
+      return `https://randomuser.me/api/portraits/women/${empleado?.id % 50}.jpg`;
+    } else {
+      return `https://randomuser.me/api/portraits/men/${empleado?.id % 50}.jpg`;
+    }
+  };
+
+  // Función para obtener el color del estado
+  const getEstadoColor = (estado) => {
+    switch (estado?.toLowerCase()) {
+      case 'activo':
+        return 'success';
+      case 'inactivo':
+        return 'error';
+      case 'vacaciones':
+        return 'info';
+      case 'permiso':
+        return 'warning';
+      case 'baja':
+        return 'dark';
+      default:
+        return 'text';
+    }
+  };
+
+  // Renderizar vista de card para modo "ver"
+  const renderViewCard = () => {
+    if (!personalData) return null;
+
+    const avatarUrl = generateDefaultAvatar(personalData);
+    const estadoColor = getEstadoColor(personalData.estado_laboral);
+
+    return (
+      <Card sx={{ 
+        backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'white',
+        color: darkMode ? 'white' : 'inherit',
+        maxWidth: 600,
+        margin: '0 auto'
+      }}>
+        <CardContent>
+          <MDBox display="flex" flexDirection="column" alignItems="center" mb={3}>
+            <MDAvatar
+              src={avatarUrl}
+              alt={personalData.nombre_completo}
+              size="xl"
+              sx={{ mb: 2, border: '3px solid', borderColor: 'primary.main' }}
+            />
+            <MDTypography variant="h5" fontWeight="bold" color={darkMode ? "white" : "dark"}>
+              {personalData.nombre_completo}
+            </MDTypography>
+            <MDTypography variant="body2" color="text" mb={1}>
+              {personalData.role?.nombre || 'Sin rol asignado'}
+            </MDTypography>
+            <Chip
+              label={personalData.estado_laboral || 'N/A'}
+              color={estadoColor}
+              sx={{ fontWeight: 'bold' }}
+            />
+          </MDBox>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <MDBox mb={2}>
+                <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={1}>
+                  Información Personal
+                </MDTypography>
+                <MDBox>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Código:</strong> {personalData.codigo || 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>DNI:</strong> {personalData.dni || 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Email:</strong> {personalData.email || 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Teléfono:</strong> {personalData.telefono || 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Género:</strong> {personalData.genero === 'masculino' ? 'Masculino' : personalData.genero === 'femenino' ? 'Femenino' : 'Otro'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Fecha de Nacimiento:</strong> {personalData.fecha_nacimiento ? new Date(personalData.fecha_nacimiento).toLocaleDateString('es-ES') : 'N/A'}
+                  </MDTypography>
+                </MDBox>
+              </MDBox>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <MDBox mb={2}>
+                <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={1}>
+                  Información Laboral
+                </MDTypography>
+                <MDBox>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Sucursal:</strong> {personalData.sucursal?.nombre || 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Fecha de Ingreso:</strong> {personalData.fecha_ingreso ? new Date(personalData.fecha_ingreso).toLocaleDateString('es-ES') : 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Salario:</strong> {personalData.salario ? `$${personalData.salario.toLocaleString()}` : 'N/A'}
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    <strong>Tipo de Contrato:</strong> {personalData.tipo_contrato || 'N/A'}
+                  </MDTypography>
+                </MDBox>
+              </MDBox>
+            </Grid>
+
+            <Grid item xs={12}>
+              <MDBox mb={2}>
+                <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={1}>
+                  Permisos del Sistema
+                </MDTypography>
+                <Grid container spacing={1}>
+                  <Grid item xs={6} md={3}>
+                    <Chip 
+                      label="Usuario Activo" 
+                      color={personalData.is_active ? "success" : "error"} 
+                      size="small" 
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Chip 
+                      label="Puede Iniciar Sesión" 
+                      color={personalData.can_login ? "success" : "error"} 
+                      size="small" 
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Chip 
+                      label="Puede Vender" 
+                      color={personalData.can_sell ? "success" : "error"} 
+                      size="small" 
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Chip 
+                      label="Puede Ver Reportes" 
+                      color={personalData.can_view_reports ? "success" : "error"} 
+                      size="small" 
+                    />
+                  </Grid>
+                </Grid>
+              </MDBox>
+            </Grid>
+
+            {personalData.notas && (
+              <Grid item xs={12}>
+                <MDBox>
+                  <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={1}>
+                    Notas
+                  </MDTypography>
+                  <MDTypography variant="body2" color="text">
+                    {personalData.notas}
+                  </MDTypography>
+                </MDBox>
+              </Grid>
+            )}
+          </Grid>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <Dialog 
       open={open} 
       onClose={onClose}
-      maxWidth="md"
+      maxWidth={isViewMode ? "md" : "lg"}
       fullWidth
       BackdropProps={{
         sx: {
@@ -383,348 +582,375 @@ const PersonalModal = ({
           }
         }
       }}>
-        <Grid container spacing={3}>
-          {/* Información Personal */}
-          <Grid item xs={12}>
-            <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-              Información Personal
-            </MDTypography>
-          </Grid>
+        {isViewMode ? (
+          renderViewCard()
+        ) : (
+          <Grid container spacing={3}>
+            {/* Sección de imagen de perfil para crear/editar */}
+            {(mode === "create" || mode === "edit") && (
+              <Grid item xs={12}>
+                <MDBox display="flex" justifyContent="center" mb={3}>
+                  <ProfileImageUpload
+                    currentImageUrl={formData.foto_perfil}
+                    userName={personalData?.nombre_completo || `${formData.nombre} ${formData.apellido}`}
+                    onImageUpdate={handleImageUpdate}
+                    size="xl"
+                    showUploadButton={true}
+                    showDeleteButton={true}
+                    disabled={loading}
+                    context="personal"
+                    userId={personalData?.id}
+                  />
+                </MDBox>
+              </Grid>
+            )}
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Código"
-              value={formData.codigo}
-              onChange={(e) => handleInputChange("codigo", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.codigo}
-              helperText={errors.codigo}
-            />
-          </Grid>
+            {/* Información Personal */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
+                Información Personal
+              </MDTypography>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="DNI"
-              value={formData.dni}
-              onChange={(e) => handleInputChange("dni", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.dni}
-              helperText={errors.dni}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Nombre"
-              value={formData.nombre}
-              onChange={(e) => handleInputChange("nombre", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.nombre}
-              helperText={errors.nombre}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Apellido"
-              value={formData.apellido}
-              onChange={(e) => handleInputChange("apellido", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.apellido}
-              helperText={errors.apellido}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.email}
-              helperText={errors.email}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Teléfono"
-              value={formData.telefono}
-              onChange={(e) => handleInputChange("telefono", e.target.value)}
-              disabled={isViewMode}
-              error={!!errors.telefono}
-              helperText={errors.telefono}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Fecha de Nacimiento"
-              type="date"
-              value={formData.fecha_nacimiento}
-              onChange={(e) => handleInputChange("fecha_nacimiento", e.target.value)}
-              disabled={isViewMode}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Género</InputLabel>
-              <Select
-                value={formData.genero}
-                onChange={(e) => handleInputChange("genero", e.target.value)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Código"
+                value={formData.codigo}
+                onChange={(e) => handleInputChange("codigo", e.target.value)}
                 disabled={isViewMode}
-                label="Género"
-              >
-                <MenuItem value="M">Masculino</MenuItem>
-                <MenuItem value="F">Femenino</MenuItem>
-                <MenuItem value="O">Otro</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+                error={!!errors.codigo}
+                helperText={errors.codigo}
+              />
+            </Grid>
 
-          {/* Información Laboral */}
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-              Información Laboral
-            </MDTypography>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.sucursal_id}>
-              <InputLabel>Sucursal</InputLabel>
-              <Select
-                value={formData.sucursal_id}
-                onChange={(e) => handleInputChange("sucursal_id", e.target.value)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="DNI"
+                value={formData.dni}
+                onChange={(e) => handleInputChange("dni", e.target.value)}
                 disabled={isViewMode}
-                label="Sucursal"
+                error={!!errors.dni}
+                helperText={errors.dni}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Nombre"
+                value={formData.nombre}
+                onChange={(e) => handleInputChange("nombre", e.target.value)}
+                disabled={isViewMode}
+                error={!!errors.nombre}
+                helperText={errors.nombre}
                 required
-              >
-                {sucursales.map((sucursal) => (
-                  <MenuItem key={sucursal.id} value={sucursal.id}>
-                    {sucursal.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+              />
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.role_id}>
-              <InputLabel>Rol</InputLabel>
-              <Select
-                value={formData.role_id}
-                onChange={(e) => handleInputChange("role_id", e.target.value)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Apellido"
+                value={formData.apellido}
+                onChange={(e) => handleInputChange("apellido", e.target.value)}
                 disabled={isViewMode}
-                label="Rol"
+                error={!!errors.apellido}
+                helperText={errors.apellido}
                 required
-              >
-                {roles.map((role) => (
-                  <MenuItem key={role.id} value={role.id}>
-                    {role.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+              />
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Fecha de Ingreso"
-              type="date"
-              value={formData.fecha_ingreso}
-              onChange={(e) => handleInputChange("fecha_ingreso", e.target.value)}
-              disabled={isViewMode}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Salario"
-              type="number"
-              value={formData.salario}
-              onChange={(e) => handleInputChange("salario", e.target.value)}
-              disabled={isViewMode}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Contrato</InputLabel>
-              <Select
-                value={formData.tipo_contrato}
-                onChange={(e) => handleInputChange("tipo_contrato", e.target.value)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
                 disabled={isViewMode}
-                label="Tipo de Contrato"
-              >
-                <MenuItem value="indefinido">Indefinido</MenuItem>
-                <MenuItem value="temporal">Temporal</MenuItem>
-                <MenuItem value="por_obra">Por Obra</MenuItem>
-                <MenuItem value="practicas">Prácticas</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+                error={!!errors.email}
+                helperText={errors.email}
+                required
+              />
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Estado Laboral</InputLabel>
-              <Select
-                value={formData.estado_laboral}
-                onChange={(e) => handleInputChange("estado_laboral", e.target.value)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Teléfono"
+                value={formData.telefono}
+                onChange={(e) => handleInputChange("telefono", e.target.value)}
                 disabled={isViewMode}
-                label="Estado Laboral"
-              >
-                <MenuItem value="activo">Activo</MenuItem>
-                <MenuItem value="inactivo">Inactivo</MenuItem>
-                <MenuItem value="vacaciones">Vacaciones</MenuItem>
-                <MenuItem value="permiso">Permiso</MenuItem>
-                <MenuItem value="baja">Baja</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+                required
+              />
+            </Grid>
 
-          {/* Permisos */}
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-              Permisos del Sistema
-            </MDTypography>
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Fecha de Nacimiento"
+                type="date"
+                value={formData.fecha_nacimiento}
+                onChange={(e) => handleInputChange("fecha_nacimiento", e.target.value)}
+                disabled={isViewMode}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.is_active}
-                  onChange={(e) => handleInputChange("is_active", e.target.checked)}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.genero}>
+                <InputLabel>Género</InputLabel>
+                <Select
+                  value={formData.genero}
+                  onChange={(e) => handleInputChange("genero", e.target.value)}
                   disabled={isViewMode}
-                />
-              }
-              label="Usuario Activo"
-            />
-          </Grid>
+                  error={!!errors.genero}
+                >
+                  <MenuItem value="">Seleccionar género</MenuItem>
+                  <MenuItem value="masculino">Masculino</MenuItem>
+                  <MenuItem value="femenino">Femenino</MenuItem>
+                  <MenuItem value="otro">Otro</MenuItem>
+                </Select>
+                {errors.genero && (
+                  <FormHelperText error>{errors.genero}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_login}
-                  onChange={(e) => handleInputChange("can_login", e.target.checked)}
+            {/* Información Laboral */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
+                Información Laboral
+              </MDTypography>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.sucursal_id}>
+                <InputLabel>Sucursal</InputLabel>
+                <Select
+                  value={formData.sucursal_id}
+                  onChange={(e) => handleInputChange("sucursal_id", e.target.value)}
                   disabled={isViewMode}
-                />
-              }
-              label="Puede Iniciar Sesión"
-            />
-          </Grid>
+                  label="Sucursal"
+                  required
+                >
+                  {sucursales.map((sucursal) => (
+                    <MenuItem key={sucursal.id} value={sucursal.id}>
+                      {sucursal.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_sell}
-                  onChange={(e) => handleInputChange("can_sell", e.target.checked)}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.role_id}>
+                <InputLabel>Rol</InputLabel>
+                <Select
+                  value={formData.role_id}
+                  onChange={(e) => handleInputChange("role_id", e.target.value)}
                   disabled={isViewMode}
-                />
-              }
-              label="Puede Vender"
-            />
-          </Grid>
+                  label="Rol"
+                  required
+                >
+                  {roles.map((role) => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_refund}
-                  onChange={(e) => handleInputChange("can_refund", e.target.checked)}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Fecha de Ingreso"
+                type="date"
+                value={formData.fecha_ingreso}
+                onChange={(e) => handleInputChange("fecha_ingreso", e.target.value)}
+                disabled={isViewMode}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Salario"
+                type="number"
+                value={formData.salario}
+                onChange={(e) => handleInputChange("salario", e.target.value)}
+                disabled={isViewMode}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Tipo de Contrato</InputLabel>
+                <Select
+                  value={formData.tipo_contrato}
+                  onChange={(e) => handleInputChange("tipo_contrato", e.target.value)}
                   disabled={isViewMode}
-                />
-              }
-              label="Puede Hacer Reembolsos"
-            />
-          </Grid>
+                  label="Tipo de Contrato"
+                >
+                  <MenuItem value="indefinido">Indefinido</MenuItem>
+                  <MenuItem value="temporal">Temporal</MenuItem>
+                  <MenuItem value="por_obra">Por Obra</MenuItem>
+                  <MenuItem value="practicas">Prácticas</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_manage_inventory}
-                  onChange={(e) => handleInputChange("can_manage_inventory", e.target.checked)}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Estado Laboral</InputLabel>
+                <Select
+                  value={formData.estado_laboral}
+                  onChange={(e) => handleInputChange("estado_laboral", e.target.value)}
                   disabled={isViewMode}
-                />
-              }
-              label="Puede Gestionar Inventario"
-            />
-          </Grid>
+                  label="Estado Laboral"
+                >
+                  <MenuItem value="activo">Activo</MenuItem>
+                  <MenuItem value="inactivo">Inactivo</MenuItem>
+                  <MenuItem value="vacaciones">Vacaciones</MenuItem>
+                  <MenuItem value="permiso">Permiso</MenuItem>
+                  <MenuItem value="baja">Baja</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_manage_users}
-                  onChange={(e) => handleInputChange("can_manage_users", e.target.checked)}
-                  disabled={isViewMode}
-                />
-              }
-              label="Puede Gestionar Usuarios"
-            />
-          </Grid>
+            {/* Permisos */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
+                Permisos del Sistema
+              </MDTypography>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_view_reports}
-                  onChange={(e) => handleInputChange("can_view_reports", e.target.checked)}
-                  disabled={isViewMode}
-                />
-              }
-              label="Puede Ver Reportes"
-            />
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.is_active}
+                    onChange={(e) => handleInputChange("is_active", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Usuario Activo"
+              />
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.can_manage_settings}
-                  onChange={(e) => handleInputChange("can_manage_settings", e.target.checked)}
-                  disabled={isViewMode}
-                />
-              }
-              label="Puede Gestionar Configuración"
-            />
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_login}
+                    onChange={(e) => handleInputChange("can_login", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Iniciar Sesión"
+              />
+            </Grid>
 
-          {/* Notas */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Notas"
-              multiline
-              rows={3}
-              value={formData.notas}
-              onChange={(e) => handleInputChange("notas", e.target.value)}
-              disabled={isViewMode}
-            />
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_sell}
+                    onChange={(e) => handleInputChange("can_sell", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Vender"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_refund}
+                    onChange={(e) => handleInputChange("can_refund", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Hacer Reembolsos"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_manage_inventory}
+                    onChange={(e) => handleInputChange("can_manage_inventory", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Gestionar Inventario"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_manage_users}
+                    onChange={(e) => handleInputChange("can_manage_users", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Gestionar Usuarios"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_view_reports}
+                    onChange={(e) => handleInputChange("can_view_reports", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Ver Reportes"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.can_manage_settings}
+                    onChange={(e) => handleInputChange("can_manage_settings", e.target.checked)}
+                    disabled={isViewMode}
+                  />
+                }
+                label="Puede Gestionar Configuración"
+              />
+            </Grid>
+
+            {/* Notas */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Notas"
+                multiline
+                rows={3}
+                value={formData.notas}
+                onChange={(e) => handleInputChange("notas", e.target.value)}
+                disabled={isViewMode}
+              />
+            </Grid>
           </Grid>
-        </Grid>
+        )}
       </DialogContent>
 
       <DialogActions sx={{ 
@@ -755,7 +981,10 @@ const PersonalModal = ({
         {mode === "view" && personalData && (
           <>
             <MDButton
-              onClick={() => {/* Cambiar a modo edit */}}
+              onClick={() => {
+                setModalMode("edit");
+                setSelectedPersonal(personalData);
+              }}
               color="info"
               startIcon={<EditIcon />}
             >

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CategoriaPos extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * La tabla asociada al modelo.
@@ -21,7 +22,7 @@ class CategoriaPos extends Model
      *
      * @var string
      */
-    protected $primaryKey = 'Cat_ID';
+    protected $primaryKey = 'id';
 
     /**
      * Los atributos que son asignables masivamente.
@@ -29,13 +30,17 @@ class CategoriaPos extends Model
      * @var array
      */
     protected $fillable = [
-        'Nom_Cat',
-        'Estado',
-        'Cod_Estado',
-        'Agregado_Por',
-        'Agregadoel',
-        'Sistema',
-        'ID_H_O_D',
+        'nombre',
+        'descripcion',
+        'categoria_padre_id',
+        'codigo',
+        'icono',
+        'color',
+        'orden',
+        'activa',
+        'visible_en_pos',
+        'comision',
+        'Id_Licencia'
     ];
 
     /**
@@ -44,9 +49,13 @@ class CategoriaPos extends Model
      * @var array
      */
     protected $casts = [
-        'Agregadoel' => 'datetime',
+        'activa' => 'boolean',
+        'visible_en_pos' => 'boolean',
+        'comision' => 'decimal:2',
+        'orden' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -55,30 +64,145 @@ class CategoriaPos extends Model
      * @var array
      */
     protected $hidden = [
-        // Agregar campos que no quieres que se muestren en JSON
+        'deleted_at',
+        'Id_Licencia' // Campo oculto por seguridad
     ];
 
     /**
-     * Scope para filtrar por estado vigente
+     * Relación con la categoría padre
      */
-    public function scopeVigente($query)
+    public function categoriaPadre()
     {
-        return $query->where('Estado', 'Vigente');
+        return $this->belongsTo(CategoriaPos::class, 'categoria_padre_id');
     }
 
     /**
-     * Scope para filtrar por sistema POS
+     * Relación con las categorías hijas
      */
-    public function scopeSistemaPos($query)
+    public function categoriasHijas()
     {
-        return $query->where('Sistema', 'POS');
+        return $this->hasMany(CategoriaPos::class, 'categoria_padre_id');
     }
 
     /**
-     * Scope para filtrar por organización
+     * Relación con la licencia/organización
      */
-    public function scopePorOrganizacion($query, $organizacion)
+    public function licencia()
     {
-        return $query->where('ID_H_O_D', $organizacion);
+        return $this->belongsTo(HospitalOrganizacionDueño::class, 'Id_Licencia', 'Id_Licencia');
+    }
+
+    /**
+     * Scope para filtrar categorías activas
+     */
+    public function scopeActivas($query)
+    {
+        return $query->where('activa', true);
+    }
+
+    /**
+     * Scope para filtrar categorías visibles en POS
+     */
+    public function scopeVisiblesEnPos($query)
+    {
+        return $query->where('visible_en_pos', true);
+    }
+
+    /**
+     * Scope para filtrar categorías raíz (sin padre)
+     */
+    public function scopeRaiz($query)
+    {
+        return $query->whereNull('categoria_padre_id');
+    }
+
+    /**
+     * Scope para ordenar por orden
+     */
+    public function scopeOrdenadas($query)
+    {
+        return $query->orderBy('orden', 'asc');
+    }
+
+    /**
+     * Scope para filtrar por licencia
+     */
+    public function scopePorLicencia($query, $licencia)
+    {
+        return $query->where('Id_Licencia', $licencia);
+    }
+
+    /**
+     * Accessor para el estado
+     */
+    public function getEstadoAttribute()
+    {
+        return $this->activa ? 'Vigente' : 'No Vigente';
+    }
+
+    /**
+     * Accessor para el sistema (simulado)
+     */
+    public function getSistemaAttribute()
+    {
+        return 'POS'; // Por defecto
+    }
+
+    /**
+     * Accessor para Nom_Cat (compatibilidad)
+     */
+    public function getNomCatAttribute()
+    {
+        return $this->nombre;
+    }
+
+    /**
+     * Accessor para Cat_ID (compatibilidad)
+     */
+    public function getCatIdAttribute()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Accessor para ID_H_O_D (compatibilidad)
+     */
+    public function getIDHODAttribute()
+    {
+        return $this->Id_Licencia;
+    }
+
+    /**
+     * Accessor para Agregado_Por (compatibilidad)
+     */
+    public function getAgregadoPorAttribute()
+    {
+        return 'Sistema';
+    }
+
+    /**
+     * Accessor para Agregadoel (compatibilidad)
+     */
+    public function getAgregadoelAttribute()
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * Boot method para asignar automáticamente la licencia
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            // Si no se proporciona Id_Licencia, intentar obtenerla del usuario autenticado
+            if (empty($model->Id_Licencia)) {
+                $user = auth('api')->user();
+                if ($user) {
+                    $model->Id_Licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+                }
+            }
+        });
     }
 }

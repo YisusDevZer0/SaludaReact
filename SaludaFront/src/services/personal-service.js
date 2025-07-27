@@ -21,6 +21,16 @@ class PersonalService {
     };
   }
 
+  // Obtener headers para multipart (archivos)
+  getMultipartHeaders() {
+    const token = localStorage.getItem('access_token');
+    return {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json'
+    };
+  }
+
   // Verificar si el usuario está autenticado
   isAuthenticated() {
     const token = localStorage.getItem('access_token');
@@ -129,17 +139,24 @@ class PersonalService {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log('Servicio: Enviando datos al backend:', personalData); // Log para debug
+
       const response = await fetch(`${this.baseURL}/personal`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(personalData)
       });
 
+      console.log('Servicio: Respuesta del servidor:', response.status, response.statusText); // Log de respuesta
+
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Servicio: Error del servidor:', errorData); // Log de error
         return this.handleResponseError(response, 'Error al crear empleado');
       }
 
       const data = await response.json();
+      console.log('Servicio: Datos recibidos:', data); // Log de datos
       return data;
     } catch (error) {
       console.error('Error al crear empleado:', error);
@@ -168,6 +185,65 @@ class PersonalService {
       return data;
     } catch (error) {
       console.error('Error al actualizar empleado:', error);
+      throw error;
+    }
+  }
+
+  // Subir imagen de perfil para personal
+  async uploadPersonalImage(userId, imageFile) {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const formData = new FormData();
+      formData.append('image', imageFile);
+
+      const response = await fetch(`${this.baseURL}/personal/${userId}/image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Accept': 'application/json'
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.errors && errorData.errors.image) {
+          throw new Error(errorData.errors.image[0] || 'Error de validación en la imagen');
+        }
+        throw new Error(errorData.message || 'Error al subir la imagen');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al subir imagen de personal:', error);
+      throw error;
+    }
+  }
+
+  // Eliminar imagen de perfil de personal
+  async deletePersonalImage(userId) {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const response = await fetch(`${this.baseURL}/personal/${userId}/image`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        return this.handleResponseError(response, 'Error al eliminar imagen de personal');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al eliminar imagen de personal:', error);
       throw error;
     }
   }

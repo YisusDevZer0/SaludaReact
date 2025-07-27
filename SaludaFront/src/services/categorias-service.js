@@ -64,6 +64,7 @@ class CategoriasService {
       }
 
       const data = await response.json();
+      console.log('📦 CategoriasService: Respuesta del backend:', data);
       return data;
     } catch (error) {
       console.error('Error al obtener categorías:', error);
@@ -102,18 +103,22 @@ class CategoriasService {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log('📤 CategoriasService: Enviando datos para crear:', categoriaData);
+
       const response = await fetch(`${this.baseURL}/categorias`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(categoriaData)
       });
 
+      const responseData = await response.json();
+      console.log('📦 CategoriasService: Respuesta del servidor:', responseData);
+
       if (!response.ok) {
-        return this.handleResponseError(response, 'Error al crear categoría');
+        throw new Error(responseData.error || 'Error al crear categoría');
       }
 
-      const data = await response.json();
-      return data;
+      return responseData;
     } catch (error) {
       console.error('Error al crear categoría:', error);
       throw error;
@@ -127,18 +132,22 @@ class CategoriasService {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log('📤 CategoriasService: Enviando datos para actualizar:', categoriaData);
+
       const response = await fetch(`${this.baseURL}/categorias/${id}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
         body: JSON.stringify(categoriaData)
       });
 
+      const responseData = await response.json();
+      console.log('📦 CategoriasService: Respuesta del servidor:', responseData);
+
       if (!response.ok) {
-        return this.handleResponseError(response, 'Error al actualizar categoría');
+        throw new Error(responseData.error || 'Error al actualizar categoría');
       }
 
-      const data = await response.json();
-      return data;
+      return responseData;
     } catch (error) {
       console.error('Error al actualizar categoría:', error);
       throw error;
@@ -196,12 +205,13 @@ class CategoriasService {
   // Formatear datos para la tabla
   formatCategoriasForTable(categorias) {
     return categorias.map(categoria => ({
-      id: categoria.id,
-      nombre: categoria.nombre || 'Sin nombre',
-      descripcion: categoria.descripcion || 'Sin descripción',
-      estado: categoria.estado || 'activo',
-      created_at: categoria.created_at ? new Date(categoria.created_at).toLocaleDateString() : 'N/A',
-      updated_at: categoria.updated_at ? new Date(categoria.updated_at).toLocaleDateString() : 'N/A'
+      id: categoria.Cat_ID,
+      nombre: categoria.Nom_Cat || 'Sin nombre',
+      estado: categoria.Estado || 'Sin estado',
+      sistema: categoria.Sistema || 'Sin sistema',
+      agregado_por: categoria.Agregado_Por || 'Sistema',
+      agregado_el: categoria.Agregadoel ? new Date(categoria.Agregadoel).toLocaleDateString('es-ES') : 'N/A',
+      id_organizacion: categoria.ID_H_O_D || 1
     }));
   }
 
@@ -209,16 +219,20 @@ class CategoriasService {
   validateCategoriaData(data) {
     const errors = {};
 
-    if (!data.nombre || data.nombre.trim() === '') {
-      errors.nombre = 'El nombre es requerido';
+    if (!data.Nom_Cat || data.Nom_Cat.trim() === '') {
+      errors.Nom_Cat = 'El nombre es requerido';
     }
 
-    if (data.nombre && data.nombre.length > 100) {
-      errors.nombre = 'El nombre no puede exceder 100 caracteres';
+    if (data.Nom_Cat && data.Nom_Cat.length > 255) {
+      errors.Nom_Cat = 'El nombre no puede exceder 255 caracteres';
     }
 
-    if (data.descripcion && data.descripcion.length > 500) {
-      errors.descripcion = 'La descripción no puede exceder 500 caracteres';
+    if (!data.Estado) {
+      errors.Estado = 'El estado es requerido';
+    }
+
+    if (!data.Sistema) {
+      errors.Sistema = 'El sistema es requerido';
     }
 
     return errors;

@@ -16,6 +16,9 @@ import GenericModal from "components/Modales/GenericModal";
 // Componentes de tabla
 import DataTable from "examples/Tables/DataTable";
 
+// Estilos
+import "./Categorias.css";
+
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,14 +26,17 @@ export default function Categorias() {
   const [modalMode, setModalMode] = useState("create");
   const [selectedCategoria, setSelectedCategoria] = useState(null);
 
-  // Configuración de campos para el modal
+  // Configuración de campos para el modal - CORREGIDO para coincidir con el backend
   const categoriaFields = [
     {
       name: "nombre",
-      label: "Nombre",
+      label: "Nombre de la Categoría",
       type: "text",
       required: true,
       validation: (value) => {
+        if (!value || value.trim() === '') {
+          return "El nombre es requerido";
+        }
         if (value && value.length > 100) {
           return "El nombre no puede exceder 100 caracteres";
         }
@@ -44,22 +50,74 @@ export default function Categorias() {
       multiline: true,
       rows: 3,
       validation: (value) => {
-        if (value && value.length > 500) {
-          return "La descripción no puede exceder 500 caracteres";
+        if (value && value.length > 1000) {
+          return "La descripción no puede exceder 1000 caracteres";
         }
         return null;
       }
     },
     {
-      name: "estado",
+      name: "codigo",
+      label: "Código",
+      type: "text",
+      required: true,
+      validation: (value) => {
+        if (!value || value.trim() === '') {
+          return "El código es requerido";
+        }
+        if (value && value.length > 50) {
+          return "El código no puede exceder 50 caracteres";
+        }
+        return null;
+      }
+    },
+    {
+      name: "activa",
       label: "Estado",
       type: "select",
       required: true,
-      defaultValue: "activo",
+      defaultValue: true,
       options: [
-        { value: "activo", label: "Activo" },
-        { value: "inactivo", label: "Inactivo" }
+        { value: true, label: "Activa" },
+        { value: false, label: "Inactiva" }
       ]
+    },
+    {
+      name: "visible_en_pos",
+      label: "Visible en POS",
+      type: "select",
+      required: true,
+      defaultValue: true,
+      options: [
+        { value: true, label: "Sí" },
+        { value: false, label: "No" }
+      ]
+    },
+    {
+      name: "orden",
+      label: "Orden",
+      type: "number",
+      required: false,
+      defaultValue: 0,
+      validation: (value) => {
+        if (value && (isNaN(value) || value < 0)) {
+          return "El orden debe ser un número válido mayor o igual a 0";
+        }
+        return null;
+      }
+    },
+    {
+      name: "comision",
+      label: "Comisión (%)",
+      type: "number",
+      required: false,
+      defaultValue: 0,
+      validation: (value) => {
+        if (value && (isNaN(value) || value < 0 || value > 100)) {
+          return "La comisión debe ser un número entre 0 y 100";
+        }
+        return null;
+      }
     }
   ];
 
@@ -68,7 +126,29 @@ export default function Categorias() {
     try {
       setLoading(true);
       const response = await categoriasService.getCategorias();
-      const formattedData = categoriasService.formatCategoriasForTable(response.data || response || []);
+      
+      // Mapear los datos del backend al formato esperado por la tabla
+      const formattedData = (response.data || []).map(categoria => ({
+        id: categoria.id,
+        nombre: categoria.nombre || 'Sin nombre',
+        descripcion: categoria.descripcion || 'Sin descripción',
+        codigo: categoria.codigo || 'Sin código',
+        estado: categoria.activa ? 'Activa' : 'Inactiva',
+        visible: categoria.visible_en_pos ? 'Sí' : 'No',
+        orden: categoria.orden || 0,
+        comision: categoria.comision || 0,
+        creado: categoria.created_at ? new Date(categoria.created_at).toLocaleDateString('es-ES') : 'N/A',
+        actualizado: categoria.updated_at ? new Date(categoria.updated_at).toLocaleDateString('es-ES') : 'N/A',
+        // Datos originales para el modal
+        nombre: categoria.nombre,
+        descripcion: categoria.descripcion,
+        codigo: categoria.codigo,
+        activa: categoria.activa,
+        visible_en_pos: categoria.visible_en_pos,
+        orden: categoria.orden,
+        comision: categoria.comision
+      }));
+      
       setCategorias(formattedData);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
@@ -101,7 +181,7 @@ export default function Categorias() {
   const columns = [
     { Header: "ID", accessor: "id", width: 70 },
     { Header: "Nombre", accessor: "nombre" },
-    { Header: "Descripción", accessor: "descripcion" },
+    { Header: "Código", accessor: "codigo" },
     { 
       Header: "Estado", 
       accessor: "estado",
@@ -109,15 +189,30 @@ export default function Categorias() {
         <MDBox
           component="span"
           variant="caption"
-          color={value === "activo" ? "success" : "error"}
+          color={value === "Activa" ? "success" : "error"}
           fontWeight="medium"
         >
-          {value === "activo" ? "ACTIVO" : "INACTIVO"}
+          {value === "Activa" ? "ACTIVA" : "INACTIVA"}
         </MDBox>
       )
     },
-    { Header: "Creado", accessor: "created_at" },
-    { Header: "Actualizado", accessor: "updated_at" },
+    { 
+      Header: "Visible en POS", 
+      accessor: "visible",
+      Cell: ({ value }) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={value === "Sí" ? "info" : "warning"}
+          fontWeight="medium"
+        >
+          {value}
+        </MDBox>
+      )
+    },
+    { Header: "Orden", accessor: "orden" },
+    { Header: "Comisión (%)", accessor: "comision" },
+    { Header: "Creado", accessor: "creado" },
     {
       Header: "Acciones",
       accessor: "acciones",
@@ -137,7 +232,7 @@ export default function Categorias() {
           </Icon>
           <Icon 
             sx={{ cursor: "pointer", color: "error.main" }} 
-            onClick={() => handleOpenModal("view", row.original)}
+            onClick={() => handleDelete(row.original)}
           >
             delete
           </Icon>
@@ -145,6 +240,18 @@ export default function Categorias() {
       )
     }
   ];
+
+  // Función para eliminar categoría
+  const handleDelete = async (categoria) => {
+    if (window.confirm(`¿Está seguro de eliminar la categoría "${categoria.nombre}"?`)) {
+      try {
+        await categoriasService.deleteCategoria(categoria.id);
+        loadCategorias(); // Recargar datos
+      } catch (error) {
+        console.error("Error al eliminar categoría:", error);
+      }
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -165,6 +272,7 @@ export default function Categorias() {
               color="success" 
               startIcon={<Icon>add</Icon>}
               onClick={() => handleOpenModal("create")}
+              className="categorias-create-button"
             >
               Nueva Categoría
             </MDButton>
@@ -185,6 +293,7 @@ export default function Categorias() {
           noEndBorder
           canSearch
           loading={loading}
+          className="categorias-table"
         />
 
         {/* Modal genérico */}
@@ -198,6 +307,7 @@ export default function Categorias() {
           fields={categoriaFields}
           service={categoriasService}
           entityName="categoría"
+          className="categorias-modal"
         />
       </MDBox>
     </DashboardLayout>

@@ -80,6 +80,10 @@ Route::middleware(['personalpos.auth'])->group(function () {
     Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
     Route::delete('/profile/image/delete', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'delete']);
     Route::get('/profile/image/{userId?}', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'show']);
+    
+    // Rutas para imágenes de personal específico
+    Route::post('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'uploadPersonalImage']);
+    Route::delete('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'deletePersonalImage']);
 });
 
 // Ruta de logout para PersonalPOS (compatibilidad con frontend)
@@ -106,36 +110,65 @@ Route::post('/logout', function(Request $request) {
     }
 })->middleware('auth:api');
 
-// Endpoint de prueba para verificar autenticación
+// Ruta de prueba para verificar autenticación
 Route::get('/test-auth', function(Request $request) {
     try {
         $user = $request->user('api');
         if ($user) {
-                    return response()->json([
-            'message' => 'Usuario autenticado correctamente',
-            'user_id' => $user->id,
-            'user_name' => $user->nombre . ' ' . $user->apellido,
-            'token_info' => [
-                'id' => $user->token()->id,
-                'user_id' => $user->token()->user_id,
-                'revoked' => $user->token()->revoked,
-                'expires_at' => $user->token()->expires_at
-            ]
-        ], 200);
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario autenticado correctamente',
+                'user' => [
+                    'id' => $user->id,
+                    'nombre' => $user->nombre,
+                    'email' => $user->email,
+                    'licencia' => $user->Id_Licencia ?? $user->ID_H_O_D
+                ]
+            ]);
         }
         
         return response()->json([
-            'message' => 'No hay usuario autenticado',
-            'headers' => $request->headers->all()
+            'success' => false,
+            'message' => 'No hay usuario autenticado'
         ], 401);
         
     } catch (\Exception $e) {
         return response()->json([
-            'message' => 'Error en autenticación: ' . $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
         ], 500);
     }
 })->middleware('auth:api');
+
+// Ruta de prueba para verificar autenticación con middleware personalizado
+Route::get('/test-personalpos-auth', function(Request $request) {
+    try {
+        $user = $request->get('auth_user');
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario autenticado correctamente con PersonalPOS',
+                'user' => [
+                    'id' => $user->id,
+                    'nombre' => $user->nombre,
+                    'email' => $user->email,
+                    'licencia' => $user->Id_Licencia ?? $user->ID_H_O_D
+                ]
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'No hay usuario autenticado'
+        ], 401);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware('personalpos.auth');
 
 // Rutas para sucursales con soporte CORS
 Route::options('/sucursales', function() {
@@ -346,6 +379,46 @@ Route::post('personal', [PersonalPOSController::class, 'store']);
 Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
 Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
 Route::get('personal/active/count', [PersonalPOSController::class, 'countActive'])->middleware(['json.api', 'auth:api']);
+
+// Roles
+Route::get('/roles', function() {
+    try {
+        $roles = DB::table('roles_puestos')
+            ->select('id', 'nombre', 'descripcion', 'tipo', 'activo')
+            ->where('activo', 1)
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $roles
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener roles: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['personalpos.auth']);
+
+// Sucursales
+Route::get('/sucursales', function() {
+    try {
+        $sucursales = DB::table('sucursales')
+            ->select('id', 'nombre', 'codigo', 'direccion', 'estado')
+            ->where('estado', 'activo')
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $sucursales
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener sucursales: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['personalpos.auth']);
 
 // Rutas de preferencias del usuario
 Route::middleware(['json.api', 'auth:api'])->group(function () {

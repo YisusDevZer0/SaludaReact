@@ -20,6 +20,7 @@ import {
   Switch,
   IconButton,
   Divider,
+  Box,
 } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
 
@@ -161,7 +162,22 @@ const GenericModal = ({
       error: !!errors[field.name],
       helperText: errors[field.name],
       required: field.required,
-      InputLabelProps: field.type === "date" ? { shrink: true } : {}
+      InputLabelProps: field.type === "date" ? { shrink: true } : {},
+      sx: {
+        '& .MuiOutlinedInput-root': {
+          height: '56px', // Altura consistente para todos los campos
+          '& .MuiSelect-select': {
+            height: '56px',
+            display: 'flex',
+            alignItems: 'center'
+          }
+        },
+        '& .MuiInputBase-input': {
+          height: '56px',
+          display: 'flex',
+          alignItems: 'center'
+        }
+      }
     };
 
     switch (field.type) {
@@ -174,6 +190,13 @@ const GenericModal = ({
             type={field.type}
             multiline={field.multiline}
             rows={field.rows || 1}
+            sx={{
+              ...commonProps.sx,
+              '& .MuiOutlinedInput-root': {
+                height: field.multiline ? 'auto' : '56px',
+                minHeight: field.multiline ? '56px' : '56px'
+              }
+            }}
           />
         );
 
@@ -187,13 +210,35 @@ const GenericModal = ({
 
       case "select":
         return (
-          <FormControl {...commonProps}>
+          <FormControl 
+            {...commonProps}
+            sx={{
+              ...commonProps.sx,
+              '& .MuiFormControl-root': {
+                width: '100%'
+              },
+              '& .MuiInputLabel-root': {
+                transform: 'translate(14px, 16px) scale(1)',
+                '&.Mui-focused, &.MuiFormLabel-filled': {
+                  transform: 'translate(14px, -9px) scale(0.75)'
+                }
+              }
+            }}
+          >
             <InputLabel>{field.label}</InputLabel>
             <Select
               value={formData[field.name] || ""}
               onChange={(e) => handleInputChange(field.name, e.target.value)}
               disabled={isViewMode}
               label={field.label}
+              sx={{
+                height: '56px',
+                '& .MuiSelect-select': {
+                  height: '56px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }
+              }}
             >
               {field.options.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -365,13 +410,20 @@ const GenericModal = ({
           }
         }
       }}>
-        <Grid container spacing={3}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 3,
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          pr: 1
+        }}>
           {fields.map((field, index) => (
-            <Grid item xs={12} md={field.fullWidth ? 12 : 6} key={index}>
+            <Box key={index} sx={{ width: '100%' }}>
               {renderField(field)}
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ 

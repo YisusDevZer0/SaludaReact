@@ -7,36 +7,39 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class CategoriaPosController extends BaseApiController
 {
     protected $model = CategoriaPos::class;
     protected $modelName = 'categoría';
-    protected $primaryKey = 'Cat_ID';
+    protected $primaryKey = 'id';
     
     protected $searchableFields = [
-        'Nom_Cat',
-        'Estado', 
-        'Sistema',
-        'Agregado_Por'
+        'nombre',
+        'descripcion',
+        'codigo'
     ];
     
     protected $sortableFields = [
-        'Cat_ID',
-        'Nom_Cat',
-        'Estado',
-        'Sistema',
-        'Agregadoel'
+        'id',
+        'nombre',
+        'codigo',
+        'orden',
+        'activa',
+        'visible_en_pos',
+        'created_at',
+        'updated_at'
     ];
     
     protected $filterableFields = [
-        'Estado' => [
+        'activa' => [
             'type' => 'exact',
-            'options' => ['Vigente', 'No Vigente']
+            'options' => [true, false]
         ],
-        'Sistema' => [
-            'type' => 'exact', 
-            'options' => ['POS', 'Hospitalario', 'Dental']
+        'visible_en_pos' => [
+            'type' => 'exact',
+            'options' => [true, false]
         ]
     ];
 
@@ -46,6 +49,24 @@ class CategoriaPosController extends BaseApiController
     public function index(Request $request): JsonResponse
     {
         try {
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'error' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
             // Usar el método optimizado del BaseApiController
             return parent::index($request);
         } catch (\Exception $e) {
@@ -56,34 +77,81 @@ class CategoriaPosController extends BaseApiController
     }
 
     /**
+     * Construir query base optimizada con filtro de licencia
+     */
+    protected function buildOptimizedQuery(Request $request): Builder
+    {
+        // Obtener el usuario autenticado
+        $user = auth('api')->user();
+        $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+        
+        // Construir query base con filtro de licencia
+        $query = $this->model::query();
+        
+        if ($licencia) {
+            $query->where('Id_Licencia', $licencia);
+        }
+        
+        // Optimización: Solo seleccionar campos necesarios si se especifican
+        if ($request->has('fields')) {
+            $fields = explode(',', $request->fields);
+            $validFields = array_intersect($fields, $this->getAllowedFields());
+            if (!empty($validFields)) {
+                $query->select($validFields);
+            }
+        }
+        
+        return $query;
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request): JsonResponse
     {
-            $validator = Validator::make($request->all(), [
-            'Nom_Cat' => 'required|string|max:255|unique:categorias_pos',
-            'Estado' => 'required|in:Vigente,No Vigente',
-            'Sistema' => 'required|in:POS,Hospitalario,Dental',
-            'ID_H_O_D' => 'nullable|integer'
-            ]);
+        // Obtener el usuario autenticado
+        $user = auth('api')->user();
+        
+        if (!$user) {
+            return response()->json([
+                'error' => 'Usuario no autenticado'
+            ], 401);
+        }
 
-            if ($validator->fails()) {
-                return response()->json([
+        // Obtener la licencia del usuario
+        $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+        
+        if (!$licencia) {
+            return response()->json([
+                'error' => 'Licencia no encontrada para el usuario'
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:100|unique:categorias_pos,nombre,NULL,id,Id_Licencia,' . $licencia,
+            'descripcion' => 'nullable|string|max:1000',
+            'codigo' => 'required|string|max:50|unique:categorias_pos,codigo,NULL,id,Id_Licencia,' . $licencia,
+            'icono' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:7',
+            'orden' => 'nullable|integer|min:0',
+            'activa' => 'boolean',
+            'visible_en_pos' => 'boolean',
+            'comision' => 'nullable|numeric|min:0|max:100',
+            'categoria_padre_id' => 'nullable|exists:categorias_pos,id,Id_Licencia,' . $licencia
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
                 'error' => 'Datos de validación incorrectos',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
         try {
-            $categoria = CategoriaPos::create([
-                'Nom_Cat' => $request->Nom_Cat,
-                'Estado' => $request->Estado,
-                'Cod_Estado' => $request->Estado === 'Vigente' ? 1 : 0,
-                'Sistema' => $request->Sistema,
-                'ID_H_O_D' => $request->ID_H_O_D ?? 1,
-                'Agregado_Por' => auth('api')->user()->Pos_ID ?? 1,
-                'Agregadoel' => now()
-            ]);
+            $data = $validator->validated();
+            $data['Id_Licencia'] = $licencia; // Asignar la licencia automáticamente
+
+            $categoria = CategoriaPos::create($data);
 
             return response()->json([
                 'message' => 'Categoría creada exitosamente',
@@ -102,14 +170,41 @@ class CategoriaPosController extends BaseApiController
     public function show(string $id): JsonResponse
     {
         try {
-            $categoria = CategoriaPos::findOrFail($id);
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'error' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            $categoria = CategoriaPos::where('id', $id)
+                ->where('Id_Licencia', $licencia)
+                ->first();
+
+            if (!$categoria) {
+                return response()->json([
+                    'error' => 'Categoría no encontrada'
+                ], 404);
+            }
+
             return response()->json([
                 'data' => $categoria
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Categoría no encontrada'
-            ], 404);
+                'error' => 'Error al obtener categoría: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -118,29 +213,56 @@ class CategoriaPosController extends BaseApiController
      */
     public function update(Request $request, string $id): JsonResponse
     {
-            $validator = Validator::make($request->all(), [
-                'Nom_Cat' => 'required|string|max:255|unique:categorias_pos,Nom_Cat,' . $id . ',Cat_ID',
-            'Estado' => 'required|in:Vigente,No Vigente',
-            'Sistema' => 'required|in:POS,Hospitalario,Dental',
-            'ID_H_O_D' => 'nullable|integer'
-            ]);
+        // Obtener el usuario autenticado
+        $user = auth('api')->user();
+        
+        if (!$user) {
+            return response()->json([
+                'error' => 'Usuario no autenticado'
+            ], 401);
+        }
 
-            if ($validator->fails()) {
-                return response()->json([
+        // Obtener la licencia del usuario
+        $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+        
+        if (!$licencia) {
+            return response()->json([
+                'error' => 'Licencia no encontrada para el usuario'
+            ], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:100|unique:categorias_pos,nombre,' . $id . ',id,Id_Licencia,' . $licencia,
+            'descripcion' => 'nullable|string|max:1000',
+            'codigo' => 'required|string|max:50|unique:categorias_pos,codigo,' . $id . ',id,Id_Licencia,' . $licencia,
+            'icono' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:7',
+            'orden' => 'nullable|integer|min:0',
+            'activa' => 'boolean',
+            'visible_en_pos' => 'boolean',
+            'comision' => 'nullable|numeric|min:0|max:100',
+            'categoria_padre_id' => 'nullable|exists:categorias_pos,id,Id_Licencia,' . $licencia
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
                 'error' => 'Datos de validación incorrectos',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
         try {
-            $categoria = CategoriaPos::findOrFail($id);
-            $categoria->update([
-                'Nom_Cat' => $request->Nom_Cat,
-                'Estado' => $request->Estado,
-                'Cod_Estado' => $request->Estado === 'Vigente' ? 1 : 0,
-                'Sistema' => $request->Sistema,
-                'ID_H_O_D' => $request->ID_H_O_D
-            ]);
+            $categoria = CategoriaPos::where('id', $id)
+                ->where('Id_Licencia', $licencia)
+                ->first();
+
+            if (!$categoria) {
+                return response()->json([
+                    'error' => 'Categoría no encontrada'
+                ], 404);
+            }
+
+            $categoria->update($validator->validated());
 
             return response()->json([
                 'message' => 'Categoría actualizada exitosamente',
@@ -159,7 +281,34 @@ class CategoriaPosController extends BaseApiController
     public function destroy(string $id): JsonResponse
     {
         try {
-            $categoria = CategoriaPos::findOrFail($id);
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'error' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            $categoria = CategoriaPos::where('id', $id)
+                ->where('Id_Licencia', $licencia)
+                ->first();
+
+            if (!$categoria) {
+                return response()->json([
+                    'error' => 'Categoría no encontrada'
+                ], 404);
+            }
+
             $categoria->delete();
 
             return response()->json([
@@ -178,7 +327,29 @@ class CategoriaPosController extends BaseApiController
     public function getByEstado(string $estado): JsonResponse
     {
         try {
-            $categorias = CategoriaPos::where('Estado', $estado)->get();
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'error' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            $activa = $estado === 'Vigente';
+            $categorias = CategoriaPos::where('activa', $activa)
+                ->where('Id_Licencia', $licencia)
+                ->get();
+
             return response()->json([
                 'data' => $categorias
             ]);
@@ -190,12 +361,34 @@ class CategoriaPosController extends BaseApiController
     }
 
     /**
-     * Get categories by organization
+     * Get categories by organization (simulado)
      */
     public function getByOrganizacion(string $organizacion): JsonResponse
     {
         try {
-            $categorias = CategoriaPos::where('ID_H_O_D', $organizacion)->get();
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'error' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'error' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            // Filtrar por licencia del usuario
+            $categorias = CategoriaPos::where('activa', true)
+                ->where('Id_Licencia', $licencia)
+                ->get();
+
             return response()->json([
                 'data' => $categorias
             ]);
@@ -213,22 +406,38 @@ class CategoriaPosController extends BaseApiController
     protected function calculateStats(): array
     {
         try {
-            $totalCategorias = CategoriaPos::count();
-            $categoriasVigentes = CategoriaPos::where('Estado', 'Vigente')->count();
-            $categoriasPOS = CategoriaPos::where('Sistema', 'POS')->count();
-            $categoriasHospitalario = CategoriaPos::where('Sistema', 'Hospitalario')->count();
-            $categoriasDental = CategoriaPos::where('Sistema', 'Dental')->count();
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return ['error' => 'Usuario no autenticado'];
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return ['error' => 'Licencia no encontrada para el usuario'];
+            }
+
+            $totalCategorias = CategoriaPos::where('Id_Licencia', $licencia)->count();
+            $categoriasActivas = CategoriaPos::where('activa', true)
+                ->where('Id_Licencia', $licencia)
+                ->count();
+            $categoriasVisibles = CategoriaPos::where('visible_en_pos', true)
+                ->where('Id_Licencia', $licencia)
+                ->count();
+            $categoriasRaiz = CategoriaPos::whereNull('categoria_padre_id')
+                ->where('Id_Licencia', $licencia)
+                ->count();
 
             return [
                 'total_categorias' => $totalCategorias,
-                'categorias_vigentes' => $categoriasVigentes,
-                'categorias_no_vigentes' => $totalCategorias - $categoriasVigentes,
-                'por_sistema' => [
-                    'POS' => $categoriasPOS,
-                    'Hospitalario' => $categoriasHospitalario,
-                    'Dental' => $categoriasDental
-                ],
-                'porcentaje_vigentes' => $totalCategorias > 0 ? round(($categoriasVigentes / $totalCategorias) * 100, 2) : 0
+                'categorias_activas' => $categoriasActivas,
+                'categorias_inactivas' => $totalCategorias - $categoriasActivas,
+                'categorias_visibles_pos' => $categoriasVisibles,
+                'categorias_raiz' => $categoriasRaiz,
+                'porcentaje_activas' => $totalCategorias > 0 ? round(($categoriasActivas / $totalCategorias) * 100, 2) : 0
             ];
         } catch (\Exception $e) {
             return [
@@ -244,7 +453,23 @@ class CategoriaPosController extends BaseApiController
     protected function getActiveRecords(): int
     {
         try {
-            return CategoriaPos::where('Estado', 'Vigente')->count();
+            // Obtener el usuario autenticado
+            $user = auth('api')->user();
+            
+            if (!$user) {
+                return 0;
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return 0;
+            }
+
+            return CategoriaPos::where('activa', true)
+                ->where('Id_Licencia', $licencia)
+                ->count();
         } catch (\Exception $e) {
             return 0;
         }

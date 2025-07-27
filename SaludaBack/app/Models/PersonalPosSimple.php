@@ -196,12 +196,12 @@ class PersonalPosSimple extends Authenticatable
 
         // Si es solo un nombre de archivo, construir la URL completa
         if (strpos($value, '/') === false) {
-            // Usar la ruta de uploads en lugar de storage
-            return url('uploads/profiles/avatars/' . $value);
+            // Usar la ruta de storage en lugar de uploads
+            return url('storage/profiles/' . $value);
         }
 
         // Si es una ruta relativa, construir la URL completa
-        return url('uploads/' . $value);
+        return url('storage/' . $value);
     }
 
     // Mutator para establecer foto_perfil - guardar solo el nombre del archivo

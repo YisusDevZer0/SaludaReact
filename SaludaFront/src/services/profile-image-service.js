@@ -9,16 +9,32 @@ class ProfileImageService {
       const formData = new FormData();
       formData.append('image', imageFile);
 
-      const response = await HttpService.post("profile/image/upload", formData, {
+      // Usar axios directamente para archivos multipart
+      const axios = require('axios');
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/profile/image/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
+        timeout: 30000 // 30 segundos para subida de archivos
       });
 
-      return response;
+      return response.data;
     } catch (error) {
       console.error("Error al subir imagen de perfil:", error);
-      throw error;
+      
+      // Manejar errores de validación específicos
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        if (validationErrors.image) {
+          throw new Error(validationErrors.image[0] || 'Error de validación en la imagen');
+        }
+      }
+      
+      throw new Error(error.response?.data?.message || 'Error al subir la imagen');
     }
   };
 

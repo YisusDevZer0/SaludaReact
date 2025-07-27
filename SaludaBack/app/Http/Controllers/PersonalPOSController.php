@@ -105,6 +105,12 @@ class PersonalPOSController extends Controller
     public function store(Request $request)
     {
         try {
+            // Log de los datos recibidos
+            \Log::info('Creando personal', [
+                'request_data' => $request->all(),
+                'user_id' => Auth::guard('api')->id()
+            ]);
+
             // Obtener el usuario autenticado
             $user = Auth::guard('api')->user();
             
@@ -126,38 +132,54 @@ class PersonalPOSController extends Controller
             }
 
             // Validar los datos recibidos
-            $request->validate([
-                'Nombre_Apellidos' => 'required|string|max:255',
+            $validated = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
                 'email' => 'required|email|unique:personal_pos,email',
-                'Password' => 'required|string|min:6',
-                'Telefono' => 'required|string|max:20',
-                'Fecha_Nacimiento' => 'required|date',
-                'Fk_Usuario' => 'required|integer|exists:Roles_Puestos,ID_rol',
-                'Fk_Sucursal' => 'required|integer|exists:Sucursales,ID_SucursalC',
-                'Estatus' => 'string|in:Vigente,Baja',
-                'ColorEstatus' => 'string',
-                'ID_H_O_D' => 'required|string',
-                'Perm_Elim' => 'boolean',
-                'Perm_Edit' => 'boolean',
-                'avatar_url' => 'nullable|string|url'
+                'telefono' => 'required|string|max:20',
+                'fecha_nacimiento' => 'required|date',
+                'genero' => 'required|in:masculino,femenino,otro',
+                'role_id' => 'required|integer|exists:roles_puestos,id',
+                'sucursal_id' => 'required|integer|exists:sucursales,id',
+                'estado_laboral' => 'string|in:activo,inactivo,vacaciones,permiso,baja',
+                'is_active' => 'boolean',
+                'can_login' => 'boolean',
+                'can_sell' => 'boolean',
+                'can_refund' => 'boolean',
+                'can_manage_inventory' => 'boolean',
+                'can_manage_users' => 'boolean',
+                'can_view_reports' => 'boolean',
+                'can_manage_settings' => 'boolean',
+                'notas' => 'nullable|string',
+                'foto_perfil' => 'nullable|string'
             ]);
 
-            // Hash del password
-            $passwordHash = Hash::make($request->Password);
+            \Log::info('Datos validados correctamente', $validated);
 
             // Crear el personal con la licencia del usuario autenticado
-            $personal = PersonalPos::create([
+            $personalData = [
+                'codigo' => $request->codigo ?? 'EMP' . time(),
                 'nombre' => $request->nombre,
                 'apellido' => $request->apellido,
                 'email' => $request->email,
-                'password' => $passwordHash,
+                'password' => Hash::make($request->password ?? 'password123'),
                 'telefono' => $request->telefono,
+                'dni' => $request->dni ?? null,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
+                'genero' => $request->genero ?? null,
+                'direccion' => $request->direccion ?? null,
+                'ciudad' => $request->ciudad ?? null,
+                'provincia' => $request->provincia ?? null,
+                'codigo_postal' => $request->codigo_postal ?? null,
+                'pais' => $request->pais ?? 'México',
+                'fecha_ingreso' => $request->fecha_ingreso ?? now(),
+                'salario' => $request->salario ?? null,
+                'tipo_contrato' => $request->tipo_contrato ?? 'indefinido',
+                'estado_laboral' => $request->estado_laboral ?? 'activo',
                 'role_id' => $request->role_id,
                 'sucursal_id' => $request->sucursal_id,
-                'estado_laboral' => $request->estado_laboral ?? 'activo',
-                'is_active' => true,
-                'can_login' => true,
+                'is_active' => $request->is_active ?? true,
+                'can_login' => $request->can_login ?? true,
                 'can_sell' => $request->can_sell ?? false,
                 'can_refund' => $request->can_refund ?? false,
                 'can_manage_inventory' => $request->can_manage_inventory ?? false,
@@ -166,8 +188,13 @@ class PersonalPOSController extends Controller
                 'can_manage_settings' => $request->can_manage_settings ?? false,
                 'session_timeout' => 480,
                 'notas' => $request->notas ?? 'Personal creado por sistema',
+                'foto_perfil' => $request->foto_perfil ?? null,
                 'Id_Licencia' => $licencia // Asignar la licencia del usuario autenticado
-            ]);
+            ];
+
+            \Log::info('Datos para crear personal', $personalData);
+
+            $personal = PersonalPos::create($personalData);
 
             // Obtener el personal creado con sus relaciones
             $personalConRelaciones = PersonalPos::with(['sucursal', 'role'])

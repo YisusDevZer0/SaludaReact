@@ -35,9 +35,13 @@ import { useMaterialUIController } from "context";
 
 // Servicios
 import personalService from "services/personal-service";
+import TestAuthService from "services/test-auth-service";
 
 // Modales
 import PersonalModal from "components/Modales/PersonalModal";
+
+// Componente de carga de imágenes
+import ProfileImageUpload from "components/ProfileImageUpload";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -305,6 +309,42 @@ function Personal() {
     };
   }, [tableHeaderColor, darkMode]);
 
+  // Función para generar avatar por defecto
+  const generateDefaultAvatar = (empleado) => {
+    if (empleado.foto_perfil) {
+      return empleado.foto_perfil;
+    }
+    
+    // Generar avatar basado en el nombre y género
+    const nombre = empleado.nombre_completo || `${empleado.nombre} ${empleado.apellido}`;
+    const genero = empleado.genero;
+    
+    if (genero === 'femenino') {
+      return `https://randomuser.me/api/portraits/women/${empleado.id % 50}.jpg`;
+    } else {
+      return `https://randomuser.me/api/portraits/men/${empleado.id % 50}.jpg`;
+    }
+  };
+
+  // Función de prueba para verificar autenticación
+  const testAuthentication = async () => {
+    try {
+      console.log('🔍 Probando autenticación...');
+      console.log('Token actual:', localStorage.getItem('access_token')?.substring(0, 20) + '...');
+      
+      const standardAuth = await TestAuthService.testStandardAuth();
+      console.log('✅ Autenticación estándar:', standardAuth);
+      
+      const personalPOSAuth = await TestAuthService.testPersonalPOSAuth();
+      console.log('✅ Autenticación PersonalPOS:', personalPOSAuth);
+      
+      alert('Pruebas completadas. Revisa la consola para más detalles.');
+    } catch (error) {
+      console.error('❌ Error en pruebas de autenticación:', error);
+      alert('Error en pruebas de autenticación: ' + error.message);
+    }
+  };
+
   // Datos de la tabla de personal
   const personalTableData = {
     columns: [
@@ -318,12 +358,13 @@ function Personal() {
     ],
     rows: personalData.map((empleado) => {
       const estatusColor = personalService.getEstadoColor(empleado.estado_laboral);
+      const avatarUrl = generateDefaultAvatar(empleado);
       
       return {
         empleado: (
           <MDBox display="flex" alignItems="center">
             <MDAvatar
-              src={empleado.foto_perfil || `https://randomuser.me/api/portraits/${empleado.genero === 'F' ? 'women' : 'men'}/${empleado.id % 50}.jpg`}
+              src={avatarUrl}
               alt={empleado.nombre_completo}
               size="sm"
               sx={{ mr: 1 }}
@@ -592,6 +633,15 @@ function Personal() {
                       disabled={loading}
                     >
                       Actualizar
+                    </MDButton>
+                    <MDButton 
+                      variant="outlined"
+                      color="warning" 
+                      size="small"
+                      startIcon={<Icon>bug_report</Icon>}
+                      onClick={testAuthentication}
+                    >
+                      Probar Auth
                     </MDButton>
                   </MDBox>
                 </MDBox>
