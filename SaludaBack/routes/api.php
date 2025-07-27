@@ -76,6 +76,18 @@ Route::post('/pos/create-admin', [\App\Http\Controllers\Api\V2\Auth\PersonalPosC
 // Ruta de prueba
 Route::get('/pos/test', [\App\Http\Controllers\Api\V2\Auth\TestController::class, '__invoke']);
 
+// Endpoint de prueba para verificar conexión con Vercel
+Route::get('/test-connection', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Backend conectado correctamente desde Railway',
+        'timestamp' => now()->toISOString(),
+        'environment' => config('app.env'),
+        'cors_enabled' => true,
+        'frontend_url' => config('app.url')
+    ]);
+});
+
 // Rutas de imágenes de perfil
 Route::middleware(['personalpos.auth'])->group(function () {
     Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);

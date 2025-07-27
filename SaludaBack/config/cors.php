@@ -23,7 +23,11 @@ return [
         'http://localhost:3000',
         'http://127.0.0.1:3000',
         'http://localhost:3001',
-        'http://127.0.0.1:3001'
+        'http://127.0.0.1:3001',
+        'https://saluda-react.vercel.app',
+        'https://saluda-react-git-main.vercel.app',
+        'https://saluda-react-git-develop.vercel.app',
+        'https://*.vercel.app'
     ],
 
     'allowed_origins_patterns' => [],
