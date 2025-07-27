@@ -88,6 +88,25 @@ Route::get('/test-connection', function () {
     ]);
 });
 
+// Endpoint de health check simple
+Route::get('/health', function () {
+    try {
+        return response()->json([
+            'status' => 'healthy',
+            'message' => 'Backend funcionando correctamente',
+            'timestamp' => now()->toISOString(),
+            'environment' => config('app.env'),
+            'debug' => config('app.debug')
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'timestamp' => now()->toISOString()
+        ], 500);
+    }
+});
+
 // Rutas de imágenes de perfil
 Route::middleware(['personalpos.auth'])->group(function () {
     Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
