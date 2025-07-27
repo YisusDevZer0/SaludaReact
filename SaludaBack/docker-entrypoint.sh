@@ -20,6 +20,12 @@ if [ -z "$(grep '^APP_KEY=' .env | cut -d '=' -f2)" ] || [ "$(grep '^APP_KEY=' .
     php artisan key:generate --no-interaction
 fi
 
+# Generar claves de Passport si no existen
+if [ ! -f storage/oauth-private.key ] || [ ! -f storage/oauth-public.key ]; then
+    echo "Generando claves de Passport..."
+    php artisan passport:keys --force --no-interaction
+fi
+
 # Limpiar cachés
 echo "Limpiando cachés..."
 php artisan config:clear
