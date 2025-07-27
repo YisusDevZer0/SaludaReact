@@ -16,6 +16,11 @@ class AuditoriaMiddleware
     {
         $response = $next($request);
 
+        // Solo auditar rutas API, no rutas web
+        if (!$request->is('api/*') && !$request->is('api')) {
+            return $response;
+        }
+
         // Opcional: filtrar rutas irrelevantes
         $ruta = $request->path();
         if (preg_match('/^(api\/)?(sanctum|broadcasting|_debugbar|horizon|telescope|assets|favicon|storage|login|logout|ping)/', $ruta)) {

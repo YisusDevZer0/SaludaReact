@@ -116,6 +116,18 @@ Route::get('/ping', function () {
     ]);
 });
 
+// Endpoint para verificar configuración
+Route::get('/config-test', function () {
+    return response()->json([
+        'app_key' => env('APP_KEY') ? 'Configurada' : 'NO CONFIGURADA',
+        'app_env' => env('APP_ENV', 'no configurado'),
+        'app_debug' => env('APP_DEBUG', 'no configurado'),
+        'db_connection' => env('DB_CONNECTION', 'no configurado'),
+        'db_host' => env('DB_HOST', 'no configurado'),
+        'timestamp' => date('Y-m-d H:i:s')
+    ]);
+});
+
 // Rutas de imágenes de perfil
 Route::middleware(['personalpos.auth'])->group(function () {
     Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
