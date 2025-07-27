@@ -107,6 +107,15 @@ Route::get('/health', function () {
     }
 });
 
+// Endpoint súper simple sin dependencias
+Route::get('/ping', function () {
+    return response()->json([
+        'status' => 'pong',
+        'message' => 'Server is alive',
+        'timestamp' => date('Y-m-d H:i:s')
+    ]);
+});
+
 // Rutas de imágenes de perfil
 Route::middleware(['personalpos.auth'])->group(function () {
     Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
