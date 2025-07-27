@@ -98,10 +98,10 @@ Route::get('/health', function () {
             'environment' => config('app.env'),
             'debug' => config('app.debug')
         ]);
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => $e->getMessage(),
+            'message' => 'Error en el backend: ' . $e->getMessage(),
             'timestamp' => now()->toISOString()
         ], 500);
     }
@@ -128,15 +128,49 @@ Route::get('/config-test', function () {
     ]);
 });
 
-// Rutas de imágenes de perfil
-Route::middleware(['personalpos.auth'])->group(function () {
-    Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
-    Route::delete('/profile/image/delete', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'delete']);
-    Route::get('/profile/image/{userId?}', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'show']);
+// Endpoint de diagnóstico detallado para Railway
+Route::get('/railway-diagnostic', function () {
+    $diagnostic = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'environment' => [
+            'app_key' => env('APP_KEY') ? 'Configurada' : 'NO CONFIGURADA',
+            'app_env' => env('APP_ENV', 'no configurado'),
+            'app_debug' => env('APP_DEBUG', 'no configurado'),
+            'app_url' => env('APP_URL', 'no configurado'),
+        ],
+        'database' => [
+            'connection' => env('DB_CONNECTION', 'no configurado'),
+            'host' => env('DB_HOST', 'no configurado'),
+            'database' => env('DB_DATABASE', 'no configurado'),
+            'username' => env('DB_USERNAME', 'no configurado'),
+            'password' => env('DB_PASSWORD') ? 'Configurada' : 'NO CONFIGURADA',
+        ],
+        'files' => [
+            'oauth_private_key' => file_exists(storage_path('oauth-private.key')) ? 'Existe' : 'NO EXISTE',
+            'oauth_public_key' => file_exists(storage_path('oauth-public.key')) ? 'Existe' : 'NO EXISTE',
+        ],
+        'directories' => [
+            'storage_cache' => is_writable(storage_path('framework/cache')) ? 'Escribible' : 'NO ESCRIBIBLE',
+            'storage_logs' => is_writable(storage_path('logs')) ? 'Escribible' : 'NO ESCRIBIBLE',
+        ],
+        'middleware_test' => 'Este endpoint se ejecutó sin errores del middleware'
+    ];
     
-    // Rutas para imágenes de personal específico
-    Route::post('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'uploadPersonalImage']);
-    Route::delete('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'deletePersonalImage']);
+    return response()->json($diagnostic);
+});
+
+// Rutas con auditoría (solo las que realmente necesitan auditoría)
+Route::middleware(['auditoria'])->group(function () {
+    // Rutas de imágenes de perfil
+    Route::middleware(['personalpos.auth'])->group(function () {
+        Route::post('/profile/image/upload', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'upload']);
+        Route::delete('/profile/image/delete', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'delete']);
+        Route::get('/profile/image/{userId?}', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'show']);
+        
+        // Rutas para imágenes de personal específico
+        Route::post('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'uploadPersonalImage']);
+        Route::delete('/personal/{userId}/image', [\App\Http\Controllers\Api\V2\ProfileImageController::class, 'deletePersonalImage']);
+    });
 });
 
 // Ruta de logout para PersonalPOS (compatibilidad con frontend)

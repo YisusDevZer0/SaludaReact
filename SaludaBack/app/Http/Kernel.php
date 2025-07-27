@@ -21,7 +21,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\AuditoriaMiddleware::class,
+        // \App\Http\Middleware\AuditoriaMiddleware::class, // Removido temporalmente
     ];
 
     /**
@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'json.api' => \App\Http\Middleware\JsonApi::class,
         'personalpos.auth' => \App\Http\Middleware\PersonalPOSAuth::class,
+        'auditoria' => \App\Http\Middleware\AuditoriaMiddleware::class, // Agregado como middleware de ruta
     ];
 }
