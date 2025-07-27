@@ -58,13 +58,15 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Copiar archivo de configuración de entorno si no existe
 RUN if [ ! -f .env ]; then cp env.example .env; fi
 
-# Generar clave de aplicación (con manejo de errores)
-RUN php artisan key:generate --no-interaction || echo "Key generation failed, continuing..."
+# Generar clave de aplicación (con manejo de errores más robusto)
+RUN php artisan key:generate --no-interaction || \
+    (echo "Key generation failed, setting a default key..." && \
+     sed -i 's/^APP_KEY=.*/APP_KEY=base64:$(openssl rand -base64 32)/' .env)
 
 # Optimizar Laravel (con manejo de errores)
-RUN php artisan config:cache || echo "Config cache failed, continuing..." \
-    && php artisan route:cache || echo "Route cache failed, continuing..." \
-    && php artisan view:cache || echo "View cache failed, continuing..."
+RUN php artisan config:cache || echo "Config cache failed, continuing..." && \
+    php artisan route:cache || echo "Route cache failed, continuing..." && \
+    php artisan view:cache || echo "View cache failed, continuing..."
 
 # Construir assets (si es necesario)
 RUN if [ -f package.json ]; then npm run build; fi
