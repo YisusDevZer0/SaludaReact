@@ -1,4 +1,4 @@
-import HttpService from "./htttp.service";
+import HttpService from "./http.service";
 
 class DashboardService {
   // Obtener estadísticas del dashboard

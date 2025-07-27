@@ -1,7 +1,7 @@
 // Saluda React layouts
 import Dashboard from "layouts/dashboard";
 import AdminCalendar from "./layouts/admin/Calendar";
-import AdminProfile from "layouts/admin/profile";
+import Profile from "layouts/profile";
 import SellerPOS from "./layouts/seller/POS";
 import AdminBranches from "./layouts/admin/Branches";
 import AdminConfiguracion from "./layouts/admin/Configuracion";
@@ -19,6 +19,9 @@ import Marcas from "layouts/admin/Marcas";
 import Servicios from "layouts/admin/Servicios";
 import Almacenes from "layouts/admin/Almacenes";
 import Productos from "layouts/admin/Productos";
+import BulkUploadPage from "layouts/admin/BulkUploadPage";
+import Stock from "layouts/admin/Stock";
+import StockDashboard from "layouts/admin/StockDashboard";
 import Proveedores from "layouts/admin/Proveedores";
 import Clientes from "layouts/admin/Clientes";
 import AdminAgendasDashboard from "layouts/admin-agendas";
@@ -56,7 +59,7 @@ const routes = [
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
-    component: <AdminProfile />,
+    component: <Profile />,
   },
   {
     type: "collapse",
@@ -106,6 +109,41 @@ const routes = [
     icon: <Icon fontSize="small">inventory</Icon>,
     route: "/admin/almacenes",
     component: <AdminAlmacenes />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Productos",
+    key: "admin-productos",
+    icon: <Icon fontSize="small">medication</Icon>,
+    route: "/admin/productos",
+    component: <Productos />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Stock",
+    key: "admin-stock",
+    icon: <Icon fontSize="small">inventory_2</Icon>,
+    route: "/admin/stock",
+    component: <Stock />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Dashboard Stock",
+    key: "admin-stock-dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    route: "/admin/stock-dashboard",
+    component: <StockDashboard />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    name: "Carga Masiva",
+    key: "bulk-upload",
+    route: "/admin/productos/bulk-upload",
+    component: <BulkUploadPage />,
     adminOnly: true,
   },
   {
@@ -167,6 +205,20 @@ const routes = [
     key: "almacenes-productos",
     route: "/admin/productos",
     component: <Productos />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-stock",
+    route: "/admin/stock",
+    component: <Stock />,
+    adminOnly: true,
+  },
+  {
+    type: "route",
+    key: "almacenes-stock-dashboard",
+    route: "/admin/stock-dashboard",
+    component: <StockDashboard />,
     adminOnly: true,
   },
   {

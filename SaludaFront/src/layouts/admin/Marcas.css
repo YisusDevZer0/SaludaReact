@@ -1,7 +1,7 @@
-/* Estilos para Servicios.js */
+/* Estilos para Marcas.js */
 
-/* Botón de crear nuevo servicio */
-.servicios-create-button {
+/* Botón de crear nueva marca */
+.marcas-create-button {
   background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
   color: white !important;
   border-radius: 8px !important;
@@ -12,12 +12,12 @@
   transition: all 0.3s ease !important;
 }
 
-.servicios-create-button:hover {
+.marcas-create-button:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Tabla de servicios - estilos generales */
+/* Tabla de marcas - estilos generales */
 .MuiTableContainer-root {
   background: var(--mui-palette-background-paper) !important;
   border-radius: 12px !important;
@@ -49,7 +49,7 @@
   color: var(--mui-palette-text-primary) !important;
 }
 
-/* Modal de servicios - estilos generales */
+/* Modal de marcas - estilos generales */
 .MuiDialog-paper {
   border-radius: 12px !important;
   max-width: 600px !important;
@@ -148,7 +148,7 @@
   color: var(--mui-palette-text-secondary) !important;
 }
 
-/* Estados de los servicios */
+/* Estados de las marcas */
 .estado-activo {
   background: linear-gradient(195deg, #66BB6A, #43A047) !important;
   color: white !important;

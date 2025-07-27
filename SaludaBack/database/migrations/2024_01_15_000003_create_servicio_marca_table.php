@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('servicio_marca', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('servicio_id')->constrained('servicios', 'Servicio_ID')->onDelete('cascade');
+            $table->foreignId('servicio_id')->constrained('Servicios_POS', 'Servicio_ID')->onDelete('cascade');
             $table->foreignId('marca_id')->constrained('marcas', 'Marca_ID')->onDelete('cascade');
             $table->decimal('precio_especial', 10, 2)->nullable()->comment('Precio especial para esta combinación servicio-marca');
             $table->text('notas')->nullable()->comment('Notas adicionales sobre la relación');

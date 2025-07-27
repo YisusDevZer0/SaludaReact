@@ -1,242 +1,201 @@
-/**
-=========================================================
-* SaludaReact - Servicio de Marcas
-=========================================================
-*/
+import axios from 'axios';
 
-class MarcasService {
-  constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+
+// Verificar si el usuario está autenticado
+const isAuthenticated = () => {
+  const token = localStorage.getItem('access_token');
+  return !!token;
+};
+
+// Obtener headers de autenticación
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/json'
+  };
+};
+
+export const getMarcas = async () => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
+    }
+
+    const response = await axios.get(`${API_URL}/marcas`, {
+      headers: getAuthHeaders()
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener marcas:', error);
+    throw error;
   }
+};
 
-  // Verificar si el usuario está autenticado
-  isAuthenticated() {
-    const token = localStorage.getItem('access_token');
-    return !!token;
-  }
+export const getMarca = async (id) => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
+    }
 
-  // Obtener headers de autenticación
-  getAuthHeaders() {
-    const token = localStorage.getItem('access_token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
+    const response = await axios.get(`${API_URL}/marcas/${id}`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener marca:', error);
+    const errorMessage = error.response?.data?.message || 'Error al obtener marca';
+    
+    throw {
+      message: errorMessage
     };
   }
+};
 
-  // Manejar errores de respuesta
-  handleResponseError(response, defaultMessage) {
-    if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+export const createMarca = async (marcaData) => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
     }
-    if (response.status === 403) {
-      throw new Error('No tiene permisos para realizar esta acción.');
-    }
-    if (response.status === 404) {
-      throw new Error('Recurso no encontrado.');
-    }
-    if (response.status >= 500) {
-      throw new Error('Error del servidor. Intente nuevamente más tarde.');
-    }
-    
-    return response.json().then(data => {
-      throw new Error(data.message || defaultMessage);
-    }).catch(() => {
-      throw new Error(defaultMessage);
+
+    const response = await axios.post(`${API_URL}/marcas`, marcaData, {
+      headers: getAuthHeaders()
     });
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear marca:', error);
+    const errorMessage = error.response?.data?.message || 'Error al crear marca';
+    const errors = error.response?.data?.errors || {};
+    
+    throw {
+      message: errorMessage,
+      errors: errors
+    };
   }
+};
 
-  // Obtener todas las marcas
-  async getMarcas() {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas`, {
-        method: 'GET',
-        headers: this.getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al obtener marcas');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al obtener marcas:', error);
-      throw error;
-    }
-  }
-
-  // Obtener marca por ID
-  async getMarca(id) {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas/${id}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al obtener marca');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al obtener marca:', error);
-      throw error;
-    }
-  }
-
-  // Crear nueva marca
-  async createMarca(marcaData) {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(marcaData)
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al crear marca');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al crear marca:', error);
-      throw error;
-    }
-  }
-
-  // Actualizar marca
-  async updateMarca(id, marcaData) {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas/${id}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(marcaData)
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al actualizar marca');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al actualizar marca:', error);
-      throw error;
-    }
-  }
-
-  // Eliminar marca (soft delete)
-  async deleteMarca(id) {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas/${id}`, {
-        method: 'DELETE',
-        headers: this.getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al eliminar marca');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al eliminar marca:', error);
-      throw error;
-    }
-  }
-
-  // Obtener marcas para DataTable
-  async getMarcasDataTable() {
-    try {
-      if (!this.isAuthenticated()) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      const response = await fetch(`${this.baseURL}/marcas/datatable`, {
-        method: 'GET',
-        headers: this.getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        return this.handleResponseError(response, 'Error al obtener datos de marcas');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error al obtener datos de marcas:', error);
-      throw error;
-    }
-  }
-
-  // Formatear datos para la tabla
-  formatMarcasForTable(marcas) {
-    return marcas.map(marca => ({
-      id: marca.id,
-      nombre: marca.nombre || 'Sin nombre',
-      descripcion: marca.descripcion || 'Sin descripción',
-      estado: marca.estado || 'activo',
-      created_at: marca.created_at ? new Date(marca.created_at).toLocaleDateString() : 'N/A',
-      updated_at: marca.updated_at ? new Date(marca.updated_at).toLocaleDateString() : 'N/A'
-    }));
-  }
-
-  // Validar datos de marca
-  validateMarcaData(data) {
-    const errors = {};
-
-    if (!data.nombre || data.nombre.trim() === '') {
-      errors.nombre = 'El nombre es requerido';
+export const updateMarca = async (id, marcaData) => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
     }
 
-    if (data.nombre && data.nombre.length > 100) {
-      errors.nombre = 'El nombre no puede exceder 100 caracteres';
+    const response = await axios.put(`${API_URL}/marcas/${id}`, marcaData, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al actualizar marca:', error);
+    const errorMessage = error.response?.data?.message || 'Error al actualizar marca';
+    const errors = error.response?.data?.errors || {};
+    
+    throw {
+      message: errorMessage,
+      errors: errors
+    };
+  }
+};
+
+export const deleteMarca = async (id) => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
     }
 
-    if (data.descripcion && data.descripcion.length > 500) {
-      errors.descripcion = 'La descripción no puede exceder 500 caracteres';
+    const response = await axios.delete(`${API_URL}/marcas/${id}`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar marca:', error);
+    const errorMessage = error.response?.data?.message || 'Error al eliminar marca';
+    
+    throw {
+      message: errorMessage
+    };
+  }
+};
+
+export const getMarcasDataTable = async () => {
+  try {
+    if (!isAuthenticated()) {
+      throw new Error('Usuario no autenticado');
     }
 
-    return errors;
+    const response = await axios.get(`${API_URL}/marcas/datatable`, {
+      headers: getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener marcas para datatable:', error);
+    throw error;
+  }
+};
+
+// Función para formatear los datos de marcas para la tabla
+export const formatMarcasForTable = (marcas) => {
+  if (!Array.isArray(marcas)) {
+    return [];
   }
 
+  return marcas.map(marca => ({
+    id: marca.id,
+    nombre: marca.nombre || '',
+    descripcion: marca.descripcion || '',
+    estado: marca.estado || 'Activo',
+    codigo_estado: marca.codigo_estado || 'A',
+    sistema: marca.sistema || 'POS',
+    organizacion: marca.organizacion || 'Saluda',
+    agregado_el: marca.agregado_el || '',
+    agregado_por: marca.agregado_por || 'Sistema',
+    // Datos originales para edición
+    originalData: marca
+  }));
+};
+
+// Función para validar los datos de la marca
+export const validateMarcaData = (data) => {
+  const errors = {};
+
+  if (!data.nombre || data.nombre.trim() === '') {
+    errors.nombre = 'El nombre de la marca es requerido';
+  }
+
+  if (!data.estado || !['Activo', 'Inactivo'].includes(data.estado)) {
+    errors.estado = 'El estado debe ser Activo o Inactivo';
+  }
+
+  if (!data.codigo_estado || !['A', 'I'].includes(data.codigo_estado)) {
+    errors.codigo_estado = 'El código de estado debe ser A o I';
+  }
+
+  if (!data.sistema || data.sistema.trim() === '') {
+    errors.sistema = 'El sistema es requerido';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+// Export default para compatibilidad
+const marcasService = {
+  getMarcas,
+  getMarca,
+  createMarca,
+  updateMarca,
+  deleteMarca,
+  getMarcasDataTable,
+  formatMarcasForTable,
+  validateMarcaData,
   // Métodos genéricos para el modal
-  async createEntity(data) {
-    return this.createMarca(data);
-  }
+  createEntity: createMarca,
+  updateEntity: updateMarca,
+  deleteEntity: deleteMarca
+};
 
-  async updateEntity(id, data) {
-    return this.updateMarca(id, data);
-  }
-
-  async deleteEntity(id) {
-    return this.deleteMarca(id);
-  }
-}
-
-const marcasService = new MarcasService();
 export default marcasService; 

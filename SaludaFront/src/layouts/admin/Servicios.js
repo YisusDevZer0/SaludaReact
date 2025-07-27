@@ -7,6 +7,9 @@ import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
 import { Grid } from "@mui/material";
 
+// Context
+import { useMaterialUIController } from "context";
+
 // Servicios
 import serviciosService from "services/servicios-service";
 
@@ -16,7 +19,13 @@ import GenericModal from "components/Modales/GenericModal";
 // Componentes de tabla
 import DataTable from "examples/Tables/DataTable";
 
+// Estilos
+import "./Servicios.css";
+
 export default function Servicios() {
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,68 +35,64 @@ export default function Servicios() {
   // Configuración de campos para el modal
   const servicioFields = [
     {
-      name: "nombre",
-      label: "Nombre",
+      name: "Nom_Serv",
+      label: "Nombre del Servicio",
       type: "text",
       required: true,
       validation: (value) => {
-        if (value && value.length > 100) {
-          return "El nombre no puede exceder 100 caracteres";
+        if (!value || value.trim() === '') {
+          return "El nombre es requerido";
+        }
+        if (value && value.length > 255) {
+          return "El nombre no puede exceder 255 caracteres";
         }
         return null;
       }
     },
     {
-      name: "descripcion",
+      name: "Descripcion",
       label: "Descripción",
       type: "text",
       multiline: true,
       rows: 3,
       validation: (value) => {
-        if (value && value.length > 500) {
-          return "La descripción no puede exceder 500 caracteres";
+        if (value && value.length > 1000) {
+          return "La descripción no puede exceder 1000 caracteres";
         }
         return null;
       }
     },
     {
-      name: "precio",
-      label: "Precio",
-      type: "number",
-      required: true,
-      validation: (value) => {
-        if (value && isNaN(parseFloat(value))) {
-          return "El precio debe ser un número válido";
-        }
-        if (value && parseFloat(value) < 0) {
-          return "El precio no puede ser negativo";
-        }
-        return null;
-      }
-    },
-    {
-      name: "duracion",
-      label: "Duración (minutos)",
-      type: "number",
-      validation: (value) => {
-        if (value && isNaN(parseInt(value))) {
-          return "La duración debe ser un número válido";
-        }
-        if (value && parseInt(value) < 0) {
-          return "La duración no puede ser negativa";
-        }
-        return null;
-      }
-    },
-    {
-      name: "estado",
+      name: "Estado",
       label: "Estado",
       type: "select",
       required: true,
-      defaultValue: "activo",
+      defaultValue: "Activo",
       options: [
-        { value: "activo", label: "Activo" },
-        { value: "inactivo", label: "Inactivo" }
+        { value: "Activo", label: "Activo" },
+        { value: "Inactivo", label: "Inactivo" }
+      ]
+    },
+    {
+      name: "Cod_Estado",
+      label: "Código de Estado",
+      type: "select",
+      required: true,
+      defaultValue: "A",
+      options: [
+        { value: "A", label: "Activo (A)" },
+        { value: "I", label: "Inactivo (I)" }
+      ]
+    },
+    {
+      name: "Sistema",
+      label: "Sistema",
+      type: "select",
+      required: true,
+      defaultValue: true,
+      options: [
+        { value: true, label: "Sistema" },
+        { value: false, label: "Personalizado" }
       ]
     }
   ];
@@ -97,7 +102,26 @@ export default function Servicios() {
     try {
       setLoading(true);
       const response = await serviciosService.getServicios();
-      const formattedData = serviciosService.formatServiciosForTable(response.data || response || []);
+      
+      // Mapear los datos del backend al formato esperado por la tabla
+      const formattedData = (response.data || []).map(servicio => ({
+        id: servicio.Servicio_ID || servicio.id,
+        nombre: servicio.Nom_Serv || 'Sin nombre',
+        descripcion: servicio.Descripcion || 'Sin descripción',
+        estado: servicio.Estado || 'Activo',
+        codigo_estado: servicio.Cod_Estado || 'A',
+        sistema: servicio.Sistema || 'POS',
+        organizacion: servicio.ID_H_O_D || 'Saluda',
+        creado: servicio.Agregadoel ? new Date(servicio.Agregadoel).toLocaleDateString('es-ES') : 'N/A',
+        agregado_por: servicio.Agregado_Por || 'Sistema',
+        // Datos originales para el modal
+        Nom_Serv: servicio.Nom_Serv,
+        Descripcion: servicio.Descripcion,
+        Estado: servicio.Estado,
+        Cod_Estado: servicio.Cod_Estado,
+        Sistema: servicio.Sistema
+      }));
+      
       setServicios(formattedData);
     } catch (error) {
       console.error("Error al cargar servicios:", error);
@@ -131,8 +155,6 @@ export default function Servicios() {
     { Header: "ID", accessor: "id", width: 70 },
     { Header: "Nombre", accessor: "nombre" },
     { Header: "Descripción", accessor: "descripcion" },
-    { Header: "Precio", accessor: "precio" },
-    { Header: "Duración", accessor: "duracion" },
     { 
       Header: "Estado", 
       accessor: "estado",
@@ -140,15 +162,30 @@ export default function Servicios() {
         <MDBox
           component="span"
           variant="caption"
-          color={value === "activo" ? "success" : "error"}
+          color={value === "Activo" ? "success" : "error"}
           fontWeight="medium"
         >
-          {value === "activo" ? "ACTIVO" : "INACTIVO"}
+          {value === "Activo" ? "ACTIVO" : "INACTIVO"}
         </MDBox>
       )
     },
-    { Header: "Creado", accessor: "created_at" },
-    { Header: "Actualizado", accessor: "updated_at" },
+    { 
+      Header: "Código Estado", 
+      accessor: "codigo_estado",
+      Cell: ({ value }) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={value === "A" ? "success" : "error"}
+          fontWeight="medium"
+        >
+          {value}
+        </MDBox>
+      )
+    },
+    { Header: "Sistema", accessor: "sistema" },
+    { Header: "Organización", accessor: "organizacion" },
+    { Header: "Creado", accessor: "creado" },
     {
       Header: "Acciones",
       accessor: "acciones",
@@ -168,7 +205,7 @@ export default function Servicios() {
           </Icon>
           <Icon 
             sx={{ cursor: "pointer", color: "error.main" }} 
-            onClick={() => handleOpenModal("view", row.original)}
+            onClick={() => handleDelete(row.original)}
           >
             delete
           </Icon>
@@ -176,6 +213,18 @@ export default function Servicios() {
       )
     }
   ];
+
+  // Función para eliminar servicio
+  const handleDelete = async (servicio) => {
+    if (window.confirm(`¿Está seguro de eliminar el servicio "${servicio.nombre}"?`)) {
+      try {
+        await serviciosService.deleteServicio(servicio.id);
+        loadServicios(); // Recargar datos
+      } catch (error) {
+        console.error("Error al eliminar servicio:", error);
+      }
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -196,6 +245,7 @@ export default function Servicios() {
               color="success" 
               startIcon={<Icon>add</Icon>}
               onClick={() => handleOpenModal("create")}
+              className="servicios-create-button"
             >
               Nuevo Servicio
             </MDButton>
@@ -215,7 +265,6 @@ export default function Servicios() {
           showTotalEntries={true}
           noEndBorder
           canSearch
-          loading={loading}
         />
 
         {/* Modal genérico */}

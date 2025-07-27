@@ -1,250 +1,275 @@
-/**
-=========================================================
-* SaludaReact - Estilos para Categorías
-=========================================================
-*/
+/* Estilos para Categorias.js */
 
-/* Estilos para el botón de crear categoría */
+/* Botón de crear nueva categoría */
 .categorias-create-button {
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
 }
 
 .categorias-create-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Estilos para la tabla de categorías */
-.categorias-table {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
+/* Tabla de categorías - estilos generales */
 .categorias-table .MuiTableContainer-root {
-  border-radius: 12px;
+  background: var(--mui-palette-background-paper) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important;
+  overflow: hidden !important;
 }
 
 .categorias-table .MuiTableHead-root {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
 }
 
 .categorias-table .MuiTableHead-root .MuiTableCell-root {
-  color: white;
-  font-weight: 600;
-  border-bottom: none;
+  color: white !important;
+  font-weight: 600 !important;
+  border-bottom: none !important;
 }
 
 .categorias-table .MuiTableBody-root .MuiTableRow-root:hover {
-  background-color: rgba(102, 126, 234, 0.05);
-  transition: background-color 0.3s ease;
+  background-color: rgba(73, 163, 241, 0.05) !important;
 }
 
-/* Estilos para el modal de categorías */
+.categorias-table .MuiTableBody-root .MuiTableRow-root:nth-child(even) {
+  background-color: var(--mui-palette-background-default) !important;
+}
+
+.categorias-table .MuiTableCell-body {
+  border-bottom: 1px solid var(--mui-palette-divider) !important;
+  padding: 12px 16px !important;
+  color: var(--mui-palette-text-primary) !important;
+}
+
+/* Modal de categorías - estilos generales */
 .categorias-modal .MuiDialog-paper {
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 12px !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  background: var(--mui-palette-background-paper) !important;
 }
 
 .categorias-modal .MuiDialogTitle-root {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 16px 16px 0 0;
-  padding: 20px 24px;
+  background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
+  color: white !important;
+  padding: 20px 24px !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.categorias-modal .MuiDialogTitle-root .MuiTypography-h6 {
+  color: white !important;
+  font-weight: 600 !important;
 }
 
 .categorias-modal .MuiDialogContent-root {
-  padding: 24px;
-  background-color: #fafafa;
+  padding: 24px !important;
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+  background: var(--mui-palette-background-paper) !important;
+  color: var(--mui-palette-text-primary) !important;
 }
 
 .categorias-modal .MuiDialogActions-root {
-  background-color: #f5f5f5;
-  border-radius: 0 0 16px 16px;
-  padding: 16px 24px;
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--mui-palette-divider) !important;
+  background: var(--mui-palette-background-paper) !important;
 }
 
-/* Estilos para los campos del formulario */
+/* Campos del formulario */
 .categorias-modal .MuiTextField-root,
 .categorias-modal .MuiFormControl-root {
-  margin-bottom: 16px;
-  width: 100%;
+  margin-bottom: 16px !important;
+  width: 100% !important;
 }
 
 .categorias-modal .MuiTextField-root .MuiOutlinedInput-root,
 .categorias-modal .MuiFormControl-root .MuiOutlinedInput-root {
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  height: 56px !important; /* Altura fija para todos los campos */
-  min-height: 56px;
-}
-
-.categorias-modal .MuiTextField-root .MuiOutlinedInput-root .MuiInputBase-input,
-.categorias-modal .MuiFormControl-root .MuiOutlinedInput-root .MuiSelect-select {
+  border-radius: 8px !important;
   height: 56px !important;
-  display: flex !important;
-  align-items: center !important;
-  padding: 16px 14px !important;
-}
-
-.categorias-modal .MuiTextField-root .MuiOutlinedInput-root:hover,
-.categorias-modal .MuiFormControl-root .MuiOutlinedInput-root:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--mui-palette-background-paper) !important;
+  color: var(--mui-palette-text-primary) !important;
 }
 
 .categorias-modal .MuiTextField-root .MuiOutlinedInput-root.Mui-focused,
 .categorias-modal .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  border-color: #49a3f1 !important;
 }
 
-/* Estilos específicos para campos multilinea */
+.categorias-modal .MuiTextField-root .MuiInputLabel-root.Mui-focused,
+.categorias-modal .MuiFormControl-root .MuiInputLabel-root.Mui-focused {
+  color: #49a3f1 !important;
+}
+
+.categorias-modal .MuiTextField-root .MuiInputLabel-root,
+.categorias-modal .MuiFormControl-root .MuiInputLabel-root {
+  color: var(--mui-palette-text-secondary) !important;
+}
+
+/* Campos de texto multilínea */
 .categorias-modal .MuiTextField-root .MuiOutlinedInput-root.MuiInputBase-multiline {
   height: auto !important;
-  min-height: 56px;
+  min-height: 56px !important;
 }
 
-.categorias-modal .MuiTextField-root .MuiOutlinedInput-root.MuiInputBase-multiline .MuiInputBase-input {
-  height: auto !important;
-  min-height: 24px;
-  padding: 16px 14px !important;
-}
-
-/* Estilos para los labels */
-.categorias-modal .MuiInputLabel-root {
-  transform: translate(14px, 16px) scale(1) !important;
-}
-
-.categorias-modal .MuiInputLabel-root.Mui-focused,
-.categorias-modal .MuiInputLabel-root.MuiFormLabel-filled {
-  transform: translate(14px, -9px) scale(0.75) !important;
-}
-
-/* Estilos para los campos select específicamente */
-.categorias-modal .MuiFormControl-root .MuiSelect-root {
-  height: 56px !important;
-}
-
+/* Select fields */
 .categorias-modal .MuiFormControl-root .MuiSelect-select {
   height: 56px !important;
   display: flex !important;
   align-items: center !important;
-  padding: 16px 14px !important;
+  color: var(--mui-palette-text-primary) !important;
 }
 
-/* Estilos para el icono del select */
 .categorias-modal .MuiFormControl-root .MuiSelect-icon {
-  top: 50% !important;
-  transform: translateY(-50%) !important;
+  color: var(--mui-palette-text-secondary) !important;
 }
 
-/* Estilos para campos de número */
-.categorias-modal .MuiTextField-root input[type="number"] {
-  height: 56px !important;
-  display: flex !important;
-  align-items: center !important;
+/* Botones del modal */
+.categorias-modal .MuiButton-root {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  padding: 8px 24px !important;
 }
 
-/* Estilos para campos de fecha */
-.categorias-modal .MuiTextField-root input[type="date"] {
-  height: 56px !important;
-  display: flex !important;
-  align-items: center !important;
+.categorias-modal .MuiButton-containedPrimary {
+  background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
 }
 
-/* Estilos para los botones del modal */
-.categorias-modal .MuiDialogActions-root .MuiButton-root {
-  border-radius: 8px;
-  text-transform: none;
-  font-weight: 600;
-  padding: 8px 24px;
-  transition: all 0.3s ease;
+.categorias-modal .MuiButton-outlinedSecondary {
+  border-color: var(--mui-palette-text-secondary) !important;
+  color: var(--mui-palette-text-secondary) !important;
 }
 
-.categorias-modal .MuiDialogActions-root .MuiButton-contained {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.categorias-modal .MuiDialogActions-root .MuiButton-contained:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Estilos para los iconos de acción en la tabla */
-.categorias-table .MuiIconButton-root {
-  transition: all 0.3s ease;
-  border-radius: 50%;
-  padding: 8px;
-}
-
-.categorias-table .MuiIconButton-root:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  transform: scale(1.1);
-}
-
-/* Estilos para el estado de las categorías */
+/* Estados de las categorías */
 .categorias-table .MuiBox-root[color="success"] {
-  background-color: #4caf50;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: linear-gradient(195deg, #66BB6A, #43A047) !important;
+  color: white !important;
+  padding: 4px 12px !important;
+  border-radius: 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
 }
 
 .categorias-table .MuiBox-root[color="error"] {
-  background-color: #f44336;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: linear-gradient(195deg, #EF5350, #E53935) !important;
+  color: white !important;
+  padding: 4px 12px !important;
+  border-radius: 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
 }
 
-/* Estilos para el modo oscuro */
-@media (prefers-color-scheme: dark) {
-  .categorias-modal .MuiDialogContent-root {
-    background-color: #1a1a1a;
-    color: white;
-  }
-  
-  .categorias-modal .MuiDialogActions-root {
-    background-color: #2d2d2d;
-  }
-  
-  .categorias-table .MuiTableBody-root .MuiTableRow-root:hover {
-    background-color: rgba(102, 126, 234, 0.1);
-  }
+/* Iconos de acciones */
+.categorias-table .MuiIconButton-root {
+  transition: all 0.2s ease !important;
+  color: var(--mui-palette-text-primary) !important;
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.categorias-modal .MuiDialog-paper {
-  animation: fadeIn 0.3s ease-out;
+.categorias-table .MuiIconButton-root:hover {
+  transform: scale(1.1) !important;
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
   .categorias-modal .MuiDialog-paper {
-    margin: 16px;
-    max-width: calc(100% - 32px);
+    margin: 16px !important;
+    max-width: calc(100% - 32px) !important;
   }
   
-  .categorias-modal .MuiDialogContent-root {
-    padding: 16px;
+  .categorias-table .MuiTableContainer-root {
+    font-size: 0.875rem !important;
   }
   
-  .categorias-modal .MuiDialogActions-root {
-    padding: 12px 16px;
+  .categorias-table .MuiTableCell-body {
+    padding: 8px 12px !important;
   }
+}
+
+/* Loading state */
+.MuiCircularProgress-root {
+  color: #49a3f1 !important;
+}
+
+/* Search box */
+.MuiInputBase-root {
+  border-radius: 8px !important;
+  border: 1px solid var(--mui-palette-divider) !important;
+  background: var(--mui-palette-background-paper) !important;
+  color: var(--mui-palette-text-primary) !important;
+}
+
+.MuiInputBase-root.Mui-focused {
+  border-color: #49a3f1 !important;
+}
+
+.MuiInputBase-input {
+  color: var(--mui-palette-text-primary) !important;
+}
+
+/* Pagination */
+.MuiTablePagination-root {
+  background: var(--mui-palette-background-default) !important;
+  border-top: 1px solid var(--mui-palette-divider) !important;
+  color: var(--mui-palette-text-primary) !important;
+}
+
+.MuiTablePagination-select {
+  border-radius: 4px !important;
+  background: var(--mui-palette-background-paper) !important;
+  color: var(--mui-palette-text-primary) !important;
+}
+
+.MuiTablePagination-selectIcon {
+  color: var(--mui-palette-text-secondary) !important;
+}
+
+/* Toolbar de la tabla */
+.MuiToolbar-root {
+  background: var(--mui-palette-background-default) !important;
+  border-bottom: 1px solid var(--mui-palette-divider) !important;
+  color: var(--mui-palette-text-primary) !important;
+}
+
+/* Estilos específicos para modo oscuro */
+[data-mui-color-scheme="dark"] .categorias-table .MuiTableContainer-root {
+  background: var(--mui-palette-background-paper) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-mui-color-scheme="dark"] .categorias-table .MuiTableBody-root .MuiTableRow-root:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+[data-mui-color-scheme="dark"] .categorias-table .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(73, 163, 241, 0.1) !important;
+}
+
+[data-mui-color-scheme="dark"] .categorias-modal .MuiDialog-paper {
+  background: var(--mui-palette-background-paper) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-mui-color-scheme="dark"] .categorias-modal .MuiTextField-root .MuiOutlinedInput-root,
+[data-mui-color-scheme="dark"] .categorias-modal .MuiFormControl-root .MuiOutlinedInput-root {
+  background: var(--mui-palette-background-paper) !important;
+}
+
+[data-mui-color-scheme="dark"] .MuiInputBase-root {
+  background: var(--mui-palette-background-paper) !important;
+}
+
+[data-mui-color-scheme="dark"] .MuiTablePagination-root {
+  background: var(--mui-palette-background-default) !important;
+}
+
+[data-mui-color-scheme="dark"] .MuiToolbar-root {
+  background: var(--mui-palette-background-default) !important;
 } 

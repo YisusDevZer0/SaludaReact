@@ -1,4 +1,4 @@
-import httpService from './htttp.service';
+import httpService from './http.service';
 
 class CategoriaPosService {
   constructor() {

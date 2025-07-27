@@ -141,10 +141,14 @@ class PersonalService {
 
       console.log('Servicio: Enviando datos al backend:', personalData); // Log para debug
 
+      // Remover el campo Id_Licencia del frontend para que se asigne automáticamente en el backend
+      const dataToSend = { ...personalData };
+      delete dataToSend.Id_Licencia;
+
       const response = await fetch(`${this.baseURL}/personal`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(personalData)
+        body: JSON.stringify(dataToSend)
       });
 
       console.log('Servicio: Respuesta del servidor:', response.status, response.statusText); // Log de respuesta
@@ -323,7 +327,7 @@ class PersonalService {
       last_login_at: empleado.last_login_at,
       last_login_ip: empleado.last_login_ip,
       foto_perfil: empleado.foto_perfil,
-      Id_Licencia: empleado.Id_Licencia,
+      // Id_Licencia: empleado.Id_Licencia, // Oculto por seguridad
       sucursal: empleado.sucursal ? {
         id: empleado.sucursal.id,
         nombre: empleado.sucursal.nombre,
@@ -387,16 +391,21 @@ class PersonalService {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log('Obteniendo sucursales...'); // Log de debug
+
       const response = await fetch(`${this.baseURL}/sucursales`, {
         method: 'GET',
         headers: this.getAuthHeaders()
       });
+
+      console.log('Respuesta de sucursales:', response.status, response.statusText); // Log de debug
 
       if (!response.ok) {
         return this.handleResponseError(response, 'Error al obtener sucursales');
       }
 
       const data = await response.json();
+      console.log('Sucursales obtenidas:', data); // Log de debug
       return data;
     } catch (error) {
       console.error('Error al obtener sucursales:', error);
@@ -411,16 +420,21 @@ class PersonalService {
         throw new Error('Usuario no autenticado');
       }
 
+      console.log('Obteniendo roles...'); // Log de debug
+
       const response = await fetch(`${this.baseURL}/roles`, {
         method: 'GET',
         headers: this.getAuthHeaders()
       });
+
+      console.log('Respuesta de roles:', response.status, response.statusText); // Log de debug
 
       if (!response.ok) {
         return this.handleResponseError(response, 'Error al obtener roles');
       }
 
       const data = await response.json();
+      console.log('Roles obtenidos:', data); // Log de debug
       return data;
     } catch (error) {
       console.error('Error al obtener roles:', error);

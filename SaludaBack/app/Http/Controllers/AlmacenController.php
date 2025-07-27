@@ -25,34 +25,63 @@ class AlmacenController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Almacen::with(['sucursales', 'productos']);
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
 
-            // Filtros
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            Log::info('Obteniendo almacenes', [
+                'user_id' => $user->id,
+                'licencia' => $licencia
+            ]);
+
+            $query = Almacen::query();
+
+            // Filtrar por licencia del usuario
+            if ($licencia) {
+                $query->where('Id_Licencia', $licencia);
+                Log::info('Filtrando almacenes por licencia:', ['licencia' => $licencia]);
+            }
+
+            // Filtros adicionales
             if ($request->has('search') && $request->search) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
-                    $q->where('codigo', 'LIKE', "%{$search}%")
-                      ->orWhere('nombre', 'LIKE', "%{$search}%")
-                      ->orWhere('descripcion', 'LIKE', "%{$search}%");
+                    $q->where('Nom_Almacen', 'LIKE', "%{$search}%")
+                      ->orWhere('Descripcion', 'LIKE', "%{$search}%")
+                      ->orWhere('Responsable', 'LIKE', "%{$search}%");
                 });
             }
 
             if ($request->has('estado') && $request->estado) {
-                $query->where('estado', $request->estado);
+                $query->where('Estado', $request->estado);
             }
 
-            if ($request->has('tipo_almacen') && $request->tipo_almacen) {
-                $query->where('tipo_almacen', $request->tipo_almacen);
+            if ($request->has('tipo') && $request->tipo) {
+                $query->where('Tipo', $request->tipo);
             }
 
             // Ordenamiento
-            $sortBy = $request->get('sortBy', 'created_at');
+            $sortBy = $request->get('sortBy', 'Almacen_ID');
             $sortOrder = $request->get('sortOrder', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
             // Paginación
             $perPage = $request->get('perPage', 15);
             $almacenes = $query->paginate($perPage);
+
+            Log::info('Almacenes obtenidos:', [
+                'total' => $almacenes->total(),
+                'licencia_filtro' => $licencia
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -66,6 +95,11 @@ class AlmacenController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error al obtener almacenes:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener almacenes: ' . $e->getMessage()
@@ -79,29 +113,47 @@ class AlmacenController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
+            Log::info('Creando nuevo almacén', [
+                'request_data' => $request->all(),
+                'user_id' => Auth::guard('api')->id()
+            ]);
+
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            Log::info('Usuario autenticado:', [
+                'user_id' => $user->id,
+                'licencia' => $licencia
+            ]);
+
             $validator = Validator::make($request->all(), [
-                'codigo' => 'required|string|max:50|unique:almacenes',
-                'nombre' => 'required|string|max:255',
-                'descripcion' => 'nullable|string',
-                'tipo_almacen' => 'required|in:principal,secundario,transito,temporario',
-                'direccion' => 'required|string|max:500',
-                'ciudad' => 'required|string|max:100',
-                'estado_provincia' => 'required|string|max:100',
-                'codigo_postal' => 'nullable|string|max:20',
-                'pais' => 'required|string|max:100',
-                'telefono' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'responsable_id' => 'nullable|exists:users,id',
-                'capacidad_total' => 'nullable|numeric|min:0',
-                'capacidad_utilizada' => 'nullable|numeric|min:0',
-                'unidad_medida_capacidad' => 'nullable|string|max:20',
-                'configuracion_inventario' => 'nullable|json',
-                'configuracion_seguridad' => 'nullable|json',
-                'estado' => 'required|in:activo,inactivo,en_mantenimiento',
-                'observaciones' => 'nullable|string',
+                'Nom_Almacen' => 'required|string|max:255',
+                'Tipo' => 'required|string|max:100',
+                'Responsable' => 'nullable|string|max:255',
+                'Estado' => 'required|string|max:50',
+                'Cod_Estado' => 'required|string|max:10',
+                'Sistema' => 'required|string|max:50',
+                'FkSucursal' => 'nullable|integer',
+                'Descripcion' => 'nullable|string',
+                'Ubicacion' => 'nullable|string|max:500',
+                'Capacidad_Max' => 'nullable|numeric|min:0',
+                'Unidad_Medida' => 'nullable|string|max:50',
+                'Telefono' => 'nullable|string|max:20',
+                'Email' => 'nullable|email|max:255',
             ]);
 
             if ($validator->fails()) {
+                Log::error('Error de validación al crear almacén:', $validator->errors()->toArray());
                 return response()->json([
                     'success' => false,
                     'message' => 'Error de validación',
@@ -109,18 +161,45 @@ class AlmacenController extends Controller
                 ], 422);
             }
 
+            // Establecer valores por defecto si no se proporcionan
             $data = $validator->validated();
-            $data['creado_por'] = Auth::user()->name ?? 'Sistema';
+            
+            if (empty($data['Agregado_Por'])) {
+                $data['Agregado_Por'] = $user->name ?? $user->Nombre_Apellidos ?? 'Sistema';
+            }
+            
+            if (empty($data['Agregadoel'])) {
+                $data['Agregadoel'] = now();
+            }
+            
+            if (empty($data['Sistema'])) {
+                $data['Sistema'] = 'SaludaReact';
+            }
+
+            // Asignar automáticamente la licencia del usuario
+            $data['Id_Licencia'] = $licencia;
+
+            Log::info('Datos finales para crear almacén:', $data);
 
             $almacen = Almacen::create($data);
+
+            Log::info('Almacén creado exitosamente:', [
+                'almacen_id' => $almacen->Almacen_ID,
+                'nombre' => $almacen->Nom_Almacen
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Almacén creado exitosamente',
-                'data' => $almacen->load(['sucursales', 'productos'])
+                'data' => $almacen
             ], 201);
 
         } catch (\Exception $e) {
+            Log::error('Error al crear almacén:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear almacén: ' . $e->getMessage()
@@ -155,31 +234,46 @@ class AlmacenController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {
+            Log::info('Actualizando almacén', [
+                'id' => $id,
+                'request_data' => $request->all()
+            ]);
+
             $almacen = Almacen::findOrFail($id);
 
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+
             $validator = Validator::make($request->all(), [
-                'codigo' => 'sometimes|required|string|max:50|unique:almacenes,codigo,' . $id,
-                'nombre' => 'sometimes|required|string|max:255',
-                'descripcion' => 'nullable|string',
-                'tipo_almacen' => 'sometimes|required|in:principal,secundario,transito,temporario',
-                'direccion' => 'sometimes|required|string|max:500',
-                'ciudad' => 'sometimes|required|string|max:100',
-                'estado_provincia' => 'sometimes|required|string|max:100',
-                'codigo_postal' => 'nullable|string|max:20',
-                'pais' => 'sometimes|required|string|max:100',
-                'telefono' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'responsable_id' => 'nullable|exists:users,id',
-                'capacidad_total' => 'nullable|numeric|min:0',
-                'capacidad_utilizada' => 'nullable|numeric|min:0',
-                'unidad_medida_capacidad' => 'nullable|string|max:20',
-                'configuracion_inventario' => 'nullable|json',
-                'configuracion_seguridad' => 'nullable|json',
-                'estado' => 'sometimes|required|in:activo,inactivo,en_mantenimiento',
-                'observaciones' => 'nullable|string',
+                'Nom_Almacen' => 'required|string|max:255',
+                'Tipo' => 'required|string|max:100',
+                'Responsable' => 'nullable|string|max:255',
+                'Estado' => 'required|string|max:50',
+                'Cod_Estado' => 'required|string|max:10',
+                'Sistema' => 'required|string|max:50',
+                'FkSucursal' => 'nullable|integer',
+                'Agregado_Por' => 'nullable|string|max:255',
+                'Descripcion' => 'nullable|string',
+                'Ubicacion' => 'nullable|string|max:500',
+                'Capacidad_Max' => 'nullable|numeric|min:0',
+                'Unidad_Medida' => 'nullable|string|max:50',
+                'Telefono' => 'nullable|string|max:20',
+                'Email' => 'nullable|email|max:255',
+                'Id_Licencia' => 'nullable|string|max:100'
             ]);
 
             if ($validator->fails()) {
+                Log::error('Error de validación al actualizar almacén:', [
+                    'errors' => $validator->errors()
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Error de validación',
@@ -188,17 +282,33 @@ class AlmacenController extends Controller
             }
 
             $data = $validator->validated();
-            $data['actualizado_por'] = Auth::user()->name ?? 'Sistema';
+            
+            // Asignar valores por defecto
+            $data['Agregado_Por'] = $user->name ?? $user->Nombre_Apellidos ?? 'Sistema';
+            $data['Sistema'] = 'SaludaReact';
+            $data['Id_Licencia'] = $licencia;
+
+            Log::info('Datos a actualizar:', $data);
 
             $almacen->update($data);
+
+            Log::info('Almacén actualizado exitosamente', [
+                'id' => $id,
+                'nombre' => $data['Nom_Almacen']
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Almacén actualizado exitosamente',
-                'data' => $almacen->load(['sucursales', 'productos'])
+                'data' => $almacen
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error al actualizar almacén:', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al actualizar almacén: ' . $e->getMessage()
@@ -502,6 +612,62 @@ class AlmacenController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener unidades de capacidad: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener personas disponibles para asignar como responsables (excluyendo farmacéuticos)
+     */
+    public function getPersonasDisponibles(): JsonResponse
+    {
+        try {
+            Log::info('Obteniendo personas disponibles para almacenes');
+            
+            // Obtener el usuario autenticado para filtrar por licencia
+            $user = Auth::guard('api')->user();
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            Log::info('Usuario autenticado:', [
+                'user_id' => $user->id ?? 'no_auth',
+                'licencia' => $licencia
+            ]);
+
+            $query = DB::table('personal_pos')
+                ->select('id', 'nombre', 'apellido', 'email', 'telefono', 'role_id')
+                ->where('is_active', 1)
+                ->where('estado_laboral', 'activo');
+
+            // Filtrar por licencia si está disponible
+            if ($licencia) {
+                $query->where('Id_Licencia', $licencia);
+                Log::info('Filtrando por licencia:', ['licencia' => $licencia]);
+            }
+
+            $personas = $query->orderBy('nombre')
+                ->orderBy('apellido')
+                ->get();
+
+            Log::info('Personas disponibles encontradas:', ['count' => $personas->count()]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $personas,
+                'meta' => [
+                    'total' => $personas->count(),
+                    'licencia_filtro' => $licencia
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener personas disponibles:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener personas disponibles: ' . $e->getMessage()
             ], 500);
         }
     }

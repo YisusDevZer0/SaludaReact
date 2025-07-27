@@ -1,0 +1,8 @@
+# Este es un archivo de ejemplo para probar la carga masiva
+# En realidad necesitarías un archivo Excel real, pero por ahora
+# puedes crear uno manualmente con estos datos:
+
+codigo,nombre,descripcion,categoria_id,marca_id,almacen_id,tipo_producto,unidad_medida,precio_venta,precio_compra,precio_por_mayor,costo_unitario,stock_actual,stock_minimo,stock_maximo,iva,estado,visible_en_pos,inventariable,exento_iva,permitir_venta_sin_stock,requiere_receta,controlado_por_lote,controlado_por_fecha_vencimiento,peso,volumen,alto,ancho,largo,color,material,ubicacion_almacen,proveedor_id,codigo_proveedor,tiempo_entrega_dias,precio_proveedor,fecha_vencimiento,fecha_fabricacion,vida_util_dias,caracteristicas,etiquetas,notas,imagen_url,documentacion_url
+PROD001,Paracetamol 500mg,Analgésico y antipirético,1,1,1,producto,unidad,15.00,10.00,12.00,10.00,100,20,200,21.00,activo,true,true,false,false,false,false,false,0.5,2.0,2,1,3,Blanco,Comprimido,Estante A-1,1,PROV001,7,8.00,,,,365,Alivia dolor y fiebre,medicamento,analgesico,,
+PROD002,Ibuprofeno 400mg,Antiinflamatorio no esteroideo,1,1,1,producto,unidad,18.00,12.00,15.00,12.00,80,15,150,21.00,activo,true,true,false,false,false,false,false,0.6,2.5,2.5,1.2,3.5,Rosa,Comprimido,Estante A-2,1,PROV002,5,9.00,,,,365,Reduce inflamación y dolor,medicamento,antiinflamatorio,,
+PROD003,Amoxicilina 500mg,Antibiótico de amplio espectro,1,1,1,producto,unidad,25.00,18.00,22.00,18.00,50,10,100,21.00,activo,true,true,false,false,true,false,false,0.7,3.0,3,1.5,4,Azul,Cápsula,Estante B-1,1,PROV003,10,15.00,,,,730,Antibiótico para infecciones,medicamento,antibiotico,, 

@@ -18,6 +18,9 @@ import { useMemo, useEffect, useState } from "react";
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
 
+// Context
+import { useMaterialUIController } from "context";
+
 // react-table components
 import { useTable, usePagination, useGlobalFilter, useAsyncDebounce, useSortBy } from "react-table";
 
@@ -48,6 +51,8 @@ function DataTable({
   isSorted,
   noEndBorder,
 }) {
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
   const defaultValue = entriesPerPage.defaultValue ? entriesPerPage.defaultValue : 10;
   const entries = entriesPerPage.entries
     ? entriesPerPage.entries.map((el) => el.toString())

@@ -27,25 +27,25 @@ class PresentacionController extends Controller
             $search_arr = request()->get('search');
 
             $columnIndex = isset($columnIndex_arr[0]['column']) ? $columnIndex_arr[0]['column'] : 1;
-            $columnName = isset($columnName_arr[$columnIndex]['data']) ? $columnName_arr[$columnIndex]['data'] : 'Nom_Presentacion';
+            $columnName = isset($columnName_arr[$columnIndex]['data']) ? $columnName_arr[$columnIndex]['data'] : 'nombre';
             $columnSortOrder = isset($order_arr[0]['dir']) ? $order_arr[0]['dir'] : 'asc';
             $searchValue = $search_arr['value'] ?? '';
 
             // Total de registros
             $totalRecords = Presentacion::count();
-            $totalRecordswithFilter = Presentacion::where('Nom_Presentacion', 'like', '%' . $searchValue . '%')
-                ->orWhere('Siglas', 'like', '%' . $searchValue . '%')
-                ->orWhere('Estado', 'like', '%' . $searchValue . '%')
-                ->orWhere('Sistema', 'like', '%' . $searchValue . '%')
+            $totalRecordswithFilter = Presentacion::where('nombre', 'like', '%' . $searchValue . '%')
+                ->orWhere('codigo', 'like', '%' . $searchValue . '%')
+                ->orWhere('abreviatura', 'like', '%' . $searchValue . '%')
+                ->orWhere('descripcion', 'like', '%' . $searchValue . '%')
                 ->count();
 
             // Obtener registros
             $records = Presentacion::orderBy($columnName, $columnSortOrder)
                 ->where(function($query) use ($searchValue) {
-                    $query->where('Nom_Presentacion', 'like', '%' . $searchValue . '%')
-                        ->orWhere('Siglas', 'like', '%' . $searchValue . '%')
-                        ->orWhere('Estado', 'like', '%' . $searchValue . '%')
-                        ->orWhere('Sistema', 'like', '%' . $searchValue . '%');
+                    $query->where('nombre', 'like', '%' . $searchValue . '%')
+                        ->orWhere('codigo', 'like', '%' . $searchValue . '%')
+                        ->orWhere('abreviatura', 'like', '%' . $searchValue . '%')
+                        ->orWhere('descripcion', 'like', '%' . $searchValue . '%');
                 })
                 ->skip($start)
                 ->take($rowperpage)
@@ -55,15 +55,16 @@ class PresentacionController extends Controller
 
             foreach($records as $record){
                 $data_arr[] = array(
-                    "Pprod_ID" => $record->Pprod_ID,
-                    "Nom_Presentacion" => $record->Nom_Presentacion,
-                    "Siglas" => $record->Siglas,
-                    "Estado" => $record->Estado,
-                    "Cod_Estado" => $record->Cod_Estado,
-                    "Sistema" => $record->Sistema,
-                    "ID_H_O_D" => $record->ID_H_O_D,
-                    "Agregadoel" => $record->Agregadoel,
-                    "Agregado_Por" => $record->Agregado_Por
+                    "id" => $record->id,
+                    "nombre" => $record->nombre,
+                    "descripcion" => $record->descripcion,
+                    "codigo" => $record->codigo,
+                    "abreviatura" => $record->abreviatura,
+                    "activa" => $record->activa ? 'Sí' : 'No',
+                    "orden" => $record->orden,
+                    "created_at" => $record->created_at ? $record->created_at->format('Y-m-d H:i:s') : null,
+                    "updated_at" => $record->updated_at ? $record->updated_at->format('Y-m-d H:i:s') : null,
+                    "Id_Licencia" => $record->Id_Licencia
                 );
             }
 
@@ -101,12 +102,13 @@ class PresentacionController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'Nom_Presentacion' => 'required|string|max:255|unique:presentaciones,Nom_Presentacion',
-                'Siglas' => 'nullable|string|max:50',
-                'Estado' => 'string|max:50',
-                'Cod_Estado' => 'string|max:10',
-                'Sistema' => 'string|max:50',
-                'ID_H_O_D' => 'nullable|string|max:100',
+                'nombre' => 'required|string|max:100',
+                'descripcion' => 'nullable|string',
+                'codigo' => 'required|string|max:50|unique:presentaciones,codigo',
+                'abreviatura' => 'nullable|string|max:20',
+                'activa' => 'boolean',
+                'orden' => 'nullable|integer|min:0',
+                'Id_Licencia' => 'nullable|string|max:100',
             ]);
 
             if ($validator->fails()) {
@@ -117,21 +119,12 @@ class PresentacionController extends Controller
                 ], 422);
             }
 
-            $presentacion = Presentacion::create([
-                'Nom_Presentacion' => $request->Nom_Presentacion,
-                'Siglas' => $request->Siglas,
-                'Estado' => $request->Estado ?? 'Vigente',
-                'Cod_Estado' => $request->Cod_Estado ?? 'V',
-                'Agregado_Por' => $request->user()->name ?? 'Sistema',
-                'Agregadoel' => Carbon::now(),
-                'Sistema' => $request->Sistema ?? 'POS',
-                'ID_H_O_D' => $request->ID_H_O_D ?? 'Saluda',
-            ]);
+            $presentacion = Presentacion::create($request->all());
 
             return response()->json([
                 'success' => true,
-                'data' => $presentacion,
-                'message' => 'Presentación creada exitosamente'
+                'message' => 'Presentación creada exitosamente',
+                'data' => $presentacion
             ], 201);
 
         } catch (\Exception $e) {
@@ -149,17 +142,17 @@ class PresentacionController extends Controller
     {
         try {
             $presentacion = Presentacion::findOrFail($id);
-
+            
             return response()->json([
                 'success' => true,
-                'data' => $presentacion,
-                'message' => 'Presentación encontrada'
+                'data' => $presentacion
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Presentación no encontrada'
-            ], 404);
+                'message' => 'Error al obtener la presentación: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -170,17 +163,17 @@ class PresentacionController extends Controller
     {
         try {
             $presentacion = Presentacion::findOrFail($id);
-
+            
             return response()->json([
                 'success' => true,
-                'data' => $presentacion,
-                'message' => 'Presentación para editar'
+                'data' => $presentacion
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Presentación no encontrada'
-            ], 404);
+                'message' => 'Error al obtener la presentación: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -193,12 +186,13 @@ class PresentacionController extends Controller
             $presentacion = Presentacion::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'Nom_Presentacion' => 'required|string|max:255|unique:presentaciones,Nom_Presentacion,' . $id . ',Pprod_ID',
-                'Siglas' => 'nullable|string|max:50',
-                'Estado' => 'string|max:50',
-                'Cod_Estado' => 'string|max:10',
-                'Sistema' => 'string|max:50',
-                'ID_H_O_D' => 'nullable|string|max:100',
+                'nombre' => 'required|string|max:100',
+                'descripcion' => 'nullable|string',
+                'codigo' => 'required|string|max:50|unique:presentaciones,codigo,' . $id,
+                'abreviatura' => 'nullable|string|max:20',
+                'activa' => 'boolean',
+                'orden' => 'nullable|integer|min:0',
+                'Id_Licencia' => 'nullable|string|max:100',
             ]);
 
             if ($validator->fails()) {
@@ -209,19 +203,12 @@ class PresentacionController extends Controller
                 ], 422);
             }
 
-            $presentacion->update([
-                'Nom_Presentacion' => $request->Nom_Presentacion,
-                'Siglas' => $request->Siglas,
-                'Estado' => $request->Estado,
-                'Cod_Estado' => $request->Cod_Estado,
-                'Sistema' => $request->Sistema,
-                'ID_H_O_D' => $request->ID_H_O_D,
-            ]);
+            $presentacion->update($request->all());
 
             return response()->json([
                 'success' => true,
-                'data' => $presentacion,
-                'message' => 'Presentación actualizada exitosamente'
+                'message' => 'Presentación actualizada exitosamente',
+                'data' => $presentacion
             ]);
 
         } catch (\Exception $e) {
@@ -245,6 +232,7 @@ class PresentacionController extends Controller
                 'success' => true,
                 'message' => 'Presentación eliminada exitosamente'
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -254,20 +242,19 @@ class PresentacionController extends Controller
     }
 
     /**
-     * Obtener presentaciones por estado
+     * Get presentaciones by estado (activa/inactiva)
      */
     public function getByEstado(string $estado): JsonResponse
     {
         try {
-            $presentaciones = Presentacion::where('Estado', $estado)
-                ->orderBy('Nom_Presentacion')
-                ->get();
+            $activa = strtolower($estado) === 'activa' || strtolower($estado) === 'activo';
+            $presentaciones = Presentacion::where('activa', $activa)->get();
 
             return response()->json([
                 'success' => true,
-                'data' => $presentaciones,
-                'message' => 'Presentaciones encontradas por estado'
+                'data' => $presentaciones
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -277,20 +264,18 @@ class PresentacionController extends Controller
     }
 
     /**
-     * Obtener presentaciones por organización
+     * Get presentaciones by organización
      */
     public function getByOrganizacion(string $organizacion): JsonResponse
     {
         try {
-            $presentaciones = Presentacion::porOrganizacion($organizacion)
-                ->orderBy('Nom_Presentacion')
-                ->get();
+            $presentaciones = Presentacion::where('Id_Licencia', $organizacion)->get();
 
             return response()->json([
                 'success' => true,
-                'data' => $presentaciones,
-                'message' => 'Presentaciones encontradas por organización'
+                'data' => $presentaciones
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -300,20 +285,18 @@ class PresentacionController extends Controller
     }
 
     /**
-     * Obtener presentaciones por siglas
+     * Get presentaciones by siglas (abreviatura)
      */
     public function getBySiglas(string $siglas): JsonResponse
     {
         try {
-            $presentaciones = Presentacion::porSiglas($siglas)
-                ->orderBy('Nom_Presentacion')
-                ->get();
+            $presentaciones = Presentacion::where('abreviatura', 'like', '%' . $siglas . '%')->get();
 
             return response()->json([
                 'success' => true,
-                'data' => $presentaciones,
-                'message' => 'Presentaciones encontradas por siglas'
+                'data' => $presentaciones
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

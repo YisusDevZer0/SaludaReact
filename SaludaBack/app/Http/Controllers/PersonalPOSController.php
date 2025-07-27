@@ -124,6 +124,13 @@ class PersonalPOSController extends Controller
             // Obtener la licencia del usuario
             $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
             
+            \Log::info('Licencia obtenida', [
+                'user_id' => $user->id,
+                'Id_Licencia' => $user->Id_Licencia,
+                'ID_H_O_D' => $user->ID_H_O_D,
+                'licencia_final' => $licencia
+            ]);
+            
             if (!$licencia) {
                 return response()->json([
                     'success' => false,
@@ -195,6 +202,11 @@ class PersonalPOSController extends Controller
             \Log::info('Datos para crear personal', $personalData);
 
             $personal = PersonalPos::create($personalData);
+
+            \Log::info('Personal creado exitosamente', [
+                'personal_id' => $personal->id,
+                'licencia_asignada' => $personal->Id_Licencia
+            ]);
 
             // Obtener el personal creado con sus relaciones
             $personalConRelaciones = PersonalPos::with(['sucursal', 'role'])

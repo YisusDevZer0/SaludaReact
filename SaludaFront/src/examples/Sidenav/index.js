@@ -51,7 +51,6 @@ import {
 } from "context";
 
 // Mock data para menús personalizados
-import { getMockDataByRole } from "services/mock-user-service";
 import defaultLogo from "assets/images/logo-ct.png";
 import defaultAvatar from "assets/images/zero.png";
 
@@ -123,18 +122,14 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
 
   // Obtener elementos de menú personalizados según el rol
   const getRoleMenuItems = () => {
-    if (!userRole) return [];
-    
-    const mockData = getMockDataByRole(userRole);
-    return mockData && mockData.menuItems ? mockData.menuItems.filter(item => item.type === "collapse") : [];
+    // Función simplificada - retorna array vacío por ahora
+    return [];
   };
 
   // Obtener títulos del menú según el rol
   const getRoleMenuTitles = () => {
-    if (!userRole) return [];
-    
-    const mockData = getMockDataByRole(userRole);
-    return mockData && mockData.menuItems ? mockData.menuItems.filter(item => item.type === "title") : [];
+    // Función simplificada - retorna array vacío por ahora
+    return [];
   };
 
   // Elementos de menú personalizados según el rol

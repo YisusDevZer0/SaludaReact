@@ -39,6 +39,7 @@ use App\Http\Controllers\EncargoController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MovimientoInventarioController;
 use App\Http\Controllers\AjusteInventarioController;
+use App\Http\Controllers\StockController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -181,6 +182,7 @@ Route::put('/sucursales/{id}', [SucursalController::class, 'update']);
 Route::delete('/sucursales/{id}', [SucursalController::class, 'destroy']);
 Route::get('/sucursales/estadisticas', [SucursalController::class, 'getStats']);
 Route::get('/sucursales/activas', [SucursalController::class, 'getAllActive']);
+Route::get('/sucursales/todas', [SucursalController::class, 'getAll']);
 
 // Rutas para preferencias de usuario (protegidas con Passport)
 Route::middleware(['auth:api'])->group(function () {
@@ -372,6 +374,19 @@ Route::prefix('presentaciones')->group(function () {
     Route::get('/siglas/{siglas}', [PresentacionController::class, 'getBySiglas']);
 });
 
+    // Tipos de Productos
+Route::prefix('tipos')->group(function () {
+    Route::get('/', [TipoController::class, 'index']);
+    Route::get('/create', [TipoController::class, 'create']);
+    Route::post('/', [TipoController::class, 'store']);
+    Route::get('/{id}', [TipoController::class, 'show']);
+    Route::get('/{id}/edit', [TipoController::class, 'edit']);
+    Route::put('/{id}', [TipoController::class, 'update']);
+    Route::delete('/{id}', [TipoController::class, 'destroy']);
+    Route::get('/estado/{estado}', [TipoController::class, 'getByEstado']);
+    Route::get('/organizacion/{organizacion}', [TipoController::class, 'getByOrganizacion']);
+});
+
     // Personal
 Route::get('/personal/listado', [PersonalPOSController::class, 'indexDataTable']);
 Route::get('personal/{id}', [PersonalPOSController::class, 'show']);
@@ -398,7 +413,7 @@ Route::get('/roles', function() {
             'message' => 'Error al obtener roles: ' . $e->getMessage()
         ], 500);
     }
-})->middleware(['personalpos.auth']);
+})->middleware(['auth:api']);
 
 // Sucursales
 Route::get('/sucursales', function() {
@@ -418,7 +433,7 @@ Route::get('/sucursales', function() {
             'message' => 'Error al obtener sucursales: ' . $e->getMessage()
         ], 500);
     }
-})->middleware(['personalpos.auth']);
+})->middleware(['auth:api']);
 
 // Rutas de preferencias del usuario
 Route::middleware(['json.api', 'auth:api'])->group(function () {
@@ -514,6 +529,7 @@ Route::prefix('componentes')->group(function () {
     Route::prefix('almacenes')->group(function () {
         Route::get('/', [AlmacenController::class, 'index']);
         Route::post('/', [AlmacenController::class, 'store']);
+        Route::get('/personas-disponibles', [AlmacenController::class, 'getPersonasDisponibles']);
         Route::get('/estadisticas', [AlmacenController::class, 'estadisticas']);
         Route::get('/tipos-disponibles', [AlmacenController::class, 'tiposDisponibles']);
         Route::post('/cambiar-estado-masivo', [AlmacenController::class, 'cambiarEstadoMasivo']);
@@ -530,6 +546,7 @@ Route::prefix('componentes')->group(function () {
     Route::prefix('productos')->group(function () {
         Route::get('/', [ProductoController::class, 'index']);
         Route::post('/', [ProductoController::class, 'store']);
+        Route::post('/bulk-upload', [ProductoController::class, 'bulkUpload']);
         Route::get('/estadisticas', [ProductoController::class, 'estadisticas']);
         Route::post('/cambiar-estado-masivo', [ProductoController::class, 'cambiarEstadoMasivo']);
         Route::get('/estados-disponibles', [ProductoController::class, 'estadosDisponibles']);
@@ -546,6 +563,20 @@ Route::prefix('componentes')->group(function () {
         Route::get('/{id}', [ProductoController::class, 'show']);
         Route::put('/{id}', [ProductoController::class, 'update']);
         Route::delete('/{id}', [ProductoController::class, 'destroy']);
+    });
+
+    // Stock
+    Route::prefix('stock')->group(function () {
+        Route::post('/crear-inicial', [StockController::class, 'crearStockInicial']);
+        Route::post('/agregar', [StockController::class, 'agregarStock']);
+        Route::get('/producto/{productoId}', [StockController::class, 'getStockProducto']);
+        Route::get('/historial/{productoId}', [StockController::class, 'getHistorialStock']);
+        Route::get('/sucursal/{sucursalId}', [StockController::class, 'getStockPorSucursal']);
+        Route::post('/transferir', [StockController::class, 'transferirStock']);
+        Route::post('/ajustar', [StockController::class, 'ajustarStock']);
+        Route::get('/alertas/bajo', [StockController::class, 'getAlertasStockBajo']);
+        Route::get('/alertas/vencimiento', [StockController::class, 'getAlertasVencimiento']);
+        Route::get('/estadisticas', [StockController::class, 'getEstadisticasStock']);
     });
 
     // Proveedores
@@ -604,6 +635,7 @@ Route::prefix('componentes')->group(function () {
 Route::prefix('productos')->group(function () {
     Route::get('/', [ProductoController::class, 'index']);
     Route::post('/', [ProductoController::class, 'store']);
+    Route::post('/bulk-upload', [ProductoController::class, 'bulkUpload']);
     Route::get('/{id}', [ProductoController::class, 'show']);
     Route::put('/{id}', [ProductoController::class, 'update']);
     Route::delete('/{id}', [ProductoController::class, 'destroy']);
@@ -690,6 +722,7 @@ Route::prefix('gastos')->group(function () {
 Route::prefix('almacenes')->group(function () {
     Route::get('/', [AlmacenController::class, 'index']);
     Route::post('/', [AlmacenController::class, 'store']);
+    Route::get('/personas-disponibles', [AlmacenController::class, 'getPersonasDisponibles']);
     Route::get('/{id}', [AlmacenController::class, 'show']);
     Route::put('/{id}', [AlmacenController::class, 'update']);
     Route::delete('/{id}', [AlmacenController::class, 'destroy']);

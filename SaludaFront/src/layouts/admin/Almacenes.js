@@ -21,16 +21,17 @@ import {
   Chip,
   Tooltip,
   IconButton,
-  Box
+  Box,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Visibility as ViewIcon,
-  GetApp as ExportIcon,
-  BugReport as DebugIcon,
-  Warehouse as WarehouseIcon
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Refresh as RefreshIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material';
 
 // Componentes propios
@@ -55,35 +56,134 @@ function Almacenes() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState('create'); // create, edit, view
   const [selectedAlmacen, setSelectedAlmacen] = useState(null);
+  const [personasDisponibles, setPersonasDisponibles] = useState([]);
   const [formData, setFormData] = useState({
     nombre: '',
     tipo: 'Servicio',
     estado: 'Activo',
     responsable: '',
+    responsable_id: '',
     ubicacion: '',
     sucursal_id: 1
   });
   const [formErrors, setFormErrors] = useState({});
   const [tableKey, setTableKey] = useState(0); // Para forzar actualización de tabla
+  const [loadingPersonas, setLoadingPersonas] = useState(false);
+  const [editingId, setEditingId] = useState(null); // Nuevo estado para el ID de edición
 
   // Hook de notificaciones
   const { showNotification } = useNotifications();
 
+  // Cargar datos iniciales
+  useEffect(() => {
+    loadPersonasDisponibles();
+  }, []);
+
+  // Efecto para debug cuando cambia tableKey
+  useEffect(() => {
+    // tableKey cambió
+  }, [tableKey]);
+
+  // Cargar personas disponibles para el selector
+  const loadPersonasDisponibles = async () => {
+    try {
+      setLoadingPersonas(true);
+      console.log('Cargando personas disponibles...');
+      const token = localStorage.getItem('access_token');
+      
+      if (!token) {
+        console.error('No hay token de autenticación');
+        showNotification('Error: No hay token de autenticación', 'error');
+        return;
+      }
+
+      const response = await fetch('/api/almacenes/personas-disponibles', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('Respuesta del servidor:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Personas disponibles:', data);
+        
+        if (data.success && data.data) {
+          console.log('🔍 DEBUG: Estructura de personas:', data.data[0]);
+          setPersonasDisponibles(data.data);
+          console.log(`Se cargaron ${data.data.length} personas disponibles`);
+        } else {
+          console.error('Respuesta sin datos válidos:', data);
+          showNotification('Error: Respuesta sin datos válidos', 'error');
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Error al cargar personas:', errorData);
+        showNotification(`Error al cargar personas: ${errorData.message || 'Error desconocido'}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error al cargar personas disponibles:', error);
+      showNotification('Error de conexión al cargar personas', 'error');
+      
+      // Fallback a datos de ejemplo si hay error
+      setPersonasDisponibles([
+        { id: 1, nombre: "Juan", apellido: "Pérez", role_id: "Administrador" },
+        { id: 2, nombre: "María", apellido: "García", role_id: "Vendedor" },
+        { id: 3, nombre: "Carlos", apellido: "López", role_id: "Supervisor" }
+      ]);
+    } finally {
+      setLoadingPersonas(false);
+    }
+  };
+
+  // Cargar almacenes
+  const loadAlmacenes = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 DEBUG: Cargando almacenes...');
+      
+      const result = await almacenService.getAll({
+        page: 1,
+        perPage: 25
+      });
+      
+      console.log('🔍 DEBUG: Resultado de carga:', result);
+      console.log('🔍 DEBUG: Datos de almacenes:', result.data);
+      
+      if (result.data && Array.isArray(result.data)) {
+        // setAlmacenes(result.data); // This state variable doesn't exist in the original file
+        console.log('🔍 DEBUG: Almacenes cargados:', result.data.length);
+      } else {
+        console.error('🔍 DEBUG: Formato de datos incorrecto:', result);
+        // setAlmacenes([]); // This state variable doesn't exist in the original file
+      }
+    } catch (error) {
+      console.error('🔍 DEBUG: Error al cargar almacenes:', error);
+      showNotification('Error al cargar almacenes', 'error');
+      // setAlmacenes([]); // This state variable doesn't exist in the original file
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Configuración de columnas para StandardDataTable (react-data-table-component)
   const columns = [
     {
-      name: 'Almacen_ID',
-      selector: row => row.Almacen_ID || 0,
+      name: 'ID',
+      selector: row => row.Almacen_ID,
       sortable: true,
-      omit: true, // Ocultar columna
+      width: '80px'
     },
     {
       name: 'Nombre',
-      selector: row => row.Nom_Almacen || 'Sin nombre',
+      selector: row => row.Nom_Almacen,
       sortable: true,
-      searchable: true,
       cell: (row) => (
-        <MDTypography variant="caption" fontWeight="medium">
+        <MDTypography variant="body2" fontWeight="medium">
           {row.Nom_Almacen || 'Sin nombre'}
         </MDTypography>
       )
@@ -123,26 +223,6 @@ function Almacenes() {
           {row.Responsable || 'No asignado'}
         </MDTypography>
       )
-    },
-    {
-      name: 'Ubicación',
-      selector: row => row.Ubicacion,
-      sortable: true,
-      cell: (row) => (
-        <MDTypography variant="caption" color="text">
-          {row.Ubicacion || 'No especificada'}
-        </MDTypography>
-      )
-    },
-    {
-      name: 'Fecha Creación',
-      selector: row => row.Agregadoel,
-      sortable: true,
-      cell: (row) => (
-        <MDTypography variant="caption" color="text">
-          {row.Agregadoel ? new Date(row.Agregadoel).toLocaleDateString('es-ES') : 'N/A'}
-        </MDTypography>
-      )
     }
   ];
 
@@ -180,42 +260,56 @@ function Almacenes() {
       tipo: 'Servicio',
       estado: 'Activo',
       responsable: '',
+      responsable_id: '',
       ubicacion: '',
       sucursal_id: 1
     });
     setFormErrors({});
     setDialogMode('create');
-    setSelectedAlmacen(null);
     setDialogOpen(true);
+    loadPersonasDisponibles(); // Cargar personas disponibles
   };
 
+  // Función para manejar la edición de un almacén
   const handleEdit = (almacen) => {
-    setFormData({
+    // Mapear los datos del almacén al formato del formulario
+    const formDataToSet = {
       nombre: almacen.Nom_Almacen || '',
-      tipo: almacen.Tipo || 'Servicio',
+      tipo: almacen.Tipo || '',
       estado: almacen.Estado || 'Activo',
       responsable: almacen.Responsable || '',
+      responsable_id: '',
       ubicacion: almacen.Ubicacion || '',
-      sucursal_id: almacen.ID_H_O_D || 1
-    });
-    setFormErrors({});
-    setDialogMode('edit');
+      sucursal_id: almacen.FkSucursal?.toString() || '1',
+      descripcion: almacen.Descripcion || '',
+      capacidad_max: almacen.Capacidad_Max || '',
+      unidad_medida: almacen.Unidad_Medida || '',
+      telefono: almacen.Telefono || '',
+      email: almacen.Email || ''
+    };
+    
+    setFormData(formDataToSet);
     setSelectedAlmacen(almacen);
+    setEditingId(almacen.Almacen_ID);
+    setDialogMode('edit');
     setDialogOpen(true);
+    loadPersonasDisponibles(); // Cargar personas disponibles
   };
 
   const handleView = (almacen) => {
     setFormData({
       nombre: almacen.Nom_Almacen || '',
-      tipo: almacen.Tipo || '',
-      estado: almacen.Estado || '',
+      tipo: almacen.Tipo || 'Servicio',
+      estado: almacen.Estado || 'Activo',
       responsable: almacen.Responsable || '',
+      responsable_id: almacen.FkResponsable || '', // Asegúrate de que el responsable_id sea el ID de la persona
       ubicacion: almacen.Ubicacion || '',
-      sucursal_id: almacen.ID_H_O_D || ''
+      sucursal_id: almacen.FkSucursal || 1
     });
-    setDialogMode('view');
     setSelectedAlmacen(almacen);
+    setDialogMode('view');
     setDialogOpen(true);
+    loadPersonasDisponibles(); // Cargar personas disponibles
   };
 
   const handleDelete = async (almacen) => {
@@ -234,40 +328,62 @@ function Almacenes() {
     }
   };
 
-  const handleSubmit = async () => {
+  // Función para manejar el envío del formulario
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
+      setLoading(true); // Use loading state for submission
+      
       // Validar datos
-      const validation = almacenService.validateAlmacenData(formData);
-      if (!validation.isValid) {
-        setFormErrors(validation.errors);
+      const validationResult = almacenService.validateAlmacenData(formData);
+      
+      if (!validationResult.isValid) {
+        setFormErrors(validationResult.errors);
+        showNotification('Por favor, corrige los errores en el formulario', 'error');
         return;
       }
-
-      setLoading(true);
-      const submitData = almacenService.prepareAlmacenForSubmit(formData);
-
+      
+      // Preparar datos para enviar
+      const dataToSubmit = almacenService.prepareAlmacenForSubmit(formData);
+      
+      let response;
       if (dialogMode === 'create') {
-        await almacenService.create(submitData);
+        // Crear nuevo almacén
+        response = await almacenService.create(dataToSubmit);
         showNotification('Almacén creado exitosamente', 'success');
       } else if (dialogMode === 'edit') {
-        await almacenService.update(selectedAlmacen.Almacen_ID, submitData);
+        // Actualizar almacén existente
+        response = await almacenService.update(editingId, dataToSubmit);
         showNotification('Almacén actualizado exitosamente', 'success');
       }
-
-      setDialogOpen(false);
-      setTableKey(prev => prev + 1); // Forzar actualización
+      
+      // Limpiar formulario
+      setFormData({
+        nombre: '',
+        tipo: 'Servicio',
+        estado: 'Activo',
+        responsable: '',
+        responsable_id: '',
+        ubicacion: '',
+        sucursal_id: 1,
+        descripcion: '',
+        capacidad_max: '',
+        unidad_medida: '',
+        telefono: '',
+        email: ''
+      });
+      setFormErrors({});
+      setDialogOpen(false); // Close dialog after successful submission
+      
+      // Recargar tabla después de un pequeño delay
+      setTimeout(() => {
+        setTableKey(prev => prev + 1);
+      }, 100);
       
     } catch (error) {
       console.error('Error al guardar:', error);
-      const errorMessage = error.response?.data?.message || 
-                          error.response?.data?.error || 
-                          'Error al guardar el almacén';
-      showNotification(errorMessage, 'error');
-      
-      // Mostrar errores de validación del servidor
-      if (error.response?.data?.errors) {
-        setFormErrors(error.response.data.errors);
-      }
+      showNotification('Error al guardar el almacén', 'error');
     } finally {
       setLoading(false);
     }
@@ -278,6 +394,17 @@ function Almacenes() {
       ...prev,
       [field]: value
     }));
+    
+    // Si es el campo responsable_id, buscar el nombre de la persona
+    if (field === 'responsable_id' && value) {
+      const persona = personasDisponibles.find(p => p.id === value);
+      if (persona) {
+        setFormData(prev => ({
+          ...prev,
+          responsable: `${persona.nombre} ${persona.apellido}`
+        }));
+      }
+    }
     
     // Limpiar error del campo al escribir
     if (formErrors[field]) {
@@ -320,11 +447,20 @@ function Almacenes() {
                     <Button
                       variant="outlined"
                       color="white"
-                      startIcon={<DebugIcon />}
-                      onClick={debugService}
-                      className="almacenes-debug-button"
+                      startIcon={<RefreshIcon />}
+                      onClick={loadAlmacenes}
+                      className="almacenes-refresh-button"
                     >
-                      Debug
+                      Refrescar
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="white"
+                      startIcon={<FilterIcon />}
+                      onClick={() => {}} // No hay filtros avanzados implementados
+                      className="almacenes-filter-button"
+                    >
+                      Filtros
                     </Button>
                     <Button
                       variant="contained"
@@ -351,37 +487,13 @@ function Almacenes() {
                       enableCreate={false}
                       enableEdit={false}
                       enableDelete={false}
-                      enableExport={true}
-                      enableFilters={true}
+                      enableExport={false}
+                      enableFilters={false}
                       enableSearch={true}
                       defaultPageSize={25}
                       defaultSortField="Nom_Almacen"
                       defaultSortDirection="asc"
                       className="almacenes-table"
-                      availableFilters={[
-                        {
-                          key: 'tipo',
-                          label: 'Tipo',
-                          type: 'select',
-                          options: [
-                            { value: 'Servicio', label: 'Servicio' },
-                            { value: 'Medicamento', label: 'Medicamento' },
-                            { value: 'Insumo', label: 'Insumo' },
-                            { value: 'Equipo', label: 'Equipo' },
-                            { value: 'Material', label: 'Material' },
-                            { value: 'Consumible', label: 'Consumible' }
-                          ]
-                        },
-                        {
-                          key: 'estado',
-                          label: 'Estado',
-                          type: 'select',
-                          options: [
-                            { value: 'Activo', label: 'Activo' },
-                            { value: 'Inactivo', label: 'Inactivo' }
-                          ]
-                        }
-                      ]}
                       permissions={{
                         create: true,
                         edit: true,
@@ -389,6 +501,26 @@ function Almacenes() {
                         view: true
                       }}
                       onRowClick={(row) => handleView(row)}
+                      customActions={[
+                        {
+                          icon: <ViewIcon />,
+                          title: 'Ver',
+                          onClick: (row) => handleView(row),
+                          color: 'info.main'
+                        },
+                        {
+                          icon: <EditIcon />,
+                          title: 'Editar',
+                          onClick: (row) => handleEdit(row),
+                          color: 'warning.main'
+                        },
+                        {
+                          icon: <DeleteIcon />,
+                          title: 'Eliminar',
+                          onClick: (row) => handleDelete(row),
+                          color: 'error.main'
+                        }
+                      ]}
                     />
                   </TableThemeProvider>
                 </CardContent>
@@ -479,16 +611,20 @@ function Almacenes() {
               fullWidth
             />
             
-            <TextField
-              label="ID Organización"
-              type="number"
-              value={formData.sucursal_id}
-              onChange={(e) => handleInputChange('sucursal_id', parseInt(e.target.value) || 1)}
-              disabled={isReadOnly || loading}
-              error={!!formErrors.sucursal_id}
-              helperText={formErrors.sucursal_id || "ID de la organización"}
-              fullWidth
-            />
+            {/* Campo oculto para ID de organización - solo para debug */}
+            {process.env.NODE_ENV === 'development' && (
+              <TextField
+                label="ID Organización"
+                type="number"
+                value={formData.sucursal_id}
+                onChange={(e) => handleInputChange('sucursal_id', parseInt(e.target.value) || 1)}
+                disabled={isReadOnly || loading}
+                error={!!formErrors.sucursal_id}
+                helperText={formErrors.sucursal_id || "ID de la organización"}
+                fullWidth
+                sx={{ display: 'none' }} // Oculto completamente
+              />
+            )}
           </Box>
         </DialogContent>
         

@@ -1,4 +1,4 @@
-import httpService from './htttp.service';
+import httpService from './http.service';
 
 class ProductoService {
   constructor() {
@@ -298,6 +298,7 @@ class ProductoService {
       codigo_proveedor: data.codigo_proveedor ? data.codigo_proveedor.trim() : null,
       tiempo_entrega_dias: data.tiempo_entrega_dias ? parseInt(data.tiempo_entrega_dias) : null,
       precio_proveedor: data.precio_proveedor ? parseFloat(data.precio_proveedor) : null,
+      almacen_id: data.almacen_id ? parseInt(data.almacen_id) : null,
       estado: data.estado || 'activo',
       visible_en_pos: data.visible_en_pos !== undefined ? data.visible_en_pos : true,
       permitir_venta_sin_stock: data.permitir_venta_sin_stock || false,
@@ -311,7 +312,11 @@ class ProductoService {
       etiquetas: data.etiquetas || null,
       notas: data.notas ? data.notas.trim() : null,
       imagen_url: data.imagen_url ? data.imagen_url.trim() : null,
-      documentacion_url: data.documentacion_url ? data.documentacion_url.trim() : null
+      documentacion_url: data.documentacion_url ? data.documentacion_url.trim() : null,
+      // Campos requeridos por el backend
+      tipo_producto: data.tipo_producto || 'producto',
+      precio_costo: data.costo_unitario ? parseFloat(data.costo_unitario) : (data.precio_compra ? parseFloat(data.precio_compra) : 0),
+      impuesto_iva: data.iva ? parseFloat(data.iva) : 21.00
     };
   }
 

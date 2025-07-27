@@ -7,6 +7,9 @@ import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
 import { Grid } from "@mui/material";
 
+// Context
+import { useMaterialUIController } from "context";
+
 // Servicios
 import marcasService from "services/marcas-service";
 
@@ -16,7 +19,13 @@ import GenericModal from "components/Modales/GenericModal";
 // Componentes de tabla
 import DataTable from "examples/Tables/DataTable";
 
+// Estilos
+import "./Marcas.css";
+
 export default function Marcas() {
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
   const [marcas, setMarcas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -27,12 +36,15 @@ export default function Marcas() {
   const marcaFields = [
     {
       name: "nombre",
-      label: "Nombre",
+      label: "Nombre de la Marca",
       type: "text",
       required: true,
       validation: (value) => {
-        if (value && value.length > 100) {
-          return "El nombre no puede exceder 100 caracteres";
+        if (!value || value.trim() === '') {
+          return "El nombre es requerido";
+        }
+        if (value && value.length > 255) {
+          return "El nombre no puede exceder 255 caracteres";
         }
         return null;
       }
@@ -44,8 +56,8 @@ export default function Marcas() {
       multiline: true,
       rows: 3,
       validation: (value) => {
-        if (value && value.length > 500) {
-          return "La descripción no puede exceder 500 caracteres";
+        if (value && value.length > 1000) {
+          return "La descripción no puede exceder 1000 caracteres";
         }
         return null;
       }
@@ -55,10 +67,32 @@ export default function Marcas() {
       label: "Estado",
       type: "select",
       required: true,
-      defaultValue: "activo",
+      defaultValue: "Activo",
       options: [
-        { value: "activo", label: "Activo" },
-        { value: "inactivo", label: "Inactivo" }
+        { value: "Activo", label: "Activo" },
+        { value: "Inactivo", label: "Inactivo" }
+      ]
+    },
+    {
+      name: "codigo_estado",
+      label: "Código de Estado",
+      type: "select",
+      required: true,
+      defaultValue: "A",
+      options: [
+        { value: "A", label: "Activo (A)" },
+        { value: "I", label: "Inactivo (I)" }
+      ]
+    },
+    {
+      name: "sistema",
+      label: "Sistema",
+      type: "select",
+      required: true,
+      defaultValue: true,
+      options: [
+        { value: true, label: "Sistema" },
+        { value: false, label: "Personalizado" }
       ]
     }
   ];
@@ -68,7 +102,26 @@ export default function Marcas() {
     try {
       setLoading(true);
       const response = await marcasService.getMarcas();
-      const formattedData = marcasService.formatMarcasForTable(response.data || response || []);
+      
+      // Mapear los datos del backend al formato esperado por la tabla
+      const formattedData = (response.data || []).map(marca => ({
+        id: marca.id,
+        nombre: marca.nombre || 'Sin nombre',
+        descripcion: marca.descripcion || 'Sin descripción',
+        estado: marca.estado || 'Activo',
+        codigo_estado: marca.codigo_estado || 'A',
+        sistema: marca.sistema || 'POS',
+        organizacion: marca.organizacion || 'Saluda',
+        creado: marca.agregado_el ? new Date(marca.agregado_el).toLocaleDateString('es-ES') : 'N/A',
+        agregado_por: marca.agregado_por || 'Sistema',
+        // Datos originales para el modal
+        nombre: marca.nombre,
+        descripcion: marca.descripcion,
+        estado: marca.estado,
+        codigo_estado: marca.codigo_estado,
+        sistema: marca.sistema
+      }));
+      
       setMarcas(formattedData);
     } catch (error) {
       console.error("Error al cargar marcas:", error);
@@ -109,15 +162,30 @@ export default function Marcas() {
         <MDBox
           component="span"
           variant="caption"
-          color={value === "activo" ? "success" : "error"}
+          color={value === "Activo" ? "success" : "error"}
           fontWeight="medium"
         >
-          {value === "activo" ? "ACTIVO" : "INACTIVO"}
+          {value === "Activo" ? "ACTIVO" : "INACTIVO"}
         </MDBox>
       )
     },
-    { Header: "Creado", accessor: "created_at" },
-    { Header: "Actualizado", accessor: "updated_at" },
+    { 
+      Header: "Código Estado", 
+      accessor: "codigo_estado",
+      Cell: ({ value }) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={value === "A" ? "success" : "error"}
+          fontWeight="medium"
+        >
+          {value}
+        </MDBox>
+      )
+    },
+    { Header: "Sistema", accessor: "sistema" },
+    { Header: "Organización", accessor: "organizacion" },
+    { Header: "Creado", accessor: "creado" },
     {
       Header: "Acciones",
       accessor: "acciones",
@@ -137,7 +205,7 @@ export default function Marcas() {
           </Icon>
           <Icon 
             sx={{ cursor: "pointer", color: "error.main" }} 
-            onClick={() => handleOpenModal("view", row.original)}
+            onClick={() => handleDelete(row.original)}
           >
             delete
           </Icon>
@@ -145,6 +213,18 @@ export default function Marcas() {
       )
     }
   ];
+
+  // Función para eliminar marca
+  const handleDelete = async (marca) => {
+    if (window.confirm(`¿Está seguro de eliminar la marca "${marca.nombre}"?`)) {
+      try {
+        await marcasService.deleteMarca(marca.id);
+        loadMarcas(); // Recargar datos
+      } catch (error) {
+        console.error("Error al eliminar marca:", error);
+      }
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -165,6 +245,7 @@ export default function Marcas() {
               color="success" 
               startIcon={<Icon>add</Icon>}
               onClick={() => handleOpenModal("create")}
+              className="marcas-create-button"
             >
               Nueva Marca
             </MDButton>
@@ -184,7 +265,6 @@ export default function Marcas() {
           showTotalEntries={true}
           noEndBorder
           canSearch
-          loading={loading}
         />
 
         {/* Modal genérico */}

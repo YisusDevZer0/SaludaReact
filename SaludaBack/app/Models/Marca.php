@@ -76,7 +76,7 @@ class Marca extends Model
     // Relaciones
     public function servicios()
     {
-        return $this->belongsToMany(Servicio::class, 'servicio_marca', 'marca_id', 'servicio_id')
+        return $this->belongsToMany(Servicio::class, 'servicio_marca', 'marca_id', 'servicio_id', 'Marca_ID', 'Servicio_ID')
                     ->withPivot('precio_especial', 'notas', 'agregado_por')
                     ->withTimestamps();
     }

@@ -21,7 +21,7 @@ class Presentacion extends Model
      *
      * @var string
      */
-    protected $primaryKey = 'Pprod_ID';
+    protected $primaryKey = 'id';
 
     /**
      * Los atributos que son asignables masivamente.
@@ -29,14 +29,13 @@ class Presentacion extends Model
      * @var array
      */
     protected $fillable = [
-        'Nom_Presentacion',
-        'Siglas',
-        'Estado',
-        'Cod_Estado',
-        'Agregado_Por',
-        'Agregadoel',
-        'Sistema',
-        'ID_H_O_D',
+        'nombre',
+        'descripcion',
+        'codigo',
+        'abreviatura',
+        'activa',
+        'orden',
+        'Id_Licencia',
     ];
 
     /**
@@ -45,9 +44,11 @@ class Presentacion extends Model
      * @var array
      */
     protected $casts = [
-        'Agregadoel' => 'datetime',
+        'activa' => 'boolean',
+        'orden' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -60,34 +61,42 @@ class Presentacion extends Model
     ];
 
     /**
-     * Scope para filtrar por estado vigente
+     * Scope para filtrar por estado activo
      */
-    public function scopeVigente($query)
+    public function scopeActiva($query)
     {
-        return $query->where('Estado', 'Vigente');
+        return $query->where('activa', true);
     }
 
     /**
-     * Scope para filtrar por sistema POS
+     * Scope para filtrar por código
      */
-    public function scopeSistemaPos($query)
+    public function scopePorCodigo($query, $codigo)
     {
-        return $query->where('Sistema', 'POS');
+        return $query->where('codigo', 'like', '%' . $codigo . '%');
     }
 
     /**
-     * Scope para filtrar por organización
+     * Scope para filtrar por nombre
      */
-    public function scopePorOrganizacion($query, $organizacion)
+    public function scopePorNombre($query, $nombre)
     {
-        return $query->where('ID_H_O_D', $organizacion);
+        return $query->where('nombre', 'like', '%' . $nombre . '%');
     }
 
     /**
-     * Scope para filtrar por siglas
+     * Scope para filtrar por abreviatura
      */
-    public function scopePorSiglas($query, $siglas)
+    public function scopePorAbreviatura($query, $abreviatura)
     {
-        return $query->where('Siglas', 'like', '%' . $siglas . '%');
+        return $query->where('abreviatura', 'like', '%' . $abreviatura . '%');
+    }
+
+    /**
+     * Scope para ordenar por orden
+     */
+    public function scopeOrdenado($query)
+    {
+        return $query->orderBy('orden', 'asc');
     }
 } 

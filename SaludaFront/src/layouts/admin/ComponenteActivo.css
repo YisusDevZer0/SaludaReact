@@ -1,7 +1,7 @@
-/* Estilos para Servicios.js */
+/* Estilos para ComponenteActivo.js */
 
-/* Botón de crear nuevo servicio */
-.servicios-create-button {
+/* Botón de crear nuevo componente */
+.componente-create-button {
   background: linear-gradient(195deg, #49a3f1, #1A73E8) !important;
   color: white !important;
   border-radius: 8px !important;
@@ -12,12 +12,12 @@
   transition: all 0.3s ease !important;
 }
 
-.servicios-create-button:hover {
+.componente-create-button:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Tabla de servicios - estilos generales */
+/* Tabla de componentes - estilos generales */
 .MuiTableContainer-root {
   background: var(--mui-palette-background-paper) !important;
   border-radius: 12px !important;
@@ -49,7 +49,7 @@
   color: var(--mui-palette-text-primary) !important;
 }
 
-/* Modal de servicios - estilos generales */
+/* Modal de componentes - estilos generales */
 .MuiDialog-paper {
   border-radius: 12px !important;
   max-width: 600px !important;
@@ -148,8 +148,8 @@
   color: var(--mui-palette-text-secondary) !important;
 }
 
-/* Estados de los servicios */
-.estado-activo {
+/* Estados de los componentes */
+.estado-vigente {
   background: linear-gradient(195deg, #66BB6A, #43A047) !important;
   color: white !important;
   padding: 4px 12px !important;
@@ -158,7 +158,7 @@
   font-weight: 600 !important;
 }
 
-.estado-inactivo {
+.estado-descontinuado {
   background: linear-gradient(195deg, #EF5350, #E53935) !important;
   color: white !important;
   padding: 4px 12px !important;

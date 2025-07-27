@@ -187,7 +187,7 @@ class ServicioService {
         return {
             Nom_Serv: servicioData.nombre || servicioData.Nom_Serv || '',
             Estado: servicioData.estado || servicioData.Estado || 'Activo',
-            Sistema: servicioData.sistema !== undefined ? servicioData.sistema : servicioData.Sistema || false,
+            Sistema: Boolean(servicioData.sistema !== undefined ? servicioData.sistema : servicioData.Sistema || false),
             ID_H_O_D: servicioData.ID_H_O_D || 1,
             Agregado_Por: servicioData.agregado_por || servicioData.Agregado_Por || 'Sistema'
         };

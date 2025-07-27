@@ -45,8 +45,7 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import { AuthContext } from "context";
 
 // Services
-import { getMockDataByRole } from "services/mock-user-service";
-import HttpService from "services/htttp.service";
+import HttpService from "services/http.service";
 import DashboardService from "services/dashboard-service";
 
 // Real-time components
@@ -165,10 +164,21 @@ function Dashboard() {
   // Obtener datos simulados según el rol
   useEffect(() => {
     if (userRole) {
-      const data = getMockDataByRole(userRole);
-      setMockData(data);
+      // Función simplificada - no depende de getMockDataByRole
+      const mockData = {
+        userData: userData,
+        dashboardData: {
+          stats: [
+            { title: "Ventas Hoy", value: "$0", icon: "payment", color: "primary" },
+            { title: "Citas Programadas", value: "0", icon: "event", color: "success" },
+            { title: "Servicios Pendientes", value: "0", icon: "list_alt", color: "warning" },
+            { title: "Personal Activo", value: "0", icon: "group", color: "info" }
+          ]
+        }
+      };
+      setMockData(mockData);
     }
-  }, [userRole]);
+  }, [userRole, userData]);
 
   // Si no hay datos del usuario, mostrar loading
   if (!userData) {
@@ -243,204 +253,16 @@ function Dashboard() {
   // Componentes específicos para cada rol
   const renderAdminDashboard = () => (
     <>
-      {/* Información del Usuario */}
-      <MDBox mb={3}>
-        <ThemedCard>
-          <MDBox
-            mx={2}
-            mt={-3}
-            py={3}
-            px={2}
-            variant="gradient"
-            bgColor="info"
-            borderRadius="lg"
-            coloredShadow="info"
-          >
-            <MDTypography variant="h4" color="white">
-              Información del Usuario
-            </MDTypography>
-          </MDBox>
-          <MDBox p={3}>
-            {userData && (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <MDBox mb={2}>
-                    <MDTypography variant="h5" color="text" fontWeight="bold">
-                      {userData.nombre_completo || userData.Nombre_Apellidos || `${userData.nombre || ''} ${userData.apellido || ''}`.trim() || 'Usuario'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Rol:</strong> {userData.role?.nombre || userData.role?.Nombre_rol || 'No asignado'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Email:</strong> {userData.email || userData.Correo_Electronico || 'No disponible'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Teléfono:</strong> {userData.telefono || userData.Telefono || 'No disponible'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Estado:</strong> {userData.estado_laboral || userData.Estado || 'activo'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Fecha de Ingreso:</strong> {userData.fecha_ingreso ? new Date(userData.fecha_ingreso).toLocaleDateString('es-ES') : 'No disponible'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Sucursal:</strong> {userData.sucursal?.nombre || userData.sucursal?.Nombre_Sucursal || 'No asignada'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Dirección:</strong> {userData.direccion || 'No disponible'}
-                    </MDTypography>
-                  </MDBox>
-                  <MDBox mb={1}>
-                    <MDTypography variant="body1" color="text">
-                      <strong>Código:</strong> {userData.codigo || 'No disponible'}
-                    </MDTypography>
-                  </MDBox>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <MDBox mb={2}>
-                    <MDTypography variant="h5" color="text" fontWeight="medium">
-                      Permisos del Rol
-                    </MDTypography>
-                  </MDBox>
-                  {userData.role && (
-                    <MDBox>
-                      <MDTypography variant="body1" color="text">
-                        <strong>Estado del Rol:</strong> {userData.role.estado || userData.role.Estado || 'activo'}
-                      </MDTypography>
-                      <MDBox mt={2}>
-                        <MDTypography variant="body1" color="text" fontWeight="medium">
-                          Descripción del Rol:
-                        </MDTypography>
-                        <MDBox ml={2} mt={1}>
-                          <MDTypography variant="body2" color="text">
-                            {userData.role.descripcion || userData.role.Descripcion || 'Sin descripción'}
-                          </MDTypography>
-                        </MDBox>
-                      </MDBox>
-                      <MDBox mt={2}>
-                        <MDTypography variant="body1" color="text" fontWeight="medium">
-                          Permisos Generales:
-                        </MDTypography>
-                        {userData.role?.permisos && userData.role.permisos.length > 0 ? (
-                          // Nuevo formato: permisos como array
-                          userData.role.permisos.map((permiso, index) => (
-                            <MDBox key={index} ml={2} mt={1}>
-                              <MDTypography variant="body2" color="text">
-                                • {permiso}: ✅
-                              </MDTypography>
-                            </MDBox>
-                          ))
-                        ) : userData.can_sell || userData.can_refund || userData.can_manage_inventory || userData.can_manage_users || userData.can_view_reports || userData.can_manage_settings ? (
-                          // Mostrar permisos individuales del usuario
-                          <>
-                            {userData.can_sell && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Vender: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                            {userData.can_refund && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Reembolsar: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                            {userData.can_manage_inventory && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Gestionar Inventario: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                            {userData.can_manage_users && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Gestionar Usuarios: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                            {userData.can_view_reports && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Ver Reportes: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                            {userData.can_manage_settings && (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Gestionar Configuración: ✅
-                                </MDTypography>
-                              </MDBox>
-                            )}
-                          </>
-                        ) : userData.Permisos ? (() => {
-                          // Formato legacy: permisos como JSON string
-                          try {
-                            const permisos = JSON.parse(userData.Permisos);
-                            return Object.entries(permisos).map(([key, value]) => (
-                              <MDBox key={key} ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • {key}: {value ? '✅' : '❌'}
-                                </MDTypography>
-                              </MDBox>
-                            ));
-                          } catch (error) {
-                            console.error('Error parsing permisos:', error);
-                            return (
-                              <MDBox ml={2} mt={1}>
-                                <MDTypography variant="body2" color="text">
-                                  • Error al cargar permisos
-                                </MDTypography>
-                              </MDBox>
-                            );
-                          }
-                        })() : (
-                          <MDBox ml={2} mt={1}>
-                            <MDTypography variant="body2" color="text">
-                              • No hay permisos configurados
-                            </MDTypography>
-                          </MDBox>
-                        )}
-                      </MDBox>
-                    </MDBox>
-                  )}
-                </Grid>
-              </Grid>
-            )}
-          </MDBox>
-        </ThemedCard>
-      </MDBox>
-
-      {/* Estadísticas para Administrador */}
+      {/* Estadísticas */}
       <Grid container spacing={3}>
-        {/* Componente de tiempo real para personal activo */}
         <Grid item xs={12} md={6} lg={3}>
           <RealTimePersonalCount />
         </Grid>
-        
-        {/* Componente de total de empleados */}
         <Grid item xs={12} md={6} lg={3}>
           <TotalEmpleadosCount />
         </Grid>
         
-        {mockData.dashboardData.stats
+        {mockData && mockData.dashboardData && mockData.dashboardData.stats
           .filter(stat => stat.title !== "Personal Activo")
           .map((stat, index) => (
             <Grid item xs={12} md={6} lg={3} key={`admin-stat-${index}`}>
@@ -532,7 +354,7 @@ function Dashboard() {
                       { Header: "Monto", accessor: "amount" },
                       { Header: "Fecha", accessor: "date" },
                     ],
-                    rows: mockData.dashboardData.recentTransactions
+                    rows: mockData?.dashboardData?.recentTransactions || []
                   }}
                   isSorted={false}
                   entriesPerPage={false}
@@ -566,7 +388,7 @@ function Dashboard() {
                       { Header: "Stock", accessor: "stock" },
                       { Header: "Mínimo", accessor: "minStock" },
                     ],
-                    rows: mockData.dashboardData.inventoryAlerts
+                    rows: mockData?.dashboardData?.inventoryAlerts || []
                   }}
                   isSorted={false}
                   entriesPerPage={false}
@@ -585,7 +407,7 @@ function Dashboard() {
     <>
       {/* Estadísticas para Vendedor */}
       <Grid container spacing={3}>
-        {mockData.dashboardData.stats.map((stat, index) => (
+        {mockData?.dashboardData?.stats?.map((stat, index) => (
           <Grid item xs={12} md={6} lg={3} key={`seller-stat-${index}`}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
@@ -601,7 +423,7 @@ function Dashboard() {
               />
             </MDBox>
           </Grid>
-        ))}
+        )) || []}
       </Grid>
 
       {/* Información de Ventas */}

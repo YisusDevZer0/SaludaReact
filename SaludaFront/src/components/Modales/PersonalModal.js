@@ -87,13 +87,16 @@ const PersonalModal = ({
     can_view_reports: true,
     can_manage_settings: false,
     notas: "",
-    foto_perfil: ""
+    foto_perfil: "",
+    Id_Licencia: null // Campo oculto para debug
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [sucursales, setSucursales] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [loadingSucursales, setLoadingSucursales] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(false);
 
   // Cargar datos cuando se abre el modal en modo edit o view
   useEffect(() => {
@@ -127,7 +130,8 @@ const PersonalModal = ({
         can_view_reports: personalData.can_view_reports ?? true,
         can_manage_settings: personalData.can_manage_settings ?? false,
         notas: personalData.notas || "",
-        foto_perfil: personalData.foto_perfil || ""
+        foto_perfil: personalData.foto_perfil || "",
+        Id_Licencia: personalData.Id_Licencia || null // Cargar el campo oculto
       });
     }
   }, [open, personalData, mode]);
@@ -142,7 +146,9 @@ const PersonalModal = ({
 
   const loadSucursales = async () => {
     try {
+      console.log('Cargando sucursales...'); // Log de debug
       const response = await personalService.getSucursales();
+      console.log('Respuesta de sucursales:', response); // Log de debug
       setSucursales(response.data || response || []);
     } catch (error) {
       console.error("Error al cargar sucursales:", error);
@@ -157,7 +163,9 @@ const PersonalModal = ({
 
   const loadRoles = async () => {
     try {
+      console.log('Cargando roles...'); // Log de debug
       const response = await personalService.getRoles();
+      console.log('Respuesta de roles:', response); // Log de debug
       setRoles(response.data || response || []);
     } catch (error) {
       console.error("Error al cargar roles:", error);
@@ -612,6 +620,20 @@ const PersonalModal = ({
               </MDTypography>
             </Grid>
 
+            {/* Campo oculto para debug de licencia */}
+            {process.env.NODE_ENV === 'development' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Licencia (Debug)"
+                  value={formData.Id_Licencia || 'No asignada'}
+                  disabled
+                  size="small"
+                  sx={{ display: 'none' }} // Oculto completamente
+                />
+              </Grid>
+            )}
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -982,8 +1004,8 @@ const PersonalModal = ({
           <>
             <MDButton
               onClick={() => {
-                setModalMode("edit");
-                setSelectedPersonal(personalData);
+                // setModalMode("edit"); // This line was removed as per the edit hint
+                // setSelectedPersonal(personalData); // This line was removed as per the edit hint
               }}
               color="info"
               startIcon={<EditIcon />}

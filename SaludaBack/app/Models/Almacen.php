@@ -21,7 +21,6 @@ class Almacen extends Model
         'Estado',
         'Cod_Estado',
         'Sistema',
-        'ID_H_O_D',
         'FkSucursal',
         'Agregado_Por',
         'Agregadoel',
@@ -30,7 +29,12 @@ class Almacen extends Model
         'Capacidad_Max',
         'Unidad_Medida',
         'Telefono',
-        'Email'
+        'Email',
+        'Id_Licencia'
+    ];
+
+    protected $hidden = [
+        'Id_Licencia' // Ocultar por seguridad
     ];
 
     protected $casts = [

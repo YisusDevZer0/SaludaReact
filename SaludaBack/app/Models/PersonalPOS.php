@@ -64,6 +64,7 @@ class PersonalPos extends Authenticatable
         'password',
         'password_reset_token',
         'remember_token',
+        'Id_Licencia' // Ocultar por seguridad
     ];
 
     protected $casts = [
@@ -84,6 +85,24 @@ class PersonalPos extends Authenticatable
         'can_manage_settings' => 'boolean',
         'preferences' => 'array',
     ];
+
+    /**
+     * Boot del modelo para asignar automáticamente Id_Licencia
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            // Si no se proporciona Id_Licencia, intentar obtenerla del usuario autenticado
+            if (empty($model->Id_Licencia)) {
+                $user = auth('api')->user();
+                if ($user) {
+                    $model->Id_Licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+                }
+            }
+        });
+    }
 
     // Para Passport/Sanctum: campo password
     public function getAuthPassword()

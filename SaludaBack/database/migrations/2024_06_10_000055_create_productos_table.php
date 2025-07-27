@@ -61,6 +61,10 @@ return new class extends Migration
             $table->integer('tiempo_entrega_dias')->nullable();
             $table->decimal('precio_proveedor', 10, 2)->nullable();
             
+            // Almacén
+            $table->unsignedBigInteger('almacen_id')->nullable();
+            $table->foreign('almacen_id')->references('Almacen_ID')->on('almacenes')->onDelete('set null');
+            
             // Estado y control
             $table->enum('estado', ['activo', 'inactivo', 'descontinuado', 'agotado'])->default('activo');
             $table->boolean('visible_en_pos')->default(true);
@@ -93,6 +97,7 @@ return new class extends Migration
             $table->index(['categoria_id', 'estado']);
             $table->index(['marca_id', 'estado']);
             $table->index(['proveedor_id', 'estado']);
+            $table->index(['almacen_id', 'estado']);
             $table->index(['stock_actual', 'stock_minimo']);
             $table->index(['precio_venta', 'estado']);
             $table->index('visible_en_pos');

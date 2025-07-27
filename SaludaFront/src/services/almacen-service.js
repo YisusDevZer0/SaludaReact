@@ -1,7 +1,7 @@
-import httpService from './htttp.service';
+import httpService from './http.service';
 
 class AlmacenService {
-      constructor() {
+  constructor() {
     this.baseUrl = '/almacenes';
   }
 
@@ -11,46 +11,36 @@ class AlmacenService {
       const response = await httpService.get(this.baseUrl, { params });
       
       // Mapear los campos del backend a los que espera el frontend
-      const data = (response.data.data || []).map(item => ({
-        Almacen_ID: item.id,
-        Nom_Almacen: item.nombre,
-        Tipo: item.tipo,
-        Estado: item.estado,
-        Responsable: item.responsable,
-        Ubicacion: item.ubicacion,
-        Agregadoel: item.agregado_el,
-        Sistema: item.sistema,
-        ID_H_O_D: item.sucursal_id,
-        // Campos adicionales del backend
-        tipo_descripcion: item.tipo_descripcion,
-        codigo_estado: item.codigo_estado,
-        estado_color: item.estado_color,
-        organizacion: item.organizacion,
-        agregado_por: item.agregado_por,
-        descripcion: item.descripcion,
-        capacidad_max: item.capacidad_max,
-        capacidad_formateada: item.capacidad_formateada,
-        unidad_medida: item.unidad_medida,
-        telefono: item.telefono,
-        telefono_formateado: item.telefono_formateado,
-        email: item.email,
-        contacto_completo: item.contacto_completo,
-        tiene_capacidad_definida: item.tiene_capacidad_definida,
-        puede_almacenar: item.puede_almacenar,
-        puede_editar: item.puede_editar,
-        puede_eliminar: item.puede_eliminar,
-        puede_cambiar_responsable: item.puede_cambiar_responsable,
-        tipo_info: item.tipo_info
+      const data = (response.data || []).map(item => ({
+        Almacen_ID: item.Almacen_ID,
+        Nom_Almacen: item.Nom_Almacen,
+        Tipo: item.Tipo,
+        Estado: item.Estado,
+        Responsable: item.Responsable,
+        Ubicacion: item.Ubicacion,
+        Agregadoel: item.Agregadoel,
+        Sistema: item.Sistema,
+        FkSucursal: item.FkSucursal,
+        Cod_Estado: item.Cod_Estado,
+        Descripcion: item.Descripcion,
+        Capacidad_Max: item.Capacidad_Max,
+        Unidad_Medida: item.Unidad_Medida,
+        Telefono: item.Telefono,
+        Email: item.Email,
+        Agregado_Por: item.Agregado_Por,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        deleted_at: item.deleted_at
       }));
       
+      // Devolver en el formato esperado por StandardDataTable
       return {
+        success: true,
         data: data,
-        totalRecords: response.meta?.total || 0,
-        currentPage: response.meta?.current_page || 1,
-        perPage: response.meta?.per_page || 25,
-        lastPage: response.meta?.last_page || 1,
-        from: response.meta?.from || 0,
-        to: response.meta?.to || 0
+        total: response.pagination?.total || data.length,
+        current_page: response.pagination?.current_page || 1,
+        per_page: response.pagination?.per_page || 25,
+        last_page: response.pagination?.last_page || 1
       };
     } catch (error) {
       console.error('Error al obtener almacenes:', error);
@@ -72,10 +62,19 @@ class AlmacenService {
     // Crear un nuevo almacén
     async create(almacenData) {
         try {
+            console.log('🔍 DEBUG: Intentando crear almacén con datos:', almacenData);
+            console.log('🔍 DEBUG: URL base:', this.baseUrl);
+            
             const response = await httpService.post(this.baseUrl, almacenData);
-            return response.data;
+            console.log('🔍 DEBUG: Respuesta del servidor:', response);
+            return response;
         } catch (error) {
-            console.error('Error al crear almacén:', error);
+            console.error('🔍 DEBUG: Error al crear almacén:', error);
+            console.error('🔍 DEBUG: Detalles del error:', {
+                message: error.message,
+                status: error.status,
+                response: error.response
+            });
             throw error;
         }
     }
@@ -84,7 +83,7 @@ class AlmacenService {
     async update(id, almacenData) {
         try {
             const response = await httpService.put(`${this.baseUrl}/${id}`, almacenData);
-            return response.data;
+            return response;
         } catch (error) {
             console.error('Error al actualizar almacén:', error);
             throw error;
@@ -157,11 +156,12 @@ class AlmacenService {
     }
 
     // Validar responsable (opcional pero si se proporciona debe tener formato válido)
-    if (data.responsable && data.responsable.trim().length > 0) {
-      if (data.responsable.length < 2) {
+    if (data.responsable && data.responsable.toString().trim().length > 0) {
+      const responsableStr = data.responsable.toString();
+      if (responsableStr.length < 2) {
         errors.responsable = 'El nombre del responsable debe tener al menos 2 caracteres';
         isValid = false;
-      } else if (data.responsable.length > 50) {
+      } else if (responsableStr.length > 50) {
         errors.responsable = 'El nombre del responsable no puede exceder 50 caracteres';
         isValid = false;
       }
@@ -196,12 +196,19 @@ class AlmacenService {
   // Preparar datos para envío al servidor
   prepareAlmacenForSubmit(data) {
     return {
-      nombre: data.nombre.trim(),
-      tipo: data.tipo,
-      estado: data.estado,
-      responsable: data.responsable ? data.responsable.trim() : null,
-      ubicacion: data.ubicacion ? data.ubicacion.trim() : null,
-      sucursal_id: parseInt(data.sucursal_id) || 1
+      Nom_Almacen: data.nombre.trim(),
+      Tipo: data.tipo,
+      Estado: data.estado,
+      Responsable: data.responsable ? data.responsable.toString().trim() : null,
+      Ubicacion: data.ubicacion ? data.ubicacion.trim() : null,
+      FkSucursal: parseInt(data.sucursal_id) || 1,
+      Sistema: 'SaludaReact',
+      Cod_Estado: data.estado === 'Activo' ? 'A' : 'I',
+      Descripcion: data.descripcion || null,
+      Capacidad_Max: data.capacidad_max || null,
+      Unidad_Medida: data.unidad_medida || null,
+      Telefono: data.telefono || null,
+      Email: data.email || null
     };
   }
 

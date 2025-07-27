@@ -74,10 +74,45 @@ class ProductosService {
    */
   async createProducto(productoData) {
     try {
+      // Convertir IDs a números
+      const processedData = {
+        ...productoData,
+        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : null,
+        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : null,
+        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : null,
+        presentacion_id: productoData.presentacion_id ? parseInt(productoData.presentacion_id) : null,
+        componente_activo_id: productoData.componente_activo_id ? parseInt(productoData.componente_activo_id) : null,
+        proveedor_id: productoData.proveedor_id ? parseInt(productoData.proveedor_id) : null,
+        precio_venta: productoData.precio_venta ? parseFloat(productoData.precio_venta) : 0,
+        precio_compra: productoData.precio_compra ? parseFloat(productoData.precio_compra) : null,
+        precio_por_mayor: productoData.precio_por_mayor ? parseFloat(productoData.precio_por_mayor) : null,
+        costo_unitario: productoData.costo_unitario ? parseFloat(productoData.costo_unitario) : null,
+        margen_ganancia: productoData.margen_ganancia ? parseFloat(productoData.margen_ganancia) : null,
+        iva: productoData.iva ? parseFloat(productoData.iva) : 21.00,
+        impuestos_adicionales: productoData.impuestos_adicionales ? parseFloat(productoData.impuestos_adicionales) : 0.00,
+        stock_actual: productoData.stock_actual ? parseInt(productoData.stock_actual) : 0,
+        stock_minimo: productoData.stock_minimo ? parseInt(productoData.stock_minimo) : 0,
+        stock_maximo: productoData.stock_maximo ? parseInt(productoData.stock_maximo) : null,
+        peso: productoData.peso ? parseFloat(productoData.peso) : null,
+        volumen: productoData.volumen ? parseFloat(productoData.volumen) : null,
+        alto: productoData.alto ? parseFloat(productoData.alto) : null,
+        ancho: productoData.ancho ? parseFloat(productoData.ancho) : null,
+        largo: productoData.largo ? parseFloat(productoData.largo) : null,
+        tiempo_entrega_dias: productoData.tiempo_entrega_dias ? parseInt(productoData.tiempo_entrega_dias) : null,
+        precio_proveedor: productoData.precio_proveedor ? parseFloat(productoData.precio_proveedor) : null,
+        vida_util_dias: productoData.vida_util_dias ? parseInt(productoData.vida_util_dias) : null,
+        // Campos requeridos por el backend
+        tipo_producto: productoData.tipo_producto || 'producto',
+        unidad_medida: productoData.unidad_medida || 'unidad',
+        precio_costo: productoData.costo_unitario ? parseFloat(productoData.costo_unitario) : (productoData.precio_compra ? parseFloat(productoData.precio_compra) : 0),
+        impuesto_iva: productoData.iva ? parseFloat(productoData.iva) : 21.00
+      };
+      
+      console.log('Enviando datos del producto procesados:', processedData);
       const response = await fetch(this.baseURL, {
         method: 'POST',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(productoData)
+        body: JSON.stringify(processedData)
       });
 
       if (!response.ok) {
@@ -98,10 +133,45 @@ class ProductosService {
    */
   async updateProducto(id, productoData) {
     try {
+      // Convertir IDs a números
+      const processedData = {
+        ...productoData,
+        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : null,
+        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : null,
+        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : null,
+        presentacion_id: productoData.presentacion_id ? parseInt(productoData.presentacion_id) : null,
+        componente_activo_id: productoData.componente_activo_id ? parseInt(productoData.componente_activo_id) : null,
+        proveedor_id: productoData.proveedor_id ? parseInt(productoData.proveedor_id) : null,
+        precio_venta: productoData.precio_venta ? parseFloat(productoData.precio_venta) : 0,
+        precio_compra: productoData.precio_compra ? parseFloat(productoData.precio_compra) : null,
+        precio_por_mayor: productoData.precio_por_mayor ? parseFloat(productoData.precio_por_mayor) : null,
+        costo_unitario: productoData.costo_unitario ? parseFloat(productoData.costo_unitario) : null,
+        margen_ganancia: productoData.margen_ganancia ? parseFloat(productoData.margen_ganancia) : null,
+        iva: productoData.iva ? parseFloat(productoData.iva) : 21.00,
+        impuestos_adicionales: productoData.impuestos_adicionales ? parseFloat(productoData.impuestos_adicionales) : 0.00,
+        stock_actual: productoData.stock_actual ? parseInt(productoData.stock_actual) : 0,
+        stock_minimo: productoData.stock_minimo ? parseInt(productoData.stock_minimo) : 0,
+        stock_maximo: productoData.stock_maximo ? parseInt(productoData.stock_maximo) : null,
+        peso: productoData.peso ? parseFloat(productoData.peso) : null,
+        volumen: productoData.volumen ? parseFloat(productoData.volumen) : null,
+        alto: productoData.alto ? parseFloat(productoData.alto) : null,
+        ancho: productoData.ancho ? parseFloat(productoData.ancho) : null,
+        largo: productoData.largo ? parseFloat(productoData.largo) : null,
+        tiempo_entrega_dias: productoData.tiempo_entrega_dias ? parseInt(productoData.tiempo_entrega_dias) : null,
+        precio_proveedor: productoData.precio_proveedor ? parseFloat(productoData.precio_proveedor) : null,
+        vida_util_dias: productoData.vida_util_dias ? parseInt(productoData.vida_util_dias) : null,
+        // Campos requeridos por el backend
+        tipo_producto: productoData.tipo_producto || 'producto',
+        unidad_medida: productoData.unidad_medida || 'unidad',
+        precio_costo: productoData.costo_unitario ? parseFloat(productoData.costo_unitario) : (productoData.precio_compra ? parseFloat(productoData.precio_compra) : 0),
+        impuesto_iva: productoData.iva ? parseFloat(productoData.iva) : 21.00
+      };
+      
+      console.log('Actualizando datos del producto procesados:', processedData);
       const response = await fetch(`${this.baseURL}/${id}`, {
         method: 'PUT',
         headers: this.getAuthHeaders(),
-        body: JSON.stringify(productoData)
+        body: JSON.stringify(processedData)
       });
 
       if (!response.ok) {
@@ -220,6 +290,118 @@ class ProductosService {
       marca_id: '1',
       estado: 'activo'
     };
+  }
+
+  /**
+   * Obtener categorías disponibles
+   */
+  async getCategorias() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categorias`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data || data || [];
+    } catch (error) {
+      console.error('Error al obtener categorías:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtener marcas disponibles
+   */
+  async getMarcas() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/marcas`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data || data || [];
+    } catch (error) {
+      console.error('Error al obtener marcas:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtener almacenes disponibles
+   */
+  async getAlmacenes() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/almacenes`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data || data || [];
+    } catch (error) {
+      console.error('Error al obtener almacenes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtener proveedores disponibles
+   */
+  async getProveedores() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/proveedores`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.data || data || [];
+    } catch (error) {
+      console.error('Error al obtener proveedores:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Carga masiva de productos
+   */
+  async bulkUpload(productos) {
+    try {
+      const response = await fetch(`${this.baseURL}/bulk-upload`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ productos })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error en carga masiva');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error en carga masiva:', error);
+      throw error;
+    }
   }
 }
 

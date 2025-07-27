@@ -23,9 +23,21 @@ class TipoController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return response()->json(['message' => 'Formulario de creación']);
+    }
+
     public function show($id)
     {
-        return Tipo::findOrFail($id);
+        $tipo = Tipo::findOrFail($id);
+        return response()->json($tipo);
+    }
+
+    public function edit($id)
+    {
+        $tipo = Tipo::findOrFail($id);
+        return response()->json($tipo);
     }
 
     public function store(Request $request)
@@ -33,6 +45,15 @@ class TipoController extends Controller
         $data = $request->all();
         if (empty($data['Agregado_Por'])) {
             $data['Agregado_Por'] = $request->user()->name ?? 'Desconocido';
+        }
+        if (empty($data['Agregadoel'])) {
+            $data['Agregadoel'] = now();
+        }
+        if (empty($data['ID_H_O_D'])) {
+            $data['ID_H_O_D'] = 'SALUDA';
+        }
+        if (empty($data['Sistema'])) {
+            $data['Sistema'] = 'POS';
         }
         $tipo = Tipo::create($data);
         return response()->json($tipo, 201);
@@ -54,5 +75,17 @@ class TipoController extends Controller
         $tipo = Tipo::findOrFail($id);
         $tipo->delete();
         return response()->json(null, 204);
+    }
+
+    public function getByEstado($estado)
+    {
+        $tipos = Tipo::where('Estado', $estado)->get();
+        return response()->json($tipos);
+    }
+
+    public function getByOrganizacion($organizacion)
+    {
+        $tipos = Tipo::where('ID_H_O_D', $organizacion)->get();
+        return response()->json($tipos);
     }
 } 

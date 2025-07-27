@@ -169,15 +169,35 @@ class SucursalController extends Controller
     {
         try {
             $sucursales = Sucursal::where('estado', 'activo')
-                ->select(['id', 'nombre', 'direccion', 'telefono', 'email'])
-                ->orderBy('nombre', 'asc')
+                ->select(['id', 'nombre', 'codigo', 'direccion', 'telefono', 'email', 'estado'])
+                ->orderBy('nombre')
                 ->get();
 
             return response()->json([
                 'success' => true,
-                'data' => $sucursales,
-                'count' => $sucursales->count()
+                'data' => $sucursales
             ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener sucursales: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAll()
+    {
+        try {
+            $sucursales = Sucursal::select(['id', 'nombre', 'codigo', 'direccion', 'telefono', 'email', 'estado'])
+                ->orderBy('nombre')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $sucursales
+            ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

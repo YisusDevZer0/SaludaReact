@@ -54,7 +54,7 @@ import MDLoader from "components/MDLoader";
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -64,6 +64,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     console.error("Error capturado por ErrorBoundary:", error);
     console.error("Error info:", errorInfo);
+    this.setState({ errorInfo });
   }
 
   render() {
@@ -76,19 +77,43 @@ class ErrorBoundary extends React.Component {
           height: '100vh',
           flexDirection: 'column',
           padding: '20px',
-          textAlign: 'center'
+          textAlign: 'center',
+          backgroundColor: '#f5f5f5'
         }}>
-          <h2>Algo salió mal</h2>
-          <p>Ha ocurrido un error inesperado. Por favor, recarga la página.</p>
+          <h2 style={{ color: '#333', marginBottom: '20px' }}>Algo salió mal</h2>
+          <p style={{ color: '#666', marginBottom: '30px' }}>
+            Ha ocurrido un error inesperado. Por favor, recarga la página.
+          </p>
+          {process.env.NODE_ENV === 'development' && this.state.error && (
+            <details style={{ 
+              marginBottom: '20px', 
+              padding: '10px', 
+              backgroundColor: '#fff', 
+              border: '1px solid #ddd',
+              borderRadius: '5px',
+              maxWidth: '600px',
+              overflow: 'auto'
+            }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
+                Detalles del error (solo desarrollo)
+              </summary>
+              <pre style={{ fontSize: '12px', color: '#666' }}>
+                {this.state.error.toString()}
+                {this.state.errorInfo && this.state.errorInfo.componentStack}
+              </pre>
+            </details>
+          )}
           <button 
             onClick={() => window.location.reload()} 
             style={{
-              padding: '10px 20px',
+              padding: '12px 24px',
               backgroundColor: '#C80096',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
             }}
           >
             Recargar página
@@ -182,14 +207,41 @@ export default function App() {
     setIsDemo(process.env.REACT_APP_IS_DEMO === "true");
   }, []);
 
-  // Configurar manejadores globales de errores
+  // Manejo de errores global
+  const handleGlobalError = (event) => {
+    console.error("Error global capturado:", event.error);
+    console.error("Error details:", {
+      message: event.error?.message,
+      stack: event.error?.stack,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    });
+  };
+
+  const handleUnhandledRejection = (event) => {
+    console.error("Promesa rechazada no manejada:", event.reason);
+    event.preventDefault();
+  };
+
+  const handleUncaughtException = (event) => {
+    console.error("Excepción no capturada:", event.error);
+    event.preventDefault();
+  };
+
   useEffect(() => {
+    // Configurar manejadores de errores globales
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
+    window.addEventListener('uncaughtexception', handleUncaughtException);
+
+    // Configurar interceptores de Axios
+    setupAxiosInterceptors();
+
     return () => {
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener('uncaughtexception', handleUncaughtException);
     };
   }, []);
 

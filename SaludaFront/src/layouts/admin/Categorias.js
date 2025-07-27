@@ -7,6 +7,9 @@ import MDButton from "components/MDButton";
 import Icon from "@mui/material/Icon";
 import { Grid } from "@mui/material";
 
+// Context
+import { useMaterialUIController } from "context";
+
 // Servicios
 import categoriasService from "services/categorias-service";
 
@@ -20,6 +23,9 @@ import DataTable from "examples/Tables/DataTable";
 import "./Categorias.css";
 
 export default function Categorias() {
+  const [controller] = useMaterialUIController();
+  const { darkMode } = controller;
+  
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

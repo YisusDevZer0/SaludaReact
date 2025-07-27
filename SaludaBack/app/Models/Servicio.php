@@ -172,4 +172,26 @@ class Servicio extends Model
             'porcentaje_activos' => $total > 0 ? round(($activos / $total) * 100, 2) : 0
         ];
     }
+
+    // Relaciones
+    public function marcas()
+    {
+        return $this->belongsToMany(Marca::class, 'servicio_marca', 'servicio_id', 'marca_id', 'Servicio_ID', 'Marca_ID')
+                    ->withTimestamps();
+    }
+
+    public function organizacion()
+    {
+        return $this->belongsTo(Organizacion::class, 'ID_H_O_D', 'ID_H_O_D');
+    }
+
+    public function creadoPor()
+    {
+        return $this->belongsTo(User::class, 'Agregado_Por', 'id');
+    }
+
+    public function actualizadoPor()
+    {
+        return $this->belongsTo(User::class, 'Actualizado_Por', 'id');
+    }
 } 

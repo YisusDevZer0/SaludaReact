@@ -68,10 +68,7 @@ export class HttpService {
     return await this.request(this.getOptionsConfig("post", url, data));
   };
 
-  put = async (url, data) => {
-    console.log("Enviando petición PUT a:", `${API_BASE}/${url}`);
-    return await this.request(this.getOptionsConfig("put", url, data));
-  };
+  put = async (url, data) => await this.request(this.getOptionsConfig("put", url, data));
 
   patch = async (url, data) => await this.request(this.getOptionsConfig("patch", url, data));
 

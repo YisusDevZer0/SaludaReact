@@ -49,16 +49,129 @@ const adminMockData = {
       { month: "Jun", amount: 10800 }
     ]
   },
- 
+  menuItems: [
+    { type: "title", title: "Administración" },
+    { type: "collapse", title: "Dashboard", icon: "dashboard", path: "/dashboard" },
+    { type: "collapse", title: "Usuarios", icon: "people", path: "/users" },
+    { type: "collapse", title: "Productos", icon: "inventory", path: "/products" },
+    { type: "collapse", title: "Carga Masiva", icon: "upload", path: "/bulk-upload" }
+  ]
 };
 
+// Datos simulados para el rol de vendedor
+const sellerMockData = {
+  userData: {
+    id: 2,
+    name: "Vendedor",
+    email: "seller@saluda.com",
+    avatar: "https://ui-avatars.com/api/?name=Vendedor&background=4CAF50&color=fff",
+    role: "seller",
+    fk_sucursal: 1,
+    permissions: ["sales", "inventory"]
+  },
+  dashboardData: {
+    stats: [
+      { title: "Ventas Hoy", value: "$8,234", icon: "payment", color: "primary" },
+      { title: "Productos Vendidos", value: "45", icon: "inventory", color: "success" },
+      { title: "Clientes Atendidos", value: "12", icon: "people", color: "info" },
+      { title: "Meta Mensual", value: "85%", icon: "trending_up", color: "warning" }
+    ]
+  },
+  menuItems: [
+    { type: "title", title: "Ventas" },
+    { type: "collapse", title: "POS", icon: "point_of_sale", path: "/pos" },
+    { type: "collapse", title: "Productos", icon: "inventory", path: "/products" },
+    { type: "collapse", title: "Clientes", icon: "people", path: "/customers" }
+  ]
+};
+
+// Datos simulados para el rol de enfermera
+const nurseMockData = {
+  userData: {
+    id: 3,
+    name: "Enfermera",
+    email: "nurse@saluda.com",
+    avatar: "https://ui-avatars.com/api/?name=Enfermera&background=FF9800&color=fff",
+    role: "nurse",
+    fk_sucursal: 1,
+    permissions: ["patients", "appointments"]
+  },
+  dashboardData: {
+    stats: [
+      { title: "Pacientes Hoy", value: "18", icon: "people", color: "primary" },
+      { title: "Citas Pendientes", value: "6", icon: "event", color: "warning" },
+      { title: "Signos Vitales", value: "12", icon: "favorite", color: "success" },
+      { title: "Reportes", value: "3", icon: "description", color: "info" }
+    ]
+  },
+  menuItems: [
+    { type: "title", title: "Pacientes" },
+    { type: "collapse", title: "Pacientes", icon: "people", path: "/patients" },
+    { type: "collapse", title: "Citas", icon: "event", path: "/appointments" },
+    { type: "collapse", title: "Signos Vitales", icon: "favorite", path: "/vitals" }
+  ]
+};
+
+// Datos simulados para el rol de doctor
+const doctorMockData = {
+  userData: {
+    id: 4,
+    name: "Doctor",
+    email: "doctor@saluda.com",
+    avatar: "https://ui-avatars.com/api/?name=Doctor&background=2196F3&color=fff",
+    role: "doctor",
+    fk_sucursal: 1,
+    permissions: ["patients", "diagnosis", "prescriptions"]
+  },
+  dashboardData: {
+    stats: [
+      { title: "Consultas Hoy", value: "8", icon: "medical_services", color: "primary" },
+      { title: "Pacientes Pendientes", value: "4", icon: "people", color: "warning" },
+      { title: "Recetas Emitidas", value: "6", icon: "receipt", color: "success" },
+      { title: "Diagnósticos", value: "5", icon: "description", color: "info" }
+    ]
+  },
+  menuItems: [
+    { type: "title", title: "Consultas" },
+    { type: "collapse", title: "Pacientes", icon: "people", path: "/patients" },
+    { type: "collapse", title: "Consultas", icon: "medical_services", path: "/consultations" },
+    { type: "collapse", title: "Recetas", icon: "receipt", path: "/prescriptions" }
+  ]
+};
+
+// Datos simulados para el rol de farmacéutico
+const pharmacistMockData = {
+  userData: {
+    id: 5,
+    name: "Farmacéutico",
+    email: "pharmacist@saluda.com",
+    avatar: "https://ui-avatars.com/api/?name=Farmacéutico&background=9C27B0&color=fff",
+    role: "pharmacist",
+    fk_sucursal: 1,
+    permissions: ["inventory", "prescriptions"]
+  },
+  dashboardData: {
+    stats: [
+      { title: "Medicamentos Dispensados", value: "23", icon: "medication", color: "primary" },
+      { title: "Recetas Procesadas", value: "15", icon: "receipt", color: "success" },
+      { title: "Stock Bajo", value: "7", icon: "warning", color: "warning" },
+      { title: "Ventas Farmacia", value: "$3,450", icon: "payment", color: "info" }
+    ]
+  },
+  menuItems: [
+    { type: "title", title: "Farmacia" },
+    { type: "collapse", title: "Inventario", icon: "inventory", path: "/inventory" },
+    { type: "collapse", title: "Recetas", icon: "receipt", path: "/prescriptions" },
+    { type: "collapse", title: "Medicamentos", icon: "medication", path: "/medications" }
+  ]
+};
 
 /**
  * Obtiene datos simulados basados en el rol del usuario
  * @param {string} role - Rol del usuario (admin, seller, nurse, doctor, pharmacist)
  * @returns {Object} Datos simulados para el rol especificado
  */
-const getMockDataByRole = (role) => {
+export const getMockDataByRole = (role) => {
   switch (role) {
     case "admin":
       return adminMockData;
@@ -73,9 +186,4 @@ const getMockDataByRole = (role) => {
     default:
       return adminMockData; // Por defecto, devolver datos de administrador
   }
-};
-
-export { 
-  getMockDataByRole, 
-
 }; 

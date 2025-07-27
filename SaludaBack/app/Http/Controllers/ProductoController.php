@@ -102,9 +102,9 @@ class ProductoController extends Controller
                 'descripcion' => 'nullable|string',
                 'codigo_barras' => 'nullable|string|max:100|unique:productos',
                 'categoria_id' => 'required|exists:categorias_pos,id',
-                'marca_id' => 'nullable|exists:marcas,id',
+                'marca_id' => 'nullable|exists:marcas,Marca_ID',
                 'proveedor_id' => 'nullable|exists:proveedores,id',
-                'almacen_id' => 'required|exists:almacenes,id',
+                'almacen_id' => 'required|exists:almacenes,Almacen_ID',
                 'tipo_producto' => 'required|in:producto,servicio,kit',
                 'unidad_medida' => 'required|string|max:20',
                 'precio_costo' => 'required|numeric|min:0',
@@ -200,9 +200,9 @@ class ProductoController extends Controller
                 'descripcion' => 'nullable|string',
                 'codigo_barras' => 'nullable|string|max:100|unique:productos,codigo_barras,' . $id,
                 'categoria_id' => 'sometimes|required|exists:categorias_pos,id',
-                'marca_id' => 'nullable|exists:marcas,id',
+                'marca_id' => 'nullable|exists:marcas,Marca_ID',
                 'proveedor_id' => 'nullable|exists:proveedores,id',
-                'almacen_id' => 'sometimes|required|exists:almacenes,id',
+                'almacen_id' => 'sometimes|required|exists:almacenes,Almacen_ID',
                 'tipo_producto' => 'sometimes|required|in:producto,servicio,kit',
                 'unidad_medida' => 'sometimes|required|string|max:20',
                 'precio_costo' => 'sometimes|required|numeric|min:0',
@@ -691,6 +691,130 @@ class ProductoController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cambiar estado masivo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk upload products
+     */
+    public function bulkUpload(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'productos' => 'required|array|min:1',
+                'productos.*.codigo' => 'required|string|max:50',
+                'productos.*.nombre' => 'required|string|max:255',
+                'productos.*.tipo_producto' => 'required|in:producto,servicio,kit',
+                'productos.*.unidad_medida' => 'required|string|max:20',
+                'productos.*.precio_costo' => 'required|numeric|min:0',
+                'productos.*.precio_venta' => 'required|numeric|min:0',
+                'productos.*.stock_actual' => 'required|numeric|min:0',
+                'productos.*.stock_minimo' => 'required|numeric|min:0',
+                'productos.*.impuesto_iva' => 'required|numeric|min:0|max:100',
+                'productos.*.almacen_id' => 'required|exists:almacenes,Almacen_ID',
+                'productos.*.categoria_id' => 'required|exists:categorias_pos,id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $results = [
+                'success' => 0,
+                'errors' => 0,
+                'total' => count($request->productos),
+                'details' => []
+            ];
+
+            DB::beginTransaction();
+
+            try {
+                foreach ($request->productos as $index => $productoData) {
+                    try {
+                        // Verificar si el código ya existe
+                        $existingProduct = Producto::where('codigo', $productoData['codigo'])->first();
+                        if ($existingProduct) {
+                            $results['errors']++;
+                            $results['details'][] = [
+                                'row' => $index + 1,
+                                'status' => 'error',
+                                'message' => 'El código ya existe: ' . $productoData['codigo']
+                            ];
+                            continue;
+                        }
+
+                        // Preparar datos del producto
+                        $data = [
+                            'codigo' => $productoData['codigo'],
+                            'nombre' => $productoData['nombre'],
+                            'descripcion' => $productoData['descripcion'] ?? null,
+                            'codigo_barras' => $productoData['codigo_barras'] ?? null,
+                            'codigo_interno' => $productoData['codigo_interno'] ?? null,
+                            'categoria_id' => $productoData['categoria_id'],
+                            'marca_id' => $productoData['marca_id'] ?? null,
+                            'almacen_id' => $productoData['almacen_id'],
+                            'tipo_producto' => $productoData['tipo_producto'],
+                            'unidad_medida' => $productoData['unidad_medida'],
+                            'precio_costo' => $productoData['precio_costo'],
+                            'precio_venta' => $productoData['precio_venta'],
+                            'precio_compra' => $productoData['precio_compra'] ?? null,
+                            'precio_por_mayor' => $productoData['precio_por_mayor'] ?? null,
+                            'costo_unitario' => $productoData['costo_unitario'] ?? $productoData['precio_costo'],
+                            'stock_actual' => $productoData['stock_actual'],
+                            'stock_minimo' => $productoData['stock_minimo'],
+                            'stock_maximo' => $productoData['stock_maximo'] ?? null,
+                            'impuesto_iva' => $productoData['impuesto_iva'],
+                            'estado' => $productoData['estado'] ?? 'activo',
+                            'peso' => $productoData['peso'] ?? null,
+                            'volumen' => $productoData['volumen'] ?? null,
+                            'ubicacion_almacen' => $productoData['ubicacion_almacen'] ?? null,
+                            'proveedor_id' => $productoData['proveedor_id'] ?? null,
+                            'creado_por' => Auth::user()->name ?? 'Sistema',
+                        ];
+
+                        // Crear el producto
+                        $producto = Producto::create($data);
+                        
+                        $results['success']++;
+                        $results['details'][] = [
+                            'row' => $index + 1,
+                            'status' => 'success',
+                            'message' => 'Producto creado exitosamente',
+                            'producto_id' => $producto->id
+                        ];
+
+                    } catch (\Exception $e) {
+                        $results['errors']++;
+                        $results['details'][] = [
+                            'row' => $index + 1,
+                            'status' => 'error',
+                            'message' => 'Error al crear producto: ' . $e->getMessage()
+                        ];
+                    }
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Carga masiva completada',
+                    'data' => $results
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en carga masiva: ' . $e->getMessage()
             ], 500);
         }
     }

@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             ServiciosSeeder::class,
             MarcasSeeder::class,
             ServicioMarcaSeeder::class,
+            CategoriasPosSeeder::class,
             ProductosSeeder::class,
             PresentacionesSeeder::class,
             ComponentesActivosSeeder::class,
