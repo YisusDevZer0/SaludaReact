@@ -30,12 +30,12 @@ import Traspasos from "layouts/admin/Traspasos";
 import Inventory from "layouts/admin/Inventory";
 import Sales from "layouts/admin/Sales";
 import Appointments from "layouts/admin/Appointments";
-// import Ventas from "layouts/admin/Ventas";
-// import Compras from "layouts/admin/Compras";
-// import Cajas from "layouts/admin/Cajas";
+import Ventas from "layouts/admin/Ventas";
+import Compras from "layouts/admin/Compras";
+import Cajas from "layouts/admin/Cajas";
 import FondosCaja from "layouts/admin/FondosCaja";
-// import Gastos from "layouts/admin/Gastos";
-// import Encargos from "layouts/admin/Encargos";
+import Gastos from "layouts/admin/Gastos";
+import Encargos from "layouts/admin/Encargos";
 // import Inventarios from "layouts/admin/Inventarios";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
 // import AjustesInventario from "layouts/admin/AjustesInventario";
@@ -300,51 +300,51 @@ const routes = [
     component: <FondosCaja />,
     adminOnly: true,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Ventas",
-  //   key: "ventas",
-  //   icon: <Icon fontSize="small">shopping_cart</Icon>,
-  //   route: "/admin/ventas",
-  //   component: <Ventas />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Compras",
-  //   key: "compras",
-  //   icon: <Icon fontSize="small">shopping_basket</Icon>,
-  //   route: "/admin/compras",
-  //   component: <Compras />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Cajas",
-  //   key: "cajas",
-  //   icon: <Icon fontSize="small">account_balance_wallet</Icon>,
-  //   route: "/admin/cajas",
-  //   component: <Cajas />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Gastos",
-  //   key: "gastos",
-  //   icon: <Icon fontSize="small">receipt_long</Icon>,
-  //   route: "/admin/gastos",
-  //   component: <Gastos />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Encargos",
-  //   key: "encargos",
-  //   icon: <Icon fontSize="small">assignment_turned_in</Icon>,
-  //   route: "/admin/encargos",
-  //   component: <Encargos />,
-  //   adminOnly: true,
-  // },
+  {
+    type: "collapse",
+    name: "Ventas",
+    key: "ventas",
+    icon: <Icon fontSize="small">shopping_cart</Icon>,
+    route: "/admin/ventas",
+    component: <Ventas />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Compras",
+    key: "compras",
+    icon: <Icon fontSize="small">shopping_basket</Icon>,
+    route: "/admin/compras",
+    component: <Compras />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Cajas",
+    key: "cajas",
+    icon: <Icon fontSize="small">account_balance_wallet</Icon>,
+    route: "/admin/cajas",
+    component: <Cajas />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Gastos",
+    key: "gastos",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/admin/gastos",
+    component: <Gastos />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Encargos",
+    key: "encargos",
+    icon: <Icon fontSize="small">assignment_turned_in</Icon>,
+    route: "/admin/encargos",
+    component: <Encargos />,
+    adminOnly: true,
+  },
   {
     type: "route",
     key: "proveedores",
