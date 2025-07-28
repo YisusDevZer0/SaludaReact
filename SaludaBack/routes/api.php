@@ -30,6 +30,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\CajaController;
+use App\Http\Controllers\FondosCajaController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\AlmacenController;
 use App\Http\Controllers\ProveedorController;
@@ -783,6 +784,21 @@ Route::prefix('cajas')->group(function () {
     Route::get('/por-sucursal/getPorSucursal', [CajaController::class, 'getPorSucursal']);
     Route::get('/metodos-pago-disponibles/metodosPagoDisponibles', [CajaController::class, 'metodosPagoDisponibles']);
     Route::get('/monedas-disponibles/monedasDisponibles', [CajaController::class, 'monedasDisponibles']);
+});
+
+// Rutas de Fondos de Caja
+Route::prefix('fondos-caja')->group(function () {
+    Route::get('/', [FondosCajaController::class, 'index']);
+    Route::post('/', [FondosCajaController::class, 'store']);
+    Route::get('/{id}', [FondosCajaController::class, 'show']);
+    Route::put('/{id}', [FondosCajaController::class, 'update']);
+    Route::delete('/{id}', [FondosCajaController::class, 'destroy']);
+    Route::put('/{id}/actualizar-saldo', [FondosCajaController::class, 'actualizarSaldo']);
+    Route::get('/{id}/detalle', [FondosCajaController::class, 'getDetalle']);
+    Route::get('/estadisticas/statistics', [FondosCajaController::class, 'statistics']);
+    Route::get('/opciones/getOpciones', [FondosCajaController::class, 'getOpciones']);
+    Route::get('/por-sucursal/getPorSucursal', [FondosCajaController::class, 'getPorSucursal']);
+    Route::get('/por-caja/getPorCaja', [FondosCajaController::class, 'getPorCaja']);
 });
 
 // Rutas de Gastos

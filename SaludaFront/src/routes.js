@@ -33,6 +33,7 @@ import Appointments from "layouts/admin/Appointments";
 // import Ventas from "layouts/admin/Ventas";
 // import Compras from "layouts/admin/Compras";
 // import Cajas from "layouts/admin/Cajas";
+import FondosCaja from "layouts/admin/FondosCaja";
 // import Gastos from "layouts/admin/Gastos";
 // import Encargos from "layouts/admin/Encargos";
 // import Inventarios from "layouts/admin/Inventarios";
@@ -290,6 +291,15 @@ const routes = [
     component: <Sales />,
     adminOnly: true,
   },
+  {
+    type: "collapse",
+    name: "Fondos de Caja",
+    key: "fondos-caja",
+    icon: <Icon fontSize="small">account_balance</Icon>,
+    route: "/admin/fondos-caja",
+    component: <FondosCaja />,
+    adminOnly: true,
+  },
   // {
   //   type: "collapse",
   //   name: "Ventas",
@@ -351,39 +361,7 @@ const routes = [
   },
   //FIN GESTIÓN COMERCIAL
 
-  //INICIA CONTROL DE PERSONAL (para administradores)
-  {
-    type: "title",
-    title: "Control de personal",
-    key: "control-personal-title",
-    icon: <Icon fontSize="small">person</Icon>,
-  },
-  {
-    type: "collapse",
-    name: "Personal",
-    key: "personal",
-    icon: <Icon fontSize="small">people</Icon>,
-    route: "/admin/personal",
-    component: <Personal />,
-    adminOnly: true,
-  },
-  {
-    type: "collapse",
-    name: "Reloj Checador",
-    key: "timeclock",
-    icon: <Icon fontSize="small">schedule</Icon>,
-    route: "/time-clock",
-    component: <AdminTimeClock />,
-  },
-  {
-    type: "collapse",
-    name: "Control de personal",
-    key: "control-personal-rh",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/rh/control-personal",
-    component: <RHControlPersonal />,
-    
-  },
+
   // RUTAS EXCLUSIVAS PARA RH
   {
     type: "title",
