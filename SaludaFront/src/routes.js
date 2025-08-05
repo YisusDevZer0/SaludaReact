@@ -39,7 +39,7 @@ import Encargos from "layouts/admin/Encargos";
 // import Inventarios from "layouts/admin/Inventarios";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
 // import AjustesInventario from "layouts/admin/AjustesInventario";
-// import Usuarios from "layouts/admin/Usuarios";
+import Usuarios from "layouts/admin/Usuarios";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -332,7 +332,7 @@ const routes = [
     title: "Recursos Humanos",
     key: "rh-title",
     icon: <Icon fontSize="small">people</Icon>,
-    adminAccess: true, // Los administradores pueden ver esta sección
+    adminOnly: true, // Solo administradores pueden ver esta sección
   },
   {
     type: "collapse",
@@ -341,8 +341,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/rh-dashboard",
     component: <RhDashboard />,
-    rhOnly: true,
-    adminAccess: true, // Los administradores pueden acceder
+    adminOnly: true, // Solo administradores pueden acceder
   },
   {
     type: "collapse",
@@ -351,8 +350,7 @@ const routes = [
     icon: <Icon fontSize="small">schedule</Icon>,
     route: "/rh/time-clock",
     component: <AdminTimeClock />,
-    rhOnly: true,
-    adminAccess: true, // Los administradores pueden acceder
+    adminOnly: true, // Solo administradores pueden acceder
   },
   {
     type: "collapse",
@@ -361,8 +359,7 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/rh/control-personal",
     component: <RHControlPersonal />,
-    rhOnly: true,
-    adminAccess: true, // Los administradores pueden acceder
+    adminOnly: true, // Solo administradores pueden acceder
   },
   {
     type: "collapse",
@@ -371,8 +368,7 @@ const routes = [
     icon: <Icon fontSize="small">event_available</Icon>,
     route: "/permisos",
     component: <PermisosVacaciones />,
-    rhOnly: true,
-    adminAccess: true, // Los administradores pueden acceder
+    adminOnly: true, // Solo administradores pueden acceder
   },
   {
     type: "collapse",
@@ -381,9 +377,7 @@ const routes = [
     icon: <Icon fontSize="small">event</Icon>,
     route: "/admin-agendas",
     component: <AdminAgendasDashboard />,
-    protected: true,
-    adminAgendasOnly: true,
-    adminAccess: true, // Los administradores pueden acceder
+    adminOnly: true, // Solo administradores pueden acceder
   },
   {
     type: "collapse",
@@ -402,15 +396,24 @@ const routes = [
     key: "administracion-title",
     icon: <Icon fontSize="small">admin_panel_settings</Icon>,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Usuarios",
-  //   key: "usuarios",
-  //   icon: <Icon fontSize="small">people</Icon>,
-  //   route: "/admin/usuarios",
-  //   component: <Usuarios />,
-  //   adminOnly: true,
-  // },
+  {
+    type: "collapse",
+    name: "Usuarios",
+    key: "usuarios",
+    icon: <Icon fontSize="small">people</Icon>,
+    route: "/admin/usuarios",
+    component: <Usuarios />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Personal",
+    key: "personal",
+    icon: <Icon fontSize="small">group</Icon>,
+    route: "/admin/personal",
+    component: <Personal />,
+    adminOnly: true,
+  },
 ];
 
 export default routes;

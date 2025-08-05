@@ -29,8 +29,12 @@ import {
   CardContent,
   CardMedia,
   FormHelperText,
+  InputAdornment,
+  Tabs,
+  Tab,
+  CircularProgress,
 } from "@mui/material";
-import { Close as CloseIcon, Edit as EditIcon, Visibility as ViewIcon } from "@mui/icons-material";
+import { Close as CloseIcon, Edit as EditIcon, Visibility, VisibilityOff } from "@mui/icons-material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -47,6 +51,21 @@ import personalService from "services/personal-service";
 
 // Componente de carga de imágenes
 import ProfileImageUpload from "components/ProfileImageUpload";
+
+// TabPanel component
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`personal-modal-tabpanel-${index}`}
+      aria-labelledby={`personal-modal-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const PersonalModal = ({ 
   open, 
@@ -78,6 +97,8 @@ const PersonalModal = ({
     estado_laboral: "activo",
     sucursal_id: "",
     role_id: "",
+    password: "",
+    password_confirmation: "",
     is_active: true,
     can_login: true,
     can_sell: false,
@@ -97,6 +118,269 @@ const PersonalModal = ({
   const [roles, setRoles] = useState([]);
   const [loadingSucursales, setLoadingSucursales] = useState(false);
   const [loadingRoles, setLoadingRoles] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
+
+  // Configuración de campos del formulario
+  const personalFields = {
+    "Información Personal": [
+      {
+        name: "codigo",
+        label: "Código",
+        type: "text",
+        required: true,
+        placeholder: "Código del empleado"
+      },
+      {
+        name: "nombre",
+        label: "Nombre",
+        type: "text",
+        required: true,
+        placeholder: "Nombre del empleado"
+      },
+      {
+        name: "apellido",
+        label: "Apellido",
+        type: "text",
+        required: true,
+        placeholder: "Apellido del empleado"
+      },
+      {
+        name: "email",
+        label: "Correo Electrónico",
+        type: "email",
+        required: true,
+        placeholder: "ejemplo@correo.com"
+      },
+      {
+        name: "telefono",
+        label: "Teléfono",
+        type: "tel",
+        required: false,
+        placeholder: "(123) 456-7890"
+      },
+      {
+        name: "dni",
+        label: "DNI",
+        type: "text",
+        required: false,
+        placeholder: "Número de identificación"
+      },
+      {
+        name: "fecha_nacimiento",
+        label: "Fecha de Nacimiento",
+        type: "date",
+        required: false
+      },
+      {
+        name: "genero",
+        label: "Género",
+        type: "select",
+        required: false,
+        options: [
+          { value: "masculino", label: "Masculino" },
+          { value: "femenino", label: "Femenino" },
+          { value: "otro", label: "Otro" }
+        ]
+      }
+    ],
+    "Información de Seguridad": [
+      {
+        name: "password",
+        label: "Contraseña",
+        type: "password",
+        required: mode === "create",
+        placeholder: "Mínimo 8 caracteres",
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              onClick={() => setShowPassword(!showPassword)}
+              edge="end"
+            >
+              {showPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
+        )
+      },
+      {
+        name: "password_confirmation",
+        label: "Confirmar Contraseña",
+        type: "password",
+        required: mode === "create",
+        placeholder: "Repita la contraseña",
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              edge="end"
+            >
+              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+            </IconButton>
+          </InputAdornment>
+        )
+      }
+    ],
+    "Información Laboral": [
+      {
+        name: "fecha_ingreso",
+        label: "Fecha de Ingreso",
+        type: "date",
+        required: true
+      },
+      {
+        name: "salario",
+        label: "Salario",
+        type: "number",
+        required: false,
+        placeholder: "0.00"
+      },
+      {
+        name: "tipo_contrato",
+        label: "Tipo de Contrato",
+        type: "select",
+        required: false,
+        options: [
+          { value: "indefinido", label: "Indefinido" },
+          { value: "temporal", label: "Temporal" },
+          { value: "practicas", label: "Prácticas" }
+        ]
+      },
+      {
+        name: "estado_laboral",
+        label: "Estado Laboral",
+        type: "select",
+        required: true,
+        options: [
+          { value: "activo", label: "Activo" },
+          { value: "inactivo", label: "Inactivo" },
+          { value: "vacaciones", label: "Vacaciones" },
+          { value: "permiso", label: "Permiso" }
+        ]
+      },
+      {
+        name: "sucursal_id",
+        label: "Sucursal",
+        type: "select",
+        required: false,
+        options: sucursales.map(suc => ({ value: suc.id, label: suc.nombre }))
+      },
+      {
+        name: "role_id",
+        label: "Rol",
+        type: "select",
+        required: true,
+        options: roles.map(role => ({ value: role.id, label: role.nombre }))
+      }
+    ],
+    "Información Adicional": [
+      {
+        name: "direccion",
+        label: "Dirección",
+        type: "text",
+        required: false,
+        multiline: true,
+        rows: 2,
+        placeholder: "Dirección completa"
+      },
+      {
+        name: "ciudad",
+        label: "Ciudad",
+        type: "text",
+        required: false,
+        placeholder: "Ciudad"
+      },
+      {
+        name: "provincia",
+        label: "Provincia",
+        type: "text",
+        required: false,
+        placeholder: "Provincia"
+      },
+      {
+        name: "codigo_postal",
+        label: "Código Postal",
+        type: "text",
+        required: false,
+        placeholder: "12345"
+      },
+      {
+        name: "pais",
+        label: "País",
+        type: "text",
+        required: false,
+        placeholder: "País"
+      }
+    ],
+    "Permisos del Sistema": [
+      {
+        name: "is_active",
+        label: "Usuario Activo",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_login",
+        label: "Puede Iniciar Sesión",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_sell",
+        label: "Puede Vender",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_refund",
+        label: "Puede Hacer Reembolsos",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_manage_inventory",
+        label: "Puede Gestionar Inventario",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_manage_users",
+        label: "Puede Gestionar Usuarios",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_view_reports",
+        label: "Puede Ver Reportes",
+        type: "switch",
+        required: false
+      },
+      {
+        name: "can_manage_settings",
+        label: "Puede Gestionar Configuración",
+        type: "switch",
+        required: false
+      }
+    ],
+    "Configuración": [
+      {
+        name: "notas",
+        label: "Notas",
+        type: "text",
+        required: false,
+        multiline: true,
+        rows: 3,
+        placeholder: "Notas adicionales"
+      },
+      {
+        name: "foto_perfil",
+        label: "URL de Foto de Perfil",
+        type: "url",
+        required: false,
+        placeholder: "https://ejemplo.com/foto.jpg"
+      }
+    ]
+  };
 
   // Cargar datos cuando se abre el modal en modo edit o view
   useEffect(() => {
@@ -131,7 +415,7 @@ const PersonalModal = ({
         can_manage_settings: personalData.can_manage_settings ?? false,
         notas: personalData.notas || "",
         foto_perfil: personalData.foto_perfil || "",
-        Id_Licencia: personalData.Id_Licencia || null // Cargar el campo oculto
+        Id_Licencia: personalData.Id_Licencia || null
       });
     }
   }, [open, personalData, mode]);
@@ -146,13 +430,10 @@ const PersonalModal = ({
 
   const loadSucursales = async () => {
     try {
-      console.log('Cargando sucursales...'); // Log de debug
       const response = await personalService.getSucursales();
-      console.log('Respuesta de sucursales:', response); // Log de debug
       setSucursales(response.data || response || []);
     } catch (error) {
       console.error("Error al cargar sucursales:", error);
-      // Fallback a datos de ejemplo si la API no está disponible
       setSucursales([
         { id: 1, nombre: "Matriz CdCaucel" },
         { id: 2, nombre: "Sucursal Norte" },
@@ -163,13 +444,10 @@ const PersonalModal = ({
 
   const loadRoles = async () => {
     try {
-      console.log('Cargando roles...'); // Log de debug
       const response = await personalService.getRoles();
-      console.log('Respuesta de roles:', response); // Log de debug
       setRoles(response.data || response || []);
     } catch (error) {
       console.error("Error al cargar roles:", error);
-      // Fallback a datos de ejemplo si la API no está disponible
       setRoles([
         { id: 1, nombre: "Administrador" },
         { id: 2, nombre: "Vendedor" },
@@ -185,7 +463,6 @@ const PersonalModal = ({
       [field]: value
     }));
     
-    // Limpiar error del campo
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -194,7 +471,138 @@ const PersonalModal = ({
     }
   };
 
-  // Manejar actualización de imagen
+  const renderField = (field) => {
+    const value = formData[field.name] || "";
+    const error = errors[field.name];
+
+    if (field.type === "select") {
+      return (
+        <FormControl fullWidth error={!!error} required={field.required}>
+          <InputLabel>{field.label}</InputLabel>
+          <Select
+            value={value}
+            onChange={(e) => handleInputChange(field.name, e.target.value)}
+            label={field.label}
+            disabled={mode === "view"}
+            sx={{
+              backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: darkMode ? '#666666' : '#e0e0e0'
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: darkMode ? '#888888' : '#bdbdbd'
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#1976d2'
+              },
+              '& .MuiSelect-icon': {
+                color: darkMode ? '#ffffff' : '#000000'
+              }
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
+                  '& .MuiMenuItem-root': {
+                    color: darkMode ? '#ffffff' : '#000000',
+                    '&:hover': {
+                      backgroundColor: darkMode ? '#333333' : '#f5f5f5'
+                    }
+                  }
+                }
+              }
+            }}
+          >
+            {field.options.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+          {error && (
+            <Typography variant="caption" color="error">
+              {error}
+            </Typography>
+          )}
+        </FormControl>
+      );
+    }
+
+    if (field.type === "switch") {
+      return (
+        <FormControlLabel
+          control={
+            <Switch
+              checked={value || field.defaultValue || false}
+              onChange={(e) => handleInputChange(field.name, e.target.checked)}
+              disabled={mode === "view"}
+            />
+          }
+          label={field.label}
+        />
+      );
+    }
+
+    return (
+      <TextField
+        fullWidth
+        label={field.label}
+        value={value}
+        onChange={(e) => handleInputChange(field.name, e.target.value)}
+        error={!!error}
+        helperText={error}
+        required={field.required}
+        disabled={mode === "view"}
+        multiline={field.multiline}
+        rows={field.rows}
+        type={field.type === "password" && field.name === "password" && showPassword ? "text" : 
+              field.type === "password" && field.name === "password_confirmation" && showConfirmPassword ? "text" : 
+              field.type}
+        InputProps={{
+          startAdornment: field.startAdornment,
+          endAdornment: field.endAdornment
+        }}
+        placeholder={field.placeholder}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
+            '& fieldset': {
+              borderColor: darkMode ? '#666666' : '#e0e0e0'
+            },
+            '&:hover fieldset': {
+              borderColor: darkMode ? '#888888' : '#bdbdbd'
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#1976d2'
+            }
+          },
+          '& .MuiInputLabel-root': {
+            color: darkMode ? '#ffffff' : '#000000'
+          },
+          '& .MuiInputBase-input': {
+            color: darkMode ? '#ffffff' : '#000000'
+          }
+        }}
+      />
+    );
+  };
+
+  const renderSection = (sectionKey, sectionName) => {
+    const fields = personalFields[sectionKey];
+    
+    return (
+      <TabPanel value={tabValue} index={Object.keys(personalFields).indexOf(sectionKey)}>
+        <Grid container spacing={3}>
+          {fields.map((field) => (
+            <Grid item xs={12} sm={6} md={4} key={field.name}>
+              {renderField(field)}
+            </Grid>
+          ))}
+        </Grid>
+      </TabPanel>
+    );
+  };
+
   const handleImageUpdate = (newImageUrl) => {
     handleInputChange("foto_perfil", newImageUrl);
   };
@@ -202,17 +610,27 @@ const PersonalModal = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es requerido";
-    if (!formData.apellido.trim()) newErrors.apellido = "El apellido es requerido";
-    if (!formData.email.trim()) {
+    if (!formData.nombre?.trim()) newErrors.nombre = "El nombre es requerido";
+    if (!formData.apellido?.trim()) newErrors.apellido = "El apellido es requerido";
+    if (!formData.email?.trim()) {
       newErrors.email = "El email es requerido";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "El email no es válido";
     }
-    if (!formData.telefono.trim()) newErrors.telefono = "El teléfono es requerido";
-    if (!formData.sucursal_id) newErrors.sucursal_id = "La sucursal es requerida";
+    if (!formData.codigo?.trim()) newErrors.codigo = "El código es requerido";
+    if (!formData.fecha_ingreso) newErrors.fecha_ingreso = "La fecha de ingreso es requerida";
+    if (!formData.estado_laboral) newErrors.estado_laboral = "El estado laboral es requerido";
     if (!formData.role_id) newErrors.role_id = "El rol es requerido";
-    if (!formData.genero) newErrors.genero = "El género es requerido";
+
+    if (mode === "create" && !formData.password?.trim()) {
+      newErrors.password = "La contraseña es requerida";
+    } else if (formData.password && formData.password.length < 8) {
+      newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    }
+
+    if (formData.password && formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = "Las contraseñas no coinciden";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -223,24 +641,16 @@ const PersonalModal = ({
 
     setLoading(true);
     try {
-      console.log('Enviando datos:', formData); // Log para debug
-      console.log('Datos formateados:', JSON.stringify(formData, null, 2)); // Log detallado
-      console.log('Género seleccionado:', formData.genero); // Log específico del género
-      
       if (mode === "create") {
-        const result = await personalService.createPersonal(formData);
-        console.log('Respuesta del servidor:', result); // Log de respuesta
+        await personalService.createPersonal(formData);
       } else if (mode === "edit") {
-        const result = await personalService.updatePersonal(personalData.id, formData);
-        console.log('Respuesta del servidor:', result); // Log de respuesta
+        await personalService.updatePersonal(personalData.id, formData);
       }
       
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error al guardar personal:", error);
-      console.error("Detalles del error:", error.response || error); // Log detallado del error
-      // Aquí podrías mostrar un mensaje de error
     } finally {
       setLoading(false);
     }
@@ -277,7 +687,6 @@ const PersonalModal = ({
 
   const isViewMode = mode === "view";
 
-  // Función para generar avatar por defecto
   const generateDefaultAvatar = (empleado) => {
     if (empleado?.foto_perfil) {
       return empleado.foto_perfil;
@@ -293,7 +702,6 @@ const PersonalModal = ({
     }
   };
 
-  // Función para obtener el color del estado
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case 'activo':
@@ -311,7 +719,6 @@ const PersonalModal = ({
     }
   };
 
-  // Renderizar vista de card para modo "ver"
   const renderViewCard = () => {
     if (!personalData) return null;
 
@@ -467,20 +874,7 @@ const PersonalModal = ({
       PaperProps={{
         sx: {
           backgroundColor: darkMode ? '#1a1a1a' : 'white',
-          color: darkMode ? '#ffffff' : 'inherit',
-          '& .MuiDialogTitle-root': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-            color: darkMode ? '#ffffff' : '#333333',
-            borderBottom: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-          },
-          '& .MuiDialogContent-root': {
-            backgroundColor: darkMode ? '#1a1a1a' : 'white',
-            color: darkMode ? '#ffffff' : 'inherit'
-          },
-          '& .MuiDialogActions-root': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-            borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-          }
+          color: darkMode ? '#ffffff' : 'inherit'
         }
       }}
     >
@@ -512,489 +906,46 @@ const PersonalModal = ({
       <DialogContent sx={{ 
         pt: 2,
         backgroundColor: darkMode ? '#1a1a1a' : 'white',
-        color: darkMode ? '#ffffff' : 'inherit',
-        '& .MuiTextField-root': {
-          '& .MuiInputLabel-root': {
-            color: darkMode ? '#b0b0b0' : '#666666'
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: darkMode ? '#404040' : '#e0e0e0'
-            },
-            '&:hover fieldset': {
-              borderColor: darkMode ? '#606060' : '#bdbdbd'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& .MuiInputBase-input': {
-              color: darkMode ? '#ffffff' : '#333333'
-            }
-          },
-          '& .MuiFormHelperText-root': {
-            color: darkMode ? '#ff6b6b' : '#d32f2f'
-          }
-        },
-        '& .MuiFormControl-root': {
-          '& .MuiInputLabel-root': {
-            color: darkMode ? '#b0b0b0' : '#666666'
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: darkMode ? '#404040' : '#e0e0e0'
-            },
-            '&:hover fieldset': {
-              borderColor: darkMode ? '#606060' : '#bdbdbd'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& .MuiSelect-select': {
-              color: darkMode ? '#ffffff' : '#333333'
-            }
-          }
-        },
-        '& .MuiFormControlLabel-root': {
-          '& .MuiFormControlLabel-label': {
-            color: darkMode ? '#ffffff' : '#333333'
-          }
-        },
-        '& .MuiDivider-root': {
-          borderColor: darkMode ? '#404040' : '#e0e0e0'
-        },
-        '& .MuiMenuItem-root': {
-          color: darkMode ? '#ffffff' : '#333333',
-          backgroundColor: darkMode ? '#1a1a1a' : 'white',
-          '&:hover': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5'
-          },
-          '&.Mui-selected': {
-            backgroundColor: darkMode ? '#1976d2' : '#e3f2fd',
-            color: darkMode ? '#ffffff' : '#1976d2'
-          }
-        },
-        '& .MuiSwitch-root': {
-          '& .MuiSwitch-switchBase': {
-            color: darkMode ? '#b0b0b0' : '#ccc'
-          },
-          '& .MuiSwitch-track': {
-            backgroundColor: darkMode ? '#404040' : '#ccc'
-          },
-          '& .Mui-checked': {
-            '& .MuiSwitch-thumb': {
-              color: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& + .MuiSwitch-track': {
-              backgroundColor: darkMode ? '#1976d2' : '#1976d2'
-            }
-          }
-        }
+        color: darkMode ? '#ffffff' : 'inherit'
       }}>
         {isViewMode ? (
           renderViewCard()
         ) : (
-          <Grid container spacing={3}>
-            {/* Sección de imagen de perfil para crear/editar */}
-            {(mode === "create" || mode === "edit") && (
-              <Grid item xs={12}>
-                <MDBox display="flex" justifyContent="center" mb={3}>
-                  <ProfileImageUpload
-                    currentImageUrl={formData.foto_perfil}
-                    userName={personalData?.nombre_completo || `${formData.nombre} ${formData.apellido}`}
-                    onImageUpdate={handleImageUpdate}
-                    size="xl"
-                    showUploadButton={true}
-                    showDeleteButton={true}
-                    disabled={loading}
-                    context="personal"
-                    userId={personalData?.id}
-                  />
-                </MDBox>
-              </Grid>
-            )}
-
-            {/* Información Personal */}
-            <Grid item xs={12}>
-              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-                Información Personal
-              </MDTypography>
-            </Grid>
-
-            {/* Campo oculto para debug de licencia */}
-            {process.env.NODE_ENV === 'development' && (
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Licencia (Debug)"
-                  value={formData.Id_Licencia || 'No asignada'}
-                  disabled
-                  size="small"
-                  sx={{ display: 'none' }} // Oculto completamente
+          <>
+            <Tabs
+              value={tabValue}
+              onChange={(e, newValue) => setTabValue(newValue)}
+              sx={{
+                borderBottom: 1,
+                borderColor: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
+                mb: 2
+              }}
+            >
+              {Object.keys(personalFields).map((sectionKey, index) => (
+                <Tab
+                  key={sectionKey}
+                  label={sectionKey}
+                  sx={{
+                    color: darkMode ? '#ffffff' : '#000000',
+                    '&.Mui-selected': {
+                      color: '#1976d2'
+                    }
+                  }}
                 />
-              </Grid>
+              ))}
+            </Tabs>
+
+            {Object.keys(personalFields).map((sectionKey) => 
+              renderSection(sectionKey, sectionKey)
             )}
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Código"
-                value={formData.codigo}
-                onChange={(e) => handleInputChange("codigo", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.codigo}
-                helperText={errors.codigo}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="DNI"
-                value={formData.dni}
-                onChange={(e) => handleInputChange("dni", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.dni}
-                helperText={errors.dni}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nombre"
-                value={formData.nombre}
-                onChange={(e) => handleInputChange("nombre", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.nombre}
-                helperText={errors.nombre}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Apellido"
-                value={formData.apellido}
-                onChange={(e) => handleInputChange("apellido", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.apellido}
-                helperText={errors.apellido}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.email}
-                helperText={errors.email}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Teléfono"
-                value={formData.telefono}
-                onChange={(e) => handleInputChange("telefono", e.target.value)}
-                disabled={isViewMode}
-                error={!!errors.telefono}
-                helperText={errors.telefono}
-                required
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Fecha de Nacimiento"
-                type="date"
-                value={formData.fecha_nacimiento}
-                onChange={(e) => handleInputChange("fecha_nacimiento", e.target.value)}
-                disabled={isViewMode}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.genero}>
-                <InputLabel>Género</InputLabel>
-                <Select
-                  value={formData.genero}
-                  onChange={(e) => handleInputChange("genero", e.target.value)}
-                  disabled={isViewMode}
-                  error={!!errors.genero}
-                >
-                  <MenuItem value="">Seleccionar género</MenuItem>
-                  <MenuItem value="masculino">Masculino</MenuItem>
-                  <MenuItem value="femenino">Femenino</MenuItem>
-                  <MenuItem value="otro">Otro</MenuItem>
-                </Select>
-                {errors.genero && (
-                  <FormHelperText error>{errors.genero}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* Información Laboral */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-                Información Laboral
-              </MDTypography>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.sucursal_id}>
-                <InputLabel>Sucursal</InputLabel>
-                <Select
-                  value={formData.sucursal_id}
-                  onChange={(e) => handleInputChange("sucursal_id", e.target.value)}
-                  disabled={isViewMode}
-                  label="Sucursal"
-                  required
-                >
-                  {sucursales.map((sucursal) => (
-                    <MenuItem key={sucursal.id} value={sucursal.id}>
-                      {sucursal.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={!!errors.role_id}>
-                <InputLabel>Rol</InputLabel>
-                <Select
-                  value={formData.role_id}
-                  onChange={(e) => handleInputChange("role_id", e.target.value)}
-                  disabled={isViewMode}
-                  label="Rol"
-                  required
-                >
-                  {roles.map((role) => (
-                    <MenuItem key={role.id} value={role.id}>
-                      {role.nombre}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Fecha de Ingreso"
-                type="date"
-                value={formData.fecha_ingreso}
-                onChange={(e) => handleInputChange("fecha_ingreso", e.target.value)}
-                disabled={isViewMode}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Salario"
-                type="number"
-                value={formData.salario}
-                onChange={(e) => handleInputChange("salario", e.target.value)}
-                disabled={isViewMode}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Contrato</InputLabel>
-                <Select
-                  value={formData.tipo_contrato}
-                  onChange={(e) => handleInputChange("tipo_contrato", e.target.value)}
-                  disabled={isViewMode}
-                  label="Tipo de Contrato"
-                >
-                  <MenuItem value="indefinido">Indefinido</MenuItem>
-                  <MenuItem value="temporal">Temporal</MenuItem>
-                  <MenuItem value="por_obra">Por Obra</MenuItem>
-                  <MenuItem value="practicas">Prácticas</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Estado Laboral</InputLabel>
-                <Select
-                  value={formData.estado_laboral}
-                  onChange={(e) => handleInputChange("estado_laboral", e.target.value)}
-                  disabled={isViewMode}
-                  label="Estado Laboral"
-                >
-                  <MenuItem value="activo">Activo</MenuItem>
-                  <MenuItem value="inactivo">Inactivo</MenuItem>
-                  <MenuItem value="vacaciones">Vacaciones</MenuItem>
-                  <MenuItem value="permiso">Permiso</MenuItem>
-                  <MenuItem value="baja">Baja</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Permisos */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"} mb={2}>
-                Permisos del Sistema
-              </MDTypography>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.is_active}
-                    onChange={(e) => handleInputChange("is_active", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Usuario Activo"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_login}
-                    onChange={(e) => handleInputChange("can_login", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Iniciar Sesión"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_sell}
-                    onChange={(e) => handleInputChange("can_sell", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Vender"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_refund}
-                    onChange={(e) => handleInputChange("can_refund", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Hacer Reembolsos"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_manage_inventory}
-                    onChange={(e) => handleInputChange("can_manage_inventory", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Gestionar Inventario"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_manage_users}
-                    onChange={(e) => handleInputChange("can_manage_users", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Gestionar Usuarios"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_view_reports}
-                    onChange={(e) => handleInputChange("can_view_reports", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Ver Reportes"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.can_manage_settings}
-                    onChange={(e) => handleInputChange("can_manage_settings", e.target.checked)}
-                    disabled={isViewMode}
-                  />
-                }
-                label="Puede Gestionar Configuración"
-              />
-            </Grid>
-
-            {/* Notas */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Notas"
-                multiline
-                rows={3}
-                value={formData.notas}
-                onChange={(e) => handleInputChange("notas", e.target.value)}
-                disabled={isViewMode}
-              />
-            </Grid>
-          </Grid>
+          </>
         )}
       </DialogContent>
 
       <DialogActions sx={{ 
         p: 3, 
         backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-        borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0',
-        '& .MuiButton-root': {
-          '&.MuiButton-contained': {
-            backgroundColor: darkMode ? '#1976d2' : '#1976d2',
-            color: '#ffffff',
-            '&:hover': {
-              backgroundColor: darkMode ? '#1565c0' : '#1565c0'
-            }
-          },
-          '&.MuiButton-outlined': {
-            borderColor: darkMode ? '#404040' : '#e0e0e0',
-            color: darkMode ? '#ffffff' : '#333333',
-            '&:hover': {
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }
-          }
-        }
+        borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
       }}>
         <MDButton onClick={onClose} color="secondary">
           Cancelar
@@ -1003,10 +954,6 @@ const PersonalModal = ({
         {mode === "view" && personalData && (
           <>
             <MDButton
-              onClick={() => {
-                // setModalMode("edit"); // This line was removed as per the edit hint
-                // setSelectedPersonal(personalData); // This line was removed as per the edit hint
-              }}
               color="info"
               startIcon={<EditIcon />}
             >
