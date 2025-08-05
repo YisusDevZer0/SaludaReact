@@ -67,7 +67,7 @@ JsonApiRoute::server('v2')->prefix('v2')->resources(function (ResourceRegistrar 
 });
 
 // Ruta adicional para /api/me (compatibilidad con frontend)
-Route::get('/me', [MeController::class, 'readProfile'])->middleware(['json.api', 'personalpos.auth']);
+Route::get('/me', [MeController::class, 'readProfile'])->middleware(['json.api', 'api.auth']);
 
 // Rutas de autenticación PersonalPos
 Route::post('/pos/login', \App\Http\Controllers\Api\V2\Auth\SimpleLoginController::class);
@@ -536,7 +536,7 @@ Route::post('broadcasting/auth', function (Request $request) {
 Route::get('personal', [PersonalPOSController::class, 'index']); 
 
 // Rutas del Dashboard
-Route::prefix('dashboard')->middleware(['json.api', 'personalpos.auth'])->group(function () {
+Route::prefix('dashboard')->middleware(['json.api', 'api.auth'])->group(function () {
     Route::get('/stats', [DashboardController::class, 'getStats']);
     Route::get('/sales-stats', [DashboardController::class, 'getSalesStats']);
     Route::get('/appointments-stats', [DashboardController::class, 'getAppointmentsStats']);

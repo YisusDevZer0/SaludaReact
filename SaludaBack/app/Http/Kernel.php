@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'json.api' => \App\Http\Middleware\JsonApi::class,
         'personalpos.auth' => \App\Http\Middleware\PersonalPOSAuth::class,
+        'api.auth' => \App\Http\Middleware\ApiAuth::class,
         'auditoria' => \App\Http\Middleware\AuditoriaMiddleware::class, // Agregado como middleware de ruta
     ];
 }

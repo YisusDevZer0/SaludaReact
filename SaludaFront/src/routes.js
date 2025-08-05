@@ -45,7 +45,7 @@ import Encargos from "layouts/admin/Encargos";
 import Icon from "@mui/material/Icon";
 
 const routes = [
-  // RUTAS GENERALES (para administradores y otros roles)
+  // RUTAS GENERALES (para todos los usuarios)
   {
     type: "collapse",
     name: "Dashboard",
@@ -96,6 +96,7 @@ const routes = [
     protected: true,
     adminOnly: true,
   },
+  
   //INICIA ALMACENES E INVENTARIOS
   {
     type: "title",
@@ -174,33 +175,6 @@ const routes = [
     component: <Traspasos />,
     adminOnly: true,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Inventarios",
-  //   key: "inventarios",
-  //   icon: <Icon fontSize="small">assignment</Icon>,
-  //   route: "/admin/inventarios",
-  //   component: <Inventarios />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Movimientos de Inventario",
-  //   key: "movimientos-inventario",
-  //   icon: <Icon fontSize="small">compare_arrows</Icon>,
-  //   route: "/admin/movimientos-inventario",
-  //   component: <MovimientosInventario />,
-  //   adminOnly: true,
-  // },
-  // {
-  //   type: "collapse",
-  //   name: "Ajustes de Inventario",
-  //   key: "ajustes-inventario",
-  //   icon: <Icon fontSize="small">tune</Icon>,
-  //   route: "/admin/ajustes-inventario",
-  //   component: <AjustesInventario />,
-  //   adminOnly: true,
-  // },
   {
     type: "route",
     key: "almacenes-productos",
@@ -229,15 +203,6 @@ const routes = [
     component: <Categorias />,
     adminOnly: true,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Categorías POS Optimizadas",
-  //   key: "categorias-pos-optimized",
-  //   icon: <Icon fontSize="small">category</Icon>,
-  //   route: "/admin/categorias-pos",
-  //   component: <CategoriasPos />,
-  //   adminOnly: true,
-  // },
   {
     type: "route",
     key: "almacenes-componente-activo",
@@ -361,14 +326,13 @@ const routes = [
   },
   //FIN GESTIÓN COMERCIAL
 
-
-  // RUTAS EXCLUSIVAS PARA RH
+  // RUTAS DE RECURSOS HUMANOS (disponibles para administradores y RH)
   {
     type: "title",
     title: "Recursos Humanos",
     key: "rh-title",
     icon: <Icon fontSize="small">people</Icon>,
-    rhOnly: true,
+    adminAccess: true, // Los administradores pueden ver esta sección
   },
   {
     type: "collapse",
@@ -378,6 +342,7 @@ const routes = [
     route: "/rh-dashboard",
     component: <RhDashboard />,
     rhOnly: true,
+    adminAccess: true, // Los administradores pueden acceder
   },
   {
     type: "collapse",
@@ -387,6 +352,7 @@ const routes = [
     route: "/rh/time-clock",
     component: <AdminTimeClock />,
     rhOnly: true,
+    adminAccess: true, // Los administradores pueden acceder
   },
   {
     type: "collapse",
@@ -396,6 +362,7 @@ const routes = [
     route: "/rh/control-personal",
     component: <RHControlPersonal />,
     rhOnly: true,
+    adminAccess: true, // Los administradores pueden acceder
   },
   {
     type: "collapse",
@@ -405,6 +372,7 @@ const routes = [
     route: "/permisos",
     component: <PermisosVacaciones />,
     rhOnly: true,
+    adminAccess: true, // Los administradores pueden acceder
   },
   {
     type: "collapse",
@@ -415,6 +383,7 @@ const routes = [
     component: <AdminAgendasDashboard />,
     protected: true,
     adminAgendasOnly: true,
+    adminAccess: true, // Los administradores pueden acceder
   },
   {
     type: "collapse",
@@ -425,6 +394,7 @@ const routes = [
     component: <Appointments />,
     adminOnly: true,
   },
+  
   //INICIA ADMINISTRACIÓN
   {
     type: "title",
