@@ -441,6 +441,30 @@ class PersonalService {
       throw error;
     }
   }
+
+  // Generar código de empleado
+  async generateEmployeeCode() {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const response = await fetch(`${this.baseURL}/personal/generate-code`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        return this.handleResponseError(response, 'Error al generar código de empleado');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error al generar código de empleado:', error);
+      throw error;
+    }
+  }
 }
 
 export default new PersonalService(); 

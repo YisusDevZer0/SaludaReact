@@ -160,11 +160,32 @@ function ProfileImageUpload({
 
       {/* Avatar */}
       <MDBox position="relative" display="flex" justifyContent="center">
+        {currentImageUrl ? (
+          <img
+            src={currentImageUrl}
+            alt={userName || 'Usuario'}
+            style={{
+              width: size === 'xl' ? '120px' : size === 'lg' ? '64px' : '40px',
+              height: size === 'xl' ? '120px' : size === 'lg' ? '64px' : '40px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              cursor: !disabled && showUploadButton ? 'pointer' : 'default',
+              border: '2px solid white'
+            }}
+            onError={(e) => {
+              console.log('❌ Error cargando imagen en ProfileImageUpload:', e.target.src);
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+            onLoad={(e) => {
+              console.log('✅ Imagen cargada exitosamente en ProfileImageUpload:', e.target.src);
+            }}
+            onClick={handleAvatarClick}
+          />
+        ) : null}
         <MDAvatar
-          src={currentImageUrl || generateDefaultAvatar()}
-          alt={userName || 'Usuario'}
           size={size}
-          bgColor={currentImageUrl ? "transparent" : "info"}
+          bgColor="info"
           sx={{
             cursor: !disabled && showUploadButton ? 'pointer' : 'default',
             '&:hover': {
@@ -172,10 +193,11 @@ function ProfileImageUpload({
             },
             border: ({ borders: { borderWidth }, palette: { white } }) => 
               `${borderWidth[2]} solid ${white.main}`,
+            display: currentImageUrl ? 'none' : 'flex'
           }}
           onClick={handleAvatarClick}
         >
-          {!currentImageUrl && !generateDefaultAvatar() && getInitials(userName)}
+          {getInitials(userName)}
         </MDAvatar>
 
         {/* Indicador de carga */}

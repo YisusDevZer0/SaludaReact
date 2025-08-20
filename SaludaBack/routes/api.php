@@ -481,6 +481,7 @@ Route::post('personal', [PersonalPOSController::class, 'store']);
 Route::put('personal/{id}', [PersonalPOSController::class, 'update']);
 Route::delete('personal/{id}', [PersonalPOSController::class, 'destroy']);
 Route::get('personal/active/count', [PersonalPOSController::class, 'countActive'])->middleware(['json.api', 'auth:api']);
+Route::get('personal/generate-code', [PersonalPOSController::class, 'generateCode']);
 
 // Roles
 Route::get('/roles', function() {

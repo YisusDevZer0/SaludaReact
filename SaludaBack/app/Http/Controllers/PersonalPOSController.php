@@ -12,6 +12,33 @@ use Illuminate\Support\Facades\Hash;
 
 class PersonalPOSController extends Controller
 {
+    // Generar código único de empleado
+    private function generateEmployeeCode($licencia)
+    {
+        // Obtener el último empleado de la licencia
+        $lastEmployee = PersonalPos::where('Id_Licencia', $licencia)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if (!$lastEmployee) {
+            // Si no hay empleados, empezar con EMP001
+            return 'EMP001';
+        }
+
+        // Extraer el número del último código
+        $lastCode = $lastEmployee->codigo;
+        if (preg_match('/EMP(\d+)/', $lastCode, $matches)) {
+            $lastNumber = intval($matches[1]);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Si el formato no es correcto, empezar con 1
+            $newNumber = 1;
+        }
+
+        // Formatear con ceros a la izquierda (EMP001, EMP002, etc.)
+        return 'EMP' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+    }
+
     // Listar todo el personal
     public function index()
     {
@@ -165,7 +192,7 @@ class PersonalPOSController extends Controller
 
             // Crear el personal con la licencia del usuario autenticado
             $personalData = [
-                'codigo' => $request->codigo ?? 'EMP' . time(),
+                'codigo' => $request->codigo ?? $this->generateEmployeeCode($licencia),
                 'nombre' => $request->nombre,
                 'apellido' => $request->apellido,
                 'email' => $request->email,
@@ -465,6 +492,44 @@ class PersonalPOSController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener personal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Generar código de empleado
+    public function generateCode(Request $request)
+    {
+        try {
+            // Obtener el usuario autenticado
+            $user = Auth::guard('api')->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            // Obtener la licencia del usuario
+            $licencia = $user->Id_Licencia ?? $user->ID_H_O_D ?? null;
+            
+            if (!$licencia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Licencia no encontrada para el usuario'
+                ], 400);
+            }
+
+            $codigo = $this->generateEmployeeCode($licencia);
+
+            return response()->json([
+                'success' => true,
+                'codigo' => $codigo
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar código: ' . $e->getMessage()
             ], 500);
         }
     }

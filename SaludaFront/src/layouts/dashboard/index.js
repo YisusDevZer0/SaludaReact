@@ -713,13 +713,35 @@ function Dashboard() {
           <ThemedCard>
             <MDBox p={3} display="flex" alignItems="center">
               <MDBox mr={2}>
+                {(userData?.foto_perfil || userData?.avatar_url) ? (
+                  <img
+                    src={userData?.foto_perfil || userData?.avatar_url}
+                    alt={userData?.nombre_completo || userData?.Nombre_Apellidos || "Usuario"}
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid #e0e0e0'
+                    }}
+                    onError={(e) => {
+                      console.log('❌ Error cargando imagen en Dashboard para:', userData?.nombre_completo, e.target.src);
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                    onLoad={(e) => {
+                      console.log('✅ Imagen cargada exitosamente en Dashboard para:', userData?.nombre_completo, e.target.src);
+                    }}
+                  />
+                ) : null}
                 <MDAvatar
-                  src={userData?.foto_perfil || userData?.avatar_url}
-                  alt={userData?.nombre_completo || userData?.Nombre_Apellidos || "Usuario"}
                   size="lg"
-                  bgColor={userData?.foto_perfil || userData?.avatar_url ? "transparent" : "info"}
+                  bgColor="info"
+                  sx={{
+                    display: (userData?.foto_perfil || userData?.avatar_url) ? 'none' : 'flex'
+                  }}
                 >
-                  {!userData?.foto_perfil && !userData?.avatar_url && getInitials(userData)}
+                  {getInitials(userData)}
                 </MDAvatar>
               </MDBox>
               <MDBox>

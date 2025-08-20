@@ -6,10 +6,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Button,
   Grid,
@@ -33,8 +29,9 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  Alert,
 } from "@mui/material";
-import { Close as CloseIcon, Edit as EditIcon, Visibility, VisibilityOff } from "@mui/icons-material";
+import { Close as CloseIcon, Edit as EditIcon, Visibility, VisibilityOff, Refresh as RefreshIcon } from "@mui/icons-material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -66,6 +63,16 @@ function TabPanel({ children, value, index, ...other }) {
     </div>
   );
 }
+
+// Función para generar contraseña aleatoria
+const generatePassword = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
 
 const PersonalModal = ({ 
   open, 
@@ -130,7 +137,28 @@ const PersonalModal = ({
         label: "Código",
         type: "text",
         required: true,
-        placeholder: "Código del empleado"
+        placeholder: "Código del empleado",
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton
+              onClick={async () => {
+                try {
+                  const response = await personalService.generateEmployeeCode();
+                  if (response.success) {
+                    handleInputChange("codigo", response.codigo);
+                  }
+                } catch (error) {
+                  console.error('Error al generar código:', error);
+                }
+              }}
+              edge="end"
+              title="Generar código automáticamente"
+              disabled={mode === "view"}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </InputAdornment>
+        )
       },
       {
         name: "nombre",
@@ -195,8 +223,21 @@ const PersonalModal = ({
         endAdornment: (
           <InputAdornment position="end">
             <IconButton
+              onClick={() => {
+                const newPassword = generatePassword();
+                handleInputChange("password", newPassword);
+                handleInputChange("password_confirmation", newPassword);
+              }}
+              edge="end"
+              title="Generar contraseña aleatoria"
+              sx={{ mr: 1 }}
+            >
+              <RefreshIcon />
+            </IconButton>
+            <IconButton
               onClick={() => setShowPassword(!showPassword)}
               edge="end"
+              title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {showPassword ? <VisibilityOff /> : <Visibility />}
             </IconButton>
@@ -214,6 +255,7 @@ const PersonalModal = ({
             <IconButton
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               edge="end"
+              title={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
             </IconButton>
@@ -371,13 +413,6 @@ const PersonalModal = ({
         multiline: true,
         rows: 3,
         placeholder: "Notas adicionales"
-      },
-      {
-        name: "foto_perfil",
-        label: "URL de Foto de Perfil",
-        type: "url",
-        required: false,
-        placeholder: "https://ejemplo.com/foto.jpg"
       }
     ]
   };
@@ -641,16 +676,29 @@ const PersonalModal = ({
 
     setLoading(true);
     try {
+      // Preparar datos para enviar al backend
+      const dataToSend = { ...formData };
+      
+      // Remover campos que no se envían al backend
+      delete dataToSend.password_confirmation;
+      delete dataToSend.Id_Licencia; // Se asigna automáticamente en el backend
+      
+      // Si no hay contraseña en modo create, usar una por defecto
+      if (mode === "create" && !dataToSend.password) {
+        dataToSend.password = generatePassword();
+      }
+
       if (mode === "create") {
-        await personalService.createPersonal(formData);
+        await personalService.createPersonal(dataToSend);
       } else if (mode === "edit") {
-        await personalService.updatePersonal(personalData.id, formData);
+        await personalService.updatePersonal(personalData.id, dataToSend);
       }
       
       onSuccess();
       onClose();
     } catch (error) {
       console.error("Error al guardar personal:", error);
+      setErrors({ general: error.message || "Error al guardar personal" });
     } finally {
       setLoading(false);
     }
@@ -671,6 +719,7 @@ const PersonalModal = ({
       onClose();
     } catch (error) {
       console.error("Error al desactivar personal:", error);
+      setErrors({ general: error.message || "Error al desactivar personal" });
     } finally {
       setLoading(false);
     }
@@ -688,18 +737,28 @@ const PersonalModal = ({
   const isViewMode = mode === "view";
 
   const generateDefaultAvatar = (empleado) => {
-    if (empleado?.foto_perfil) {
+    // Si tiene foto de perfil, usarla directamente
+    if (empleado?.foto_perfil && empleado.foto_perfil.trim() !== '') {
       return empleado.foto_perfil;
     }
     
+    // Si no tiene foto, retornar null para que se genere avatar con iniciales
+    return null;
+  };
+
+  // Función para generar iniciales del nombre
+  const getInitials = (empleado) => {
     const nombre = empleado?.nombre_completo || `${empleado?.nombre} ${empleado?.apellido}`;
-    const genero = empleado?.genero;
+    if (!nombre || nombre.trim() === '') return 'U';
     
-    if (genero === 'femenino') {
-      return `https://randomuser.me/api/portraits/women/${empleado?.id % 50}.jpg`;
-    } else {
-      return `https://randomuser.me/api/portraits/men/${empleado?.id % 50}.jpg`;
+    const names = nombre.trim().split(' ');
+    if (names.length >= 2) {
+      return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
+    } else if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
     }
+    
+    return 'U';
   };
 
   const getEstadoColor = (estado) => {
@@ -734,12 +793,43 @@ const PersonalModal = ({
       }}>
         <CardContent>
           <MDBox display="flex" flexDirection="column" alignItems="center" mb={3}>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={personalData.nombre_completo}
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid',
+                  borderColor: '#1976d2',
+                  marginBottom: '16px'
+                }}
+                onError={(e) => {
+                  console.log('❌ Error cargando imagen para:', personalData.nombre_completo, e.target.src);
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+                onLoad={(e) => {
+                  console.log('✅ Imagen cargada exitosamente para:', personalData.nombre_completo, e.target.src);
+                }}
+              />
+            ) : null}
             <MDAvatar
-              src={avatarUrl}
-              alt={personalData.nombre_completo}
               size="xl"
-              sx={{ mb: 2, border: '3px solid', borderColor: 'primary.main' }}
-            />
+              bgColor="info"
+              sx={{ 
+                mb: 2, 
+                border: '3px solid', 
+                borderColor: 'primary.main',
+                width: '120px',
+                height: '120px',
+                display: avatarUrl ? 'none' : 'flex'
+              }}
+            >
+              {getInitials(personalData)}
+            </MDAvatar>
             <MDTypography variant="h5" fontWeight="bold" color={darkMode ? "white" : "dark"}>
               {personalData.nombre_completo}
             </MDTypography>
@@ -860,136 +950,186 @@ const PersonalModal = ({
     );
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth={isViewMode ? "md" : "lg"}
-      fullWidth
-      BackdropProps={{
-        sx: {
-          backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)'
-        }
-      }}
-      PaperProps={{
-        sx: {
-          backgroundColor: darkMode ? '#1a1a1a' : 'white',
-          color: darkMode ? '#ffffff' : 'inherit'
-        }
-      }}
-    >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+    <Box
+      sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1300,
+        display: 'flex',
         alignItems: 'center',
-        backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-        color: darkMode ? '#ffffff' : '#333333',
-        borderBottom: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-      }}>
-        <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"}>
-          {getModalTitle()}
-        </MDTypography>
-        <IconButton 
-          onClick={onClose} 
-          size="small"
-          sx={{ 
-            color: darkMode ? '#ffffff' : '#666666',
-            '&:hover': {
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }
+        justifyContent: 'center',
+        padding: '20px'
+      }}
+      onClick={onClose}
+    >
+      <Box
+        sx={{
+          backgroundColor: darkMode ? '#2d2d2d' : '#ffffff',
+          color: darkMode ? '#ffffff' : '#000000',
+          borderRadius: '8px',
+          width: '95%',
+          maxWidth: '1200px',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          border: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <Box
+          sx={{
+            backgroundColor: '#1976d2',
+            color: '#ffffff',
+            padding: '16px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
           }}
         >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+          <MDTypography variant="h5" fontWeight="bold">
+            {getModalTitle()}
+          </MDTypography>
+          <IconButton 
+            onClick={onClose}
+            sx={{ color: '#ffffff' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
-      <DialogContent sx={{ 
-        pt: 2,
-        backgroundColor: darkMode ? '#1a1a1a' : 'white',
-        color: darkMode ? '#ffffff' : 'inherit'
-      }}>
-        {isViewMode ? (
-          renderViewCard()
-        ) : (
-          <>
-            <Tabs
-              value={tabValue}
-              onChange={(e, newValue) => setTabValue(newValue)}
-              sx={{
-                borderBottom: 1,
-                borderColor: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
-                mb: 2
-              }}
-            >
-              {Object.keys(personalFields).map((sectionKey, index) => (
-                <Tab
-                  key={sectionKey}
-                  label={sectionKey}
+        {/* Content */}
+        <Box sx={{ flex: 1, overflow: 'auto', padding: '24px' }}>
+          {errors.general && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errors.general}
+            </Alert>
+          )}
+
+          {isViewMode ? (
+            renderViewCard()
+          ) : (
+            <>
+              {/* Tabs */}
+              <Box sx={{ 
+                borderBottom: 1, 
+                borderColor: darkMode ? '#555555' : '#e0e0e0', 
+                mb: 3
+              }}>
+                <Tabs 
+                  value={tabValue} 
+                  onChange={(e, newValue) => setTabValue(newValue)}
+                  variant="scrollable"
+                  scrollButtons="auto"
                   sx={{
-                    color: darkMode ? '#ffffff' : '#000000',
-                    '&.Mui-selected': {
-                      color: '#1976d2'
+                    '& .MuiTab-root': {
+                      color: darkMode ? '#ffffff' : '#000000',
+                      '&.Mui-selected': {
+                        color: '#1976d2'
+                      }
+                    },
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: '#1976d2'
                     }
                   }}
-                />
-              ))}
-            </Tabs>
+                >
+                  {Object.keys(personalFields).map((sectionKey) => (
+                    <Tab key={sectionKey} label={sectionKey} />
+                  ))}
+                  <Tab label="Foto de Perfil" />
+                </Tabs>
+              </Box>
 
-            {Object.keys(personalFields).map((sectionKey) => 
-              renderSection(sectionKey, sectionKey)
-            )}
-          </>
-        )}
-      </DialogContent>
+              {/* Tab Content */}
+              {Object.keys(personalFields).map((sectionKey) => 
+                renderSection(sectionKey, sectionKey)
+              )}
 
-      <DialogActions sx={{ 
-        p: 3, 
-        backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-        borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-      }}>
-        <MDButton onClick={onClose} color="secondary">
-          Cancelar
-        </MDButton>
-        
-        {mode === "view" && personalData && (
-          <>
+              {/* Sección de Foto de Perfil */}
+              <TabPanel value={tabValue} index={Object.keys(personalFields).length}>
+                <MDBox display="flex" justifyContent="center" p={3}>
+                  <ProfileImageUpload
+                    currentImageUrl={formData.foto_perfil}
+                    userName={`${formData.nombre} ${formData.apellido}`}
+                    onImageUpdate={handleImageUpdate}
+                    size="xl"
+                    showUploadButton={true}
+                    showDeleteButton={true}
+                    disabled={mode === "view"}
+                    context="personal"
+                    userId={personalData?.id}
+                  />
+                </MDBox>
+              </TabPanel>
+            </>
+          )}
+        </Box>
+
+        {/* Footer */}
+        <Box
+          sx={{
+            backgroundColor: darkMode ? '#1a1a1a' : '#f8f9fa',
+            padding: '16px 24px',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 2,
+            borderTop: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
+          }}
+        >
+          <MDButton onClick={onClose} color="secondary">
+            Cancelar
+          </MDButton>
+          
+          {mode === "view" && personalData && (
+            <>
+              <MDButton
+                color="info"
+                startIcon={<EditIcon />}
+              >
+                Editar
+              </MDButton>
+              <MDButton
+                onClick={handleSoftDelete}
+                color="error"
+                disabled={loading}
+              >
+                Desactivar
+              </MDButton>
+            </>
+          )}
+          
+          {mode === "edit" && (
             <MDButton
-              color="info"
-              startIcon={<EditIcon />}
-            >
-              Editar
-            </MDButton>
-            <MDButton
-              onClick={handleSoftDelete}
-              color="error"
+              onClick={handleSubmit}
+              color="success"
               disabled={loading}
             >
-              Desactivar
+              {loading ? "Guardando..." : "Guardar Cambios"}
             </MDButton>
-          </>
-        )}
-        
-        {mode === "edit" && (
-          <MDButton
-            onClick={handleSubmit}
-            color="success"
-            disabled={loading}
-          >
-            {loading ? "Guardando..." : "Guardar Cambios"}
-          </MDButton>
-        )}
-        
-        {mode === "create" && (
-          <MDButton
-            onClick={handleSubmit}
-            color="success"
-            disabled={loading}
-          >
-            {loading ? "Creando..." : "Crear Empleado"}
-          </MDButton>
-        )}
-      </DialogActions>
-    </Dialog>
+          )}
+          
+          {mode === "create" && (
+            <MDButton
+              onClick={handleSubmit}
+              color="success"
+              disabled={loading}
+            >
+              {loading ? "Creando..." : "Crear Empleado"}
+            </MDButton>
+          )}
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

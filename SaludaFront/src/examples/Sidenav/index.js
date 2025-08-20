@@ -458,14 +458,36 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           <MDBox mb={1} display="flex" justifyContent="center" position="relative">
             {/* Mostrar la URL del avatar para depuración */}
             {console.log('Avatar URL Sidenav:', userData.foto_perfil)}
+            {userData.foto_perfil && userData.foto_perfil !== "" ? (
+              <img
+                src={userData.foto_perfil}
+                alt={userData.nombre_completo || userData.name}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid white'
+                }}
+                onError={(e) => {
+                  console.log('❌ Error cargando imagen en Sidenav para:', userData.nombre_completo, e.target.src);
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+                onLoad={(e) => {
+                  console.log('✅ Imagen cargada exitosamente en Sidenav para:', userData.nombre_completo, e.target.src);
+                }}
+              />
+            ) : null}
             <MDAvatar
-              src={userData.foto_perfil && userData.foto_perfil !== "" ? userData.foto_perfil : defaultAvatar}
-              alt={userData.nombre_completo || userData.name}
               size="lg"
-              bgColor={userData?.foto_perfil ? "transparent" : "info"}
-              sx={{ border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}` }}
+              sx={{ 
+                border: ({ borders: { borderWidth }, palette: { white } }) => `${borderWidth[2]} solid ${white.main}`,
+                display: userData.foto_perfil && userData.foto_perfil !== "" ? 'none' : 'flex'
+              }}
+              bgColor="info"
             >
-              {!userData?.foto_perfil && getInitials(userData)}
+              {getInitials(userData)}
             </MDAvatar>
             {/* Indicador de estado online */}
             <MDBox

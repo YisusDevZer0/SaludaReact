@@ -311,19 +311,28 @@ function Personal() {
 
   // Función para generar avatar por defecto
   const generateDefaultAvatar = (empleado) => {
-    if (empleado.foto_perfil) {
+    // Si tiene foto de perfil, usarla directamente
+    if (empleado.foto_perfil && empleado.foto_perfil.trim() !== '') {
       return empleado.foto_perfil;
     }
     
-    // Generar avatar basado en el nombre y género
+    // Si no tiene foto, retornar null para que se genere avatar con iniciales
+    return null;
+  };
+
+  // Función para generar iniciales del nombre
+  const getInitials = (empleado) => {
     const nombre = empleado.nombre_completo || `${empleado.nombre} ${empleado.apellido}`;
-    const genero = empleado.genero;
+    if (!nombre || nombre.trim() === '') return 'U';
     
-    if (genero === 'femenino') {
-      return `https://randomuser.me/api/portraits/women/${empleado.id % 50}.jpg`;
-    } else {
-      return `https://randomuser.me/api/portraits/men/${empleado.id % 50}.jpg`;
+    const names = nombre.trim().split(' ');
+    if (names.length >= 2) {
+      return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
+    } else if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
     }
+    
+    return 'U';
   };
 
   // Función de prueba para verificar autenticación
@@ -345,6 +354,59 @@ function Personal() {
     }
   };
 
+  // Función para debuggear fotos de perfil
+  const debugProfilePhotos = () => {
+    console.log('🔍 Debuggeando fotos de perfil...');
+    personalData.forEach((empleado, index) => {
+      const avatarUrl = generateDefaultAvatar(empleado);
+      console.log(`Empleado ${index + 1}:`, {
+        nombre: empleado.nombre_completo,
+        foto_perfil_original: empleado.foto_perfil,
+        foto_perfil_generada: avatarUrl,
+        iniciales: getInitials(empleado),
+        tiene_foto: !!empleado.foto_perfil,
+        url_valida: avatarUrl ? 'Sí' : 'No (mostrará iniciales)'
+      });
+      
+      // Probar si la URL es accesible
+      if (avatarUrl) {
+        fetch(avatarUrl, { method: 'HEAD' })
+          .then(response => {
+            console.log(`✅ URL accesible para ${empleado.nombre_completo}:`, response.ok);
+          })
+          .catch(error => {
+            console.log(`❌ Error accediendo a URL para ${empleado.nombre_completo}:`, error.message);
+          });
+      }
+    });
+  };
+
+  // Función para probar carga de imagen específica
+  const testImageLoad = (imageUrl) => {
+    console.log('🧪 Probando carga de imagen:', imageUrl);
+    
+    const img = new Image();
+    img.onload = () => {
+      console.log('✅ Imagen cargada exitosamente:', imageUrl);
+      console.log('Dimensiones:', img.width, 'x', img.height);
+    };
+    img.onerror = () => {
+      console.log('❌ Error cargando imagen:', imageUrl);
+    };
+    img.src = imageUrl;
+  };
+
+  // Función para verificar todas las imágenes del personal
+  const testAllImages = () => {
+    console.log('🧪 Probando todas las imágenes del personal...');
+    personalData.forEach((empleado, index) => {
+      if (empleado.foto_perfil) {
+        console.log(`Probando imagen ${index + 1}:`, empleado.nombre_completo);
+        testImageLoad(empleado.foto_perfil);
+      }
+    });
+  };
+
   // Datos de la tabla de personal
   const personalTableData = {
     columns: [
@@ -363,13 +425,41 @@ function Personal() {
       return {
         empleado: (
           <MDBox display="flex" alignItems="center">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={empleado.nombre_completo}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  marginRight: '8px',
+                  objectFit: 'cover',
+                  border: '2px solid #e0e0e0'
+                }}
+                onError={(e) => {
+                  console.log('❌ Error cargando imagen para:', empleado.nombre_completo, e.target.src);
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+                onLoad={(e) => {
+                  console.log('✅ Imagen cargada exitosamente para:', empleado.nombre_completo, e.target.src);
+                }}
+              />
+            ) : null}
             <MDAvatar
-              src={avatarUrl}
-              alt={empleado.nombre_completo}
               size="sm"
-              sx={{ mr: 1 }}
+              sx={{ 
+                mr: 1,
+                width: '40px',
+                height: '40px',
+                display: avatarUrl ? 'none' : 'flex'
+              }}
               className="employee-avatar"
-            />
+              bgColor="info"
+            >
+              {getInitials(empleado)}
+            </MDAvatar>
             <MDBox display="flex" flexDirection="column">
               <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
                 {empleado.nombre_completo}
@@ -642,6 +732,33 @@ function Personal() {
                       onClick={testAuthentication}
                     >
                       Probar Auth
+                    </MDButton>
+                    <MDButton 
+                      variant="outlined"
+                      color="info" 
+                      size="small"
+                      startIcon={<Icon>photo</Icon>}
+                      onClick={debugProfilePhotos}
+                    >
+                      Debug Fotos
+                    </MDButton>
+                    <MDButton 
+                      variant="outlined"
+                      color="secondary" 
+                      size="small"
+                      startIcon={<Icon>image</Icon>}
+                      onClick={() => testImageLoad('http://localhost:8000/storage/profiles/personal_1_1755232933.png')}
+                    >
+                      Probar Imagen
+                    </MDButton>
+                    <MDButton 
+                      variant="outlined"
+                      color="warning" 
+                      size="small"
+                      startIcon={<Icon>collections</Icon>}
+                      onClick={testAllImages}
+                    >
+                      Probar Todas
                     </MDButton>
                   </MDBox>
                 </MDBox>

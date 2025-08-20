@@ -1,60 +1,54 @@
 <?php
 
-/**
- * Script para probar el acceso a las imágenes
- */
+echo "=== Prueba de Acceso a Imágenes ===\n\n";
 
-require_once __DIR__ . '/vendor/autoload.php';
+$images = [
+    'http://localhost:8000/storage/profiles/personal_1_1755233499.png',
+    'http://localhost:8000/storage/profiles/personal_257_1755232700.jpg',
+    'http://localhost:8000/storage/profiles/personal_255_1753591673.png'
+];
 
-// Configurar Laravel
-$app = require_once __DIR__ . '/bootstrap/app.php';
-$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
-
-echo "🔍 Probando acceso a imágenes...\n\n";
-
-try {
-    // Buscar un usuario con foto de perfil
-    $user = \App\Models\PersonalPos::whereNotNull('foto_perfil')
-        ->where('foto_perfil', '!=', '')
-        ->first();
+foreach ($images as $imageUrl) {
+    echo "Probando: {$imageUrl}\n";
     
-    if ($user) {
-        echo "✅ Usuario encontrado: {$user->nombre} {$user->apellido}\n";
-        echo "📁 Foto perfil en BD: {$user->foto_perfil}\n";
+    // Usar file_get_contents para probar el acceso
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'HEAD',
+            'timeout' => 5
+        ]
+    ]);
+    
+    $headers = get_headers($imageUrl, 1, $context);
+    
+    if ($headers !== false) {
+        $statusCode = $headers[0];
+        echo "Status: {$statusCode}\n";
         
-        // Probar el accessor
-        $photoUrl = $user->foto_perfil;
-        echo "🌐 URL generada: {$photoUrl}\n";
-        
-        // Verificar si el archivo existe físicamente
-        $path = str_replace(url('storage/'), '', $photoUrl);
-        $fullPath = storage_path('app/public/' . $path);
-        echo "📂 Ruta física: {$fullPath}\n";
-        
-        if (file_exists($fullPath)) {
-            echo "✅ Archivo existe físicamente\n";
-            echo "📏 Tamaño: " . filesize($fullPath) . " bytes\n";
+        if (strpos($statusCode, '200') !== false) {
+            echo "✅ Imagen accesible\n";
         } else {
-            echo "❌ Archivo NO existe físicamente\n";
+            echo "❌ Error: {$statusCode}\n";
         }
-        
-        // Probar acceso HTTP
-        $httpUrl = url('storage/' . $path);
-        echo "🌐 URL HTTP: {$httpUrl}\n";
-        
-        $headers = get_headers($httpUrl);
-        if ($headers && strpos($headers[0], '200') !== false) {
-            echo "✅ Archivo accesible via HTTP\n";
-        } else {
-            echo "❌ Archivo NO accesible via HTTP\n";
-        }
-        
     } else {
-        echo "❌ No se encontró ningún usuario con foto de perfil\n";
+        echo "❌ No se pudo acceder a la imagen\n";
     }
     
-} catch (Exception $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    echo "---\n";
 }
 
-echo "\n🎉 Prueba completada\n"; 
+echo "\n=== Verificación de archivos locales ===\n";
+$localFiles = [
+    'storage/app/public/profiles/personal_1_1755233499.png',
+    'storage/app/public/profiles/personal_257_1755232700.jpg',
+    'storage/app/public/profiles/personal_255_1753591673.png'
+];
+
+foreach ($localFiles as $file) {
+    if (file_exists($file)) {
+        $size = filesize($file);
+        echo "✅ {$file} - Tamaño: " . number_format($size) . " bytes\n";
+    } else {
+        echo "❌ {$file} - No existe\n";
+    }
+} 
