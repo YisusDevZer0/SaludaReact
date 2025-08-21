@@ -25,6 +25,7 @@ import StockDashboard from "layouts/admin/StockDashboard";
 import Proveedores from "layouts/admin/Proveedores";
 import Clientes from "layouts/admin/Clientes";
 import AdminAgendasDashboard from "layouts/admin-agendas";
+import Agendas from "layouts/admin/Agendas";
 import Personal from "layouts/admin/Personal";
 import Traspasos from "layouts/admin/Traspasos";
 import Inventory from "layouts/admin/Inventory";
@@ -376,7 +377,7 @@ const routes = [
     key: "admin-agendas",
     icon: <Icon fontSize="small">event</Icon>,
     route: "/admin-agendas",
-    component: <AdminAgendasDashboard />,
+    component: <Agendas />,
     adminOnly: true, // Solo administradores pueden acceder
   },
   {

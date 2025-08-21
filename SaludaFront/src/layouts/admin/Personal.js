@@ -29,6 +29,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
 
 // Context
 import { useMaterialUIController } from "context";
@@ -407,7 +408,155 @@ function Personal() {
     });
   };
 
-  // Datos de la tabla de personal
+  // Configuración de columnas para StandardDataTable
+  const personalColumns = [
+    {
+      name: 'Empleado',
+      selector: row => row.nombre_completo,
+      sortable: true,
+      width: '280px',
+      cell: (row) => {
+        const avatarUrl = generateDefaultAvatar(row);
+        return (
+          <MDBox display="flex" alignItems="center">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={row.nombre_completo}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  marginRight: '8px',
+                  objectFit: 'cover',
+                  border: '2px solid #e0e0e0'
+                }}
+              />
+            ) : (
+              <MDAvatar
+                size="sm"
+                sx={{ 
+                  mr: 1,
+                  width: '40px',
+                  height: '40px'
+                }}
+                bgColor="info"
+              >
+                {getInitials(row)}
+              </MDAvatar>
+            )}
+            <MDBox display="flex" flexDirection="column">
+              <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+                {row.nombre_completo}
+              </MDTypography>
+              <MDTypography variant="caption" color="text">
+                {row.email}
+              </MDTypography>
+            </MDBox>
+          </MDBox>
+        );
+      }
+    },
+    {
+      name: 'Código',
+      selector: row => row.codigo,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+          {row.codigo || 'N/A'}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Puesto',
+      selector: row => row.role?.nombre,
+      sortable: true,
+      width: '180px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+          {row.role?.nombre || 'N/A'}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Sucursal',
+      selector: row => row.sucursal?.nombre,
+      sortable: true,
+      width: '180px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+          {row.sucursal?.nombre || 'N/A'}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Estatus',
+      selector: row => row.estado_laboral,
+      sortable: true,
+      width: '140px',
+      cell: (row) => {
+        const estatusColor = personalService.getEstadoColor(row.estado_laboral);
+        return (
+          <MDBox>
+            <MDTypography
+              variant="caption"
+              color={estatusColor}
+              fontWeight="medium"
+              sx={{
+                px: 1,
+                py: 0.5,
+                borderRadius: "5px",
+                backgroundColor: `${estatusColor}.main`,
+                color: "white",
+                fontSize: "0.75rem",
+              }}
+            >
+              {row.estado_laboral || 'N/A'}
+            </MDTypography>
+          </MDBox>
+        );
+      }
+    },
+    {
+      name: 'Fecha Contratación',
+      selector: row => row.fecha_ingreso,
+      sortable: true,
+      width: '180px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" color={darkMode ? "white" : "dark"}>
+          {personalService.formatDate(row.fecha_ingreso)}
+        </MDTypography>
+      )
+    }
+  ];
+
+  // Configuración del servicio para StandardDataTable
+  const personalTableService = {
+    getAll: async (params = {}) => {
+      try {
+        const response = await personalService.getPersonalWithRelations();
+        const formattedData = personalService.formatPersonalData(response.data || response);
+        
+        // Para StandardDataTable necesitamos retornar en formato estándar
+        return {
+          success: true,
+          data: formattedData,
+          total: formattedData.length
+        };
+      } catch (error) {
+        console.error('Error en personalTableService:', error);
+        return {
+          success: false,
+          message: error.message,
+          data: [],
+          total: 0
+        };
+      }
+    }
+  };
+
+  // Datos de la tabla de personal (mantener para compatibilidad)
   const personalTableData = {
     columns: [
       { Header: "Empleado", accessor: "empleado" },
@@ -790,18 +939,62 @@ function Personal() {
                 )}
 
                 {!loading && !error && (
-                  <div className="personal-table">
-                <DataTable
-                      table={personalTableData}
-                      isSorted={true}
-                      entriesPerPage={true}
-                  showTotalEntries={true}
-                      noEndBorder={false}
-                      canSearch={true}
-                      tableHeaderColor={tableHeaderColor || "info"}
-                      darkMode={darkMode}
-                    />
-                  </div>
+                  <StandardDataTable
+                    service={personalTableService}
+                    columns={personalColumns}
+                    title="Personal"
+                    subtitle="Gestión de empleados y recursos humanos"
+                    enableCreate={true}
+                    enableEdit={true}
+                    enableDelete={false} // Usar soft delete
+                    enableSearch={true}
+                    enableFilters={true}
+                    enableStats={false} // Ya tenemos estadísticas arriba
+                    enableExport={true}
+                    serverSide={false} // Datos pequeños, no necesita server-side
+                    defaultPageSize={10}
+                    defaultSortField="nombre_completo"
+                    defaultSortDirection="asc"
+                    onRowClick={(row) => handleOpenModal("view", row)}
+                    availableFilters={[
+                      {
+                        key: 'estado_laboral',
+                        label: 'Estado Laboral',
+                        type: 'select',
+                        options: [
+                          { value: 'activo', label: 'Activo' },
+                          { value: 'inactivo', label: 'Inactivo' },
+                          { value: 'vacaciones', label: 'Vacaciones' },
+                          { value: 'permiso', label: 'Permiso' },
+                          { value: 'baja', label: 'Baja' }
+                        ]
+                      },
+                      {
+                        key: 'sucursal',
+                        label: 'Sucursal',
+                        type: 'text'
+                      },
+                      {
+                        key: 'puesto',
+                        label: 'Puesto',
+                        type: 'text'
+                      }
+                    ]}
+                    customActions={[
+                      {
+                        title: 'Ver Perfil',
+                        icon: <Icon>visibility</Icon>,
+                        color: 'info.main',
+                        onClick: (row) => handleOpenModal("view", row)
+                      }
+                    ]}
+                    permissions={{
+                      create: true,
+                      edit: true,
+                      delete: false, // No delete directo
+                      view: true
+                    }}
+                  />
                 )}
           </MDBox>
         </Card>

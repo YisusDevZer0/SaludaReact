@@ -6,10 +6,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Grid,
   FormControl,
@@ -18,18 +14,17 @@ import {
   MenuItem,
   FormControlLabel,
   Switch,
-  IconButton,
   Divider,
   Box,
+  Alert
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
 
 // Material Dashboard 2 React components
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 
-// Context
-import { useMaterialUIController } from "context";
+// Componentes
+import StandardModal from "./StandardModal";
 
 const GenericModal = ({ 
   open, 
@@ -48,6 +43,7 @@ const GenericModal = ({
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [generalError, setGeneralError] = useState("");
 
   // Inicializar datos del formulario
   useEffect(() => {
@@ -273,224 +269,85 @@ const GenericModal = ({
     }
   };
 
-  return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      BackdropProps={{
-        sx: {
-          backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.5)'
-        }
-      }}
-      PaperProps={{
-        sx: {
-          backgroundColor: darkMode ? '#1a1a1a' : 'white',
-          color: darkMode ? '#ffffff' : 'inherit',
-          '& .MuiDialogTitle-root': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-            color: darkMode ? '#ffffff' : '#333333',
-            borderBottom: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-          },
-          '& .MuiDialogContent-root': {
-            backgroundColor: darkMode ? '#1a1a1a' : 'white',
-            color: darkMode ? '#ffffff' : 'inherit'
-          },
-          '& .MuiDialogActions-root': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-            borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-          }
-        }
-      }}
-    >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-        color: darkMode ? '#ffffff' : '#333333',
-        borderBottom: darkMode ? '1px solid #404040' : '1px solid #e0e0e0'
-      }}>
-        <MDTypography variant="h6" fontWeight="medium" color={darkMode ? "white" : "dark"}>
-          {getModalTitle()}
-        </MDTypography>
-        <IconButton 
-          onClick={onClose} 
-          size="small"
-          sx={{ 
-            color: darkMode ? '#ffffff' : '#666666',
-            '&:hover': {
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }
-          }}
+  // Acciones del modal
+  const modalActions = (
+    <>
+      <MDButton onClick={onClose} color="secondary" disabled={loading}>
+        Cancelar
+      </MDButton>
+      
+      {mode === "view" && data && (
+        <>
+          <MDButton
+            onClick={() => {/* Cambiar a modo edit - debe ser manejado por componente padre */}}
+            color="info"
+          >
+            Editar
+          </MDButton>
+          <MDButton
+            onClick={handleSoftDelete}
+            color="error"
+            disabled={loading}
+          >
+            {loading ? "Eliminando..." : "Eliminar"}
+          </MDButton>
+        </>
+      )}
+      
+      {mode === "edit" && (
+        <MDButton
+          onClick={handleSubmit}
+          color="success"
+          disabled={loading}
         >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ 
-        pt: 2,
-        backgroundColor: darkMode ? '#1a1a1a' : 'white',
-        color: darkMode ? '#ffffff' : 'inherit',
-        '& .MuiTextField-root': {
-          '& .MuiInputLabel-root': {
-            color: darkMode ? '#b0b0b0' : '#666666'
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: darkMode ? '#404040' : '#e0e0e0'
-            },
-            '&:hover fieldset': {
-              borderColor: darkMode ? '#606060' : '#bdbdbd'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& .MuiInputBase-input': {
-              color: darkMode ? '#ffffff' : '#333333'
-            }
-          },
-          '& .MuiFormHelperText-root': {
-            color: darkMode ? '#ff6b6b' : '#d32f2f'
-          }
-        },
-        '& .MuiFormControl-root': {
-          '& .MuiInputLabel-root': {
-            color: darkMode ? '#b0b0b0' : '#666666'
-          },
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: darkMode ? '#404040' : '#e0e0e0'
-            },
-            '&:hover fieldset': {
-              borderColor: darkMode ? '#606060' : '#bdbdbd'
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& .MuiSelect-select': {
-              color: darkMode ? '#ffffff' : '#333333'
-            }
-          }
-        },
-        '& .MuiFormControlLabel-root': {
-          '& .MuiFormControlLabel-label': {
-            color: darkMode ? '#ffffff' : '#333333'
-          }
-        },
-        '& .MuiDivider-root': {
-          borderColor: darkMode ? '#404040' : '#e0e0e0'
-        },
-        '& .MuiMenuItem-root': {
-          color: darkMode ? '#ffffff' : '#333333',
-          backgroundColor: darkMode ? '#1a1a1a' : 'white',
-          '&:hover': {
-            backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5'
-          },
-          '&.Mui-selected': {
-            backgroundColor: darkMode ? '#1976d2' : '#e3f2fd',
-            color: darkMode ? '#ffffff' : '#1976d2'
-          }
-        },
-        '& .MuiSwitch-root': {
-          '& .MuiSwitch-switchBase': {
-            color: darkMode ? '#b0b0b0' : '#ccc'
-          },
-          '& .MuiSwitch-track': {
-            backgroundColor: darkMode ? '#404040' : '#ccc'
-          },
-          '& .Mui-checked': {
-            '& .MuiSwitch-thumb': {
-              color: darkMode ? '#1976d2' : '#1976d2'
-            },
-            '& + .MuiSwitch-track': {
-              backgroundColor: darkMode ? '#1976d2' : '#1976d2'
-            }
-          }
-        }
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: 3,
-          maxHeight: '70vh',
-          overflowY: 'auto',
-          pr: 1
-        }}>
-          {fields.map((field, index) => (
-            <Box key={index} sx={{ width: '100%' }}>
-              {renderField(field)}
-            </Box>
-          ))}
-        </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ 
-        p: 3, 
-        backgroundColor: darkMode ? '#2d2d2d' : '#f5f5f5',
-        borderTop: darkMode ? '1px solid #404040' : '1px solid #e0e0e0',
-        '& .MuiButton-root': {
-          '&.MuiButton-contained': {
-            backgroundColor: darkMode ? '#1976d2' : '#1976d2',
-            color: '#ffffff',
-            '&:hover': {
-              backgroundColor: darkMode ? '#1565c0' : '#1565c0'
-            }
-          },
-          '&.MuiButton-outlined': {
-            borderColor: darkMode ? '#404040' : '#e0e0e0',
-            color: darkMode ? '#ffffff' : '#333333',
-            '&:hover': {
-              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-            }
-          }
-        }
-      }}>
-        <MDButton onClick={onClose} color="secondary">
-          Cancelar
+          {loading ? "Guardando..." : "Guardar Cambios"}
         </MDButton>
-        
-        {mode === "view" && data && (
-          <>
-            <MDButton
-              onClick={() => {/* Cambiar a modo edit */}}
-              color="info"
-            >
-              Editar
-            </MDButton>
-            <MDButton
-              onClick={handleSoftDelete}
-              color="error"
-              disabled={loading}
-            >
-              Desactivar
-            </MDButton>
-          </>
-        )}
-        
-        {mode === "edit" && (
-          <MDButton
-            onClick={handleSubmit}
-            color="success"
-            disabled={loading}
-          >
-            {loading ? "Guardando..." : "Guardar Cambios"}
-          </MDButton>
-        )}
-        
-        {mode === "create" && (
-          <MDButton
-            onClick={handleSubmit}
-            color="success"
-            disabled={loading}
-          >
-            {loading ? "Creando..." : `Crear ${title}`}
-          </MDButton>
-        )}
-      </DialogActions>
-    </Dialog>
+      )}
+      
+      {mode === "create" && (
+        <MDButton
+          onClick={handleSubmit}
+          color="success"
+          disabled={loading}
+        >
+          {loading ? "Creando..." : `Crear ${title}`}
+        </MDButton>
+      )}
+    </>
   );
+
+  return (
+    <StandardModal
+      open={open}
+      onClose={onClose}
+      title={getModalTitle()}
+      maxWidth="md"
+      loading={loading}
+      actions={modalActions}
+    >
+      {generalError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {generalError}
+        </Alert>
+      )}
+      
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 3,
+        maxHeight: '60vh',
+        overflowY: 'auto',
+        pr: 1
+      }}>
+        {fields.map((field, index) => (
+          <Box key={index} sx={{ width: '100%' }}>
+            {renderField(field)}
+          </Box>
+        ))}
+      </Box>
+    </StandardModal>
+  );
+
 };
 
 export default GenericModal; 
