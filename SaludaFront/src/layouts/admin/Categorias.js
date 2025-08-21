@@ -17,7 +17,8 @@ import categoriasService from "services/categorias-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Estilos
 import "./Categorias.css";

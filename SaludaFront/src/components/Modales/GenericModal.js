@@ -106,17 +106,40 @@ const GenericModal = ({
 
     setLoading(true);
     try {
+      let result;
       if (mode === "create") {
-        await service.createEntity(formData);
+        // Intentar diferentes métodos de creación que usan los servicios
+        if (service.create) {
+          result = await service.create(formData);
+        } else if (service.createEntity) {
+          result = await service.createEntity(formData);
+        } else if (service.store) {
+          result = await service.store(formData);
+        } else {
+          throw new Error('Método de creación no encontrado en el servicio');
+        }
       } else if (mode === "edit") {
-        await service.updateEntity(data.id, formData);
+        // Intentar diferentes métodos de actualización
+        if (service.update) {
+          result = await service.update(data.id, formData);
+        } else if (service.updateEntity) {
+          result = await service.updateEntity(data.id, formData);
+        } else {
+          throw new Error('Método de actualización no encontrado en el servicio');
+        }
+      }
+
+      // Verificar si la operación fue exitosa
+      if (result && !result.success && result.success !== undefined) {
+        setGeneralError(result.message || 'Error en la operación');
+        return;
       }
       
       onSuccess();
       onClose();
     } catch (error) {
       console.error(`Error al guardar ${entityName}:`, error);
-      // Aquí podrías mostrar un mensaje de error
+      setGeneralError(error.message || `Error al guardar ${entityName}`);
     } finally {
       setLoading(false);
     }
@@ -127,11 +150,29 @@ const GenericModal = ({
 
     setLoading(true);
     try {
-      await service.deleteEntity(data.id);
+      let result;
+      // Intentar diferentes métodos de eliminación
+      if (service.delete) {
+        result = await service.delete(data.id);
+      } else if (service.deleteEntity) {
+        result = await service.deleteEntity(data.id);
+      } else if (service.destroy) {
+        result = await service.destroy(data.id);
+      } else {
+        throw new Error('Método de eliminación no encontrado en el servicio');
+      }
+
+      // Verificar si la operación fue exitosa
+      if (result && !result.success && result.success !== undefined) {
+        setGeneralError(result.message || 'Error al eliminar');
+        return;
+      }
+
       onSuccess();
       onClose();
     } catch (error) {
       console.error(`Error al eliminar ${entityName}:`, error);
+      setGeneralError(error.message || `Error al eliminar ${entityName}`);
     } finally {
       setLoading(false);
     }

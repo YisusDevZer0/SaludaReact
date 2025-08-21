@@ -17,7 +17,8 @@ import marcasService from "services/marcas-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Estilos
 import "./Marcas.css";
@@ -258,14 +259,32 @@ export default function Marcas() {
         </Grid>
 
         {/* Tabla de marcas */}
-        <DataTable
-          table={{ columns, rows: marcas }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={marcasService}
+            columns={[]}
+            title="Marcas"
+            subtitle="Gestión de marcas comerciales"
+            enableCreate={false}
+            enableEdit={false}
+            enableDelete={false}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

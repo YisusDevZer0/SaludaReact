@@ -11,7 +11,7 @@ class ProfileImageService {
 
       // Usar axios directamente para archivos multipart
       const axios = require('axios');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       
       const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/profile/image/upload`, formData, {
         headers: {

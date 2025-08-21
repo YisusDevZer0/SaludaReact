@@ -1,6 +1,6 @@
 /**
 =========================================================
-* SaludaReact - Modal de Agendas
+* SaludaReact - Modal de Agenda Médica
 =========================================================
 */
 
@@ -10,21 +10,12 @@ import {
   Typography,
   IconButton,
   CircularProgress,
-  Alert,
-  Chip,
-  Card,
-  CardContent,
-  Divider,
-  Grid
+  Alert
 } from "@mui/material";
 import {
   Close as CloseIcon,
-  Edit as EditIcon,
-  CalendarToday as CalendarIcon,
-  AccessTime as TimeIcon,
-  Person as PersonIcon,
-  LocalHospital as HospitalIcon,
-  AttachMoney as MoneyIcon
+  Save as SaveIcon,
+  Event as EventIcon
 } from "@mui/icons-material";
 
 // Material Dashboard 2 React components
@@ -37,20 +28,17 @@ import { useMaterialUIController } from "context";
 
 // Servicios
 import agendaService from "services/agenda-service";
+import useNotifications from "hooks/useNotifications";
 
-// Formulario
-import AgendaForm from "components/forms/AgendaForm";
+// Componentes
+import AgendaForm from "./AgendaForm";
 
-const AgendaModal = ({
-  open,
-  onClose,
-  mode = "create", // "create", "view", "edit"
-  agendaData = null,
-  onSuccess
-}) => {
+function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSuccess }) {
   const [controller] = useMaterialUIController();
   const { darkMode } = controller;
+  const { showSuccess, showError } = useNotifications();
 
+  // Estados del formulario
   const [formData, setFormData] = useState({
     titulo_cita: "",
     descripcion: "",
@@ -65,51 +53,180 @@ const AgendaModal = ({
     fk_paciente: "",
     fk_doctor: "",
     fk_sucursal: "",
-    id_h_o_d: "Saluda"
+    id_h_o_d: "HOD001"
   });
 
-  const [errors, setErrors] = useState({});
+  // Estados de carga
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Estados para datos de referencia
   const [pacientes, setPacientes] = useState([]);
   const [doctores, setDoctores] = useState([]);
   const [sucursales, setSucursales] = useState([]);
-  const [loadingPacientes, setLoadingPacientes] = useState(false);
-  const [loadingDoctores, setLoadingDoctores] = useState(false);
-  const [loadingSucursales, setLoadingSucursales] = useState(false);
 
-  // Cargar datos iniciales
+  // Cargar datos de referencia al abrir el modal
   useEffect(() => {
     if (open) {
-      loadRelatedData();
+      loadReferenceData();
       if (mode === "edit" && agendaData) {
-        setFormData({
-          titulo_cita: agendaData.titulo_cita || "",
-          descripcion: agendaData.descripcion || "",
-          fecha_cita: agendaData.fecha_cita || "",
-          hora_inicio: agendaData.hora_inicio || "",
-          hora_fin: agendaData.hora_fin || "",
-          estado_cita: agendaData.estado_cita || "Pendiente",
-          tipo_cita: agendaData.tipo_cita || "Consulta",
-          consultorio: agendaData.consultorio || "",
-          costo: agendaData.costo || "",
-          notas_adicionales: agendaData.notas_adicionales || "",
-          fk_paciente: agendaData.paciente?.id || "",
-          fk_doctor: agendaData.doctor?.id || "",
-          fk_sucursal: agendaData.sucursal?.id || "",
-          id_h_o_d: agendaData.id_h_o_d || "Saluda",
-          // Datos de auditoría
-          id: agendaData.id,
-          agregado_por: agendaData.agregado_por,
-          agregado_el: agendaData.agregado_el
-        });
-      } else {
-        resetForm();
+        loadAgendaData();
       }
-      setErrors({});
     }
   }, [open, mode, agendaData]);
 
-  const resetForm = () => {
+  // Cargar datos de referencia
+  const loadReferenceData = async () => {
+    setLoadingData(true);
+    try {
+      const [pacientesRes, doctoresRes, sucursalesRes] = await Promise.all([
+        agendaService.getPacientes(),
+        agendaService.getDoctores(),
+        agendaService.getSucursales()
+      ]);
+
+      if (pacientesRes.success) setPacientes(pacientesRes.data || []);
+      if (doctoresRes.success) setDoctores(doctoresRes.data || []);
+      if (sucursalesRes.success) setSucursales(sucursalesRes.data || []);
+    } catch (error) {
+      console.error('Error al cargar datos de referencia:', error);
+      showError('Error al cargar datos de referencia');
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  // Cargar datos de agenda para edición
+  const loadAgendaData = () => {
+    if (!agendaData) return;
+
+    setFormData({
+      titulo_cita: agendaData.Titulo_Cita || "",
+      descripcion: agendaData.Descripcion || "",
+      fecha_cita: agendaData.Fecha_Cita ? new Date(agendaData.Fecha_Cita).toISOString().split('T')[0] : "",
+      hora_inicio: agendaData.Hora_Inicio || "",
+      hora_fin: agendaData.Hora_Fin || "",
+      estado_cita: agendaData.Estado_Cita || "Pendiente",
+      tipo_cita: agendaData.Tipo_Cita || "Consulta",
+      consultorio: agendaData.Consultorio || "",
+      costo: agendaData.Costo || "",
+      notas_adicionales: agendaData.Notas_Adicionales || "",
+      fk_paciente: agendaData.Fk_Paciente || "",
+      fk_doctor: agendaData.Fk_Doctor || "",
+      fk_sucursal: agendaData.Fk_Sucursal || "",
+      id_h_o_d: agendaData.ID_H_O_D || "HOD001"
+    });
+  };
+
+  // Manejar cambios en el formulario
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Limpiar error del campo
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: null
+      }));
+    }
+  };
+
+  // Validar formulario
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.titulo_cita.trim()) {
+      newErrors.titulo_cita = "El título de la cita es requerido";
+    }
+
+    if (!formData.fecha_cita) {
+      newErrors.fecha_cita = "La fecha de la cita es requerida";
+    } else {
+      const selectedDate = new Date(formData.fecha_cita);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        newErrors.fecha_cita = "La fecha no puede ser anterior a hoy";
+      }
+    }
+
+    if (!formData.hora_inicio) {
+      newErrors.hora_inicio = "La hora de inicio es requerida";
+    }
+
+    if (!formData.hora_fin) {
+      newErrors.hora_fin = "La hora de fin es requerida";
+    } else if (formData.hora_inicio && formData.hora_fin) {
+      const inicio = new Date(`2024-01-01 ${formData.hora_inicio}`);
+      const fin = new Date(`2024-01-01 ${formData.hora_fin}`);
+      
+      if (fin <= inicio) {
+        newErrors.hora_fin = "La hora de fin debe ser posterior a la hora de inicio";
+      }
+    }
+
+    if (!formData.fk_paciente) {
+      newErrors.fk_paciente = "El paciente es requerido";
+    }
+
+    if (!formData.fk_doctor) {
+      newErrors.fk_doctor = "El doctor es requerido";
+    }
+
+    if (!formData.fk_sucursal) {
+      newErrors.fk_sucursal = "La sucursal es requerida";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Guardar agenda
+  const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const dataToSend = {
+        ...formData,
+        costo: formData.costo ? parseFloat(formData.costo) : 0
+      };
+
+      let response;
+      if (mode === "create") {
+        response = await agendaService.createAgenda(dataToSend);
+      } else {
+        response = await agendaService.updateAgenda(agendaData.Agenda_ID, dataToSend);
+      }
+
+      if (response.success) {
+        showSuccess(
+          mode === "create" 
+            ? "Cita creada exitosamente" 
+            : "Cita actualizada exitosamente"
+        );
+        onSuccess && onSuccess();
+        handleClose();
+      } else {
+        showError(response.message || "Error al guardar la cita");
+      }
+    } catch (error) {
+      console.error('Error al guardar agenda:', error);
+      showError(error.message || "Error al guardar la cita");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cerrar modal
+  const handleClose = () => {
     setFormData({
       titulo_cita: "",
       descripcion: "",
@@ -124,367 +241,24 @@ const AgendaModal = ({
       fk_paciente: "",
       fk_doctor: "",
       fk_sucursal: "",
-      id_h_o_d: "Saluda"
+      id_h_o_d: "HOD001"
     });
+    setErrors({});
+    onClose();
   };
 
-  const loadRelatedData = async () => {
-    try {
-      // Cargar pacientes
-      setLoadingPacientes(true);
-      const pacientesResponse = await agendaService.getPacientes();
-      setPacientes(pacientesResponse.success ? pacientesResponse.data : []);
-
-      // Cargar doctores
-      setLoadingDoctores(true);
-      const doctoresResponse = await agendaService.getDoctores();
-      setDoctores(doctoresResponse.success ? doctoresResponse.data : []);
-
-      // Cargar sucursales
-      setLoadingSucursales(true);
-      const sucursalesResponse = await agendaService.getSucursales();
-      setSucursales(sucursalesResponse.success ? sucursalesResponse.data : []);
-
-    } catch (error) {
-      console.error('Error al cargar datos relacionados:', error);
-      setErrors({ general: 'Error al cargar datos necesarios: ' + error.message });
-    } finally {
-      setLoadingPacientes(false);
-      setLoadingDoctores(false);
-      setLoadingSucursales(false);
-    }
-  };
-
-  const handleFieldChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Limpiar error del campo
-    if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: null
-      }));
-    }
-
-    // Auto-completar código de estado según el valor
-    if (field === 'estado_cita') {
-      const codigoEstado = value === 'Vigente' ? 'V' : 'D';
-      setFormData(prev => ({
-        ...prev,
-        cod_estado: codigoEstado
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.titulo_cita.trim()) {
-      newErrors.titulo_cita = 'El título de la cita es requerido';
-    }
-
-    if (!formData.fecha_cita) {
-      newErrors.fecha_cita = 'La fecha de la cita es requerida';
-    } else {
-      // Validar que la fecha no sea anterior a hoy
-      const today = new Date();
-      const selectedDate = new Date(formData.fecha_cita);
-      today.setHours(0, 0, 0, 0);
-      selectedDate.setHours(0, 0, 0, 0);
-      
-      if (selectedDate < today && mode === 'create') {
-        newErrors.fecha_cita = 'La fecha no puede ser anterior al día actual';
-      }
-    }
-
-    if (!formData.hora_inicio) {
-      newErrors.hora_inicio = 'La hora de inicio es requerida';
-    }
-
-    if (!formData.hora_fin) {
-      newErrors.hora_fin = 'La hora de fin es requerida';
-    } else if (formData.hora_inicio && formData.hora_fin <= formData.hora_inicio) {
-      newErrors.hora_fin = 'La hora de fin debe ser posterior a la hora de inicio';
-    }
-
-    if (!formData.estado_cita) {
-      newErrors.estado_cita = 'El estado de la cita es requerido';
-    }
-
-    if (!formData.tipo_cita.trim()) {
-      newErrors.tipo_cita = 'El tipo de cita es requerido';
-    }
-
-    if (!formData.fk_paciente) {
-      newErrors.fk_paciente = 'Debe seleccionar un paciente';
-    }
-
-    if (!formData.fk_doctor) {
-      newErrors.fk_doctor = 'Debe seleccionar un doctor';
-    }
-
-    if (!formData.fk_sucursal) {
-      newErrors.fk_sucursal = 'Debe seleccionar una sucursal';
-    }
-
-    if (formData.costo && parseFloat(formData.costo) < 0) {
-      newErrors.costo = 'El costo no puede ser negativo';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      // Verificar disponibilidad antes de crear/actualizar
-      if (formData.fk_doctor && formData.fecha_cita && formData.hora_inicio && formData.hora_fin) {
-        try {
-          await agendaService.verificarDisponibilidad(
-            formData.fk_doctor,
-            formData.fecha_cita,
-            formData.hora_inicio,
-            formData.hora_fin,
-            mode === 'edit' ? agendaData.id : null
-          );
-        } catch (error) {
-          setErrors({ general: 'El doctor no está disponible en el horario seleccionado' });
-          return;
-        }
-      }
-
-      let result;
-      if (mode === "create") {
-        result = await agendaService.createAgenda(formData);
-      } else if (mode === "edit") {
-        result = await agendaService.updateAgenda(agendaData.id, formData);
-      }
-
-      if (result.success) {
-        onSuccess && onSuccess();
-        onClose();
-      } else {
-        setErrors({ general: result.message || 'Error al procesar la cita' });
-      }
-    } catch (error) {
-      console.error('Error al guardar cita:', error);
-      setErrors({ general: error.message || 'Error al guardar la cita' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('¿Está seguro de que desea eliminar esta cita?')) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const result = await agendaService.deleteAgenda(agendaData.id);
-
-      if (result) {
-        onSuccess && onSuccess();
-        onClose();
-      }
-    } catch (error) {
-      console.error('Error al eliminar cita:', error);
-      setErrors({ general: error.message || 'Error al eliminar la cita' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Obtener título del modal
   const getModalTitle = () => {
     switch (mode) {
       case "create":
-        return "Nueva Cita";
+        return "Nueva Cita Médica";
       case "edit":
-        return "Editar Cita";
+        return "Editar Cita Médica";
       case "view":
-        return "Detalles de la Cita";
+        return "Ver Cita Médica";
       default:
-        return "Cita";
+        return "Cita Médica";
     }
-  };
-
-  const getEstadoColor = (estado) => {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente':
-        return 'warning';
-      case 'confirmada':
-        return 'info';
-      case 'en proceso':
-        return 'primary';
-      case 'completada':
-        return 'success';
-      case 'cancelada':
-        return 'error';
-      case 'no asistió':
-        return 'dark';
-      default:
-        return 'default';
-    }
-  };
-
-  const isViewMode = mode === "view";
-
-  const renderViewCard = () => {
-    if (!agendaData) return null;
-
-    return (
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
-          <Grid container spacing={3}>
-            {/* Información básica */}
-            <Grid item xs={12}>
-              <MDTypography variant="h6" color="info" gutterBottom>
-                <CalendarIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                {agendaData.titulo_cita}
-              </MDTypography>
-              <Chip
-                label={agendaData.estado_cita}
-                color={getEstadoColor(agendaData.estado_cita)}
-                size="small"
-                sx={{ mr: 1 }}
-              />
-              <Chip
-                label={agendaData.tipo_cita}
-                variant="outlined"
-                size="small"
-              />
-            </Grid>
-
-            {/* Fecha y horario */}
-            <Grid item xs={12} md={6}>
-              <MDTypography variant="subtitle2" color="text">
-                📅 Fecha y Horario
-              </MDTypography>
-              <Typography variant="body1">
-                <strong>Fecha:</strong> {agendaService.formatDate(agendaData.fecha_cita)}
-              </Typography>
-              <Typography variant="body1">
-                <strong>Horario:</strong> {agendaService.formatTime(agendaData.hora_inicio)} - {agendaService.formatTime(agendaData.hora_fin)}
-              </Typography>
-              {agendaData.consultorio && (
-                <Typography variant="body1">
-                  <strong>Consultorio:</strong> {agendaData.consultorio}
-                </Typography>
-              )}
-            </Grid>
-
-            {/* Costo */}
-            <Grid item xs={12} md={6}>
-              <MDTypography variant="subtitle2" color="text">
-                💰 Información de Pago
-              </MDTypography>
-              <Typography variant="body1">
-                <strong>Costo:</strong> {agendaService.formatCosto(agendaData.costo)}
-              </Typography>
-            </Grid>
-
-            {/* Paciente */}
-            {agendaData.paciente && (
-              <Grid item xs={12} md={6}>
-                <MDTypography variant="subtitle2" color="text">
-                  <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Paciente
-                </MDTypography>
-                <Typography variant="body1">
-                  <strong>Nombre:</strong> {agendaData.paciente.nombre_completo}
-                </Typography>
-                {agendaData.paciente.telefono && (
-                  <Typography variant="body1">
-                    <strong>Teléfono:</strong> {agendaData.paciente.telefono}
-                  </Typography>
-                )}
-                {agendaData.paciente.email && (
-                  <Typography variant="body1">
-                    <strong>Email:</strong> {agendaData.paciente.email}
-                  </Typography>
-                )}
-              </Grid>
-            )}
-
-            {/* Doctor */}
-            {agendaData.doctor && (
-              <Grid item xs={12} md={6}>
-                <MDTypography variant="subtitle2" color="text">
-                  <HospitalIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Doctor
-                </MDTypography>
-                <Typography variant="body1">
-                  <strong>Nombre:</strong> {agendaData.doctor.nombre_completo}
-                </Typography>
-                {agendaData.doctor.especialidad && (
-                  <Typography variant="body1">
-                    <strong>Especialidad:</strong> {agendaData.doctor.especialidad}
-                  </Typography>
-                )}
-                {agendaData.doctor.telefono && (
-                  <Typography variant="body1">
-                    <strong>Teléfono:</strong> {agendaData.doctor.telefono}
-                  </Typography>
-                )}
-              </Grid>
-            )}
-
-            {/* Sucursal */}
-            {agendaData.sucursal && (
-              <Grid item xs={12}>
-                <MDTypography variant="subtitle2" color="text">
-                  🏥 Ubicación
-                </MDTypography>
-                <Typography variant="body1">
-                  <strong>Sucursal:</strong> {agendaData.sucursal.nombre}
-                </Typography>
-                {agendaData.sucursal.direccion && (
-                  <Typography variant="body1">
-                    <strong>Dirección:</strong> {agendaData.sucursal.direccion}
-                  </Typography>
-                )}
-              </Grid>
-            )}
-
-            {/* Descripción y notas */}
-            {(agendaData.descripcion || agendaData.notas_adicionales) && (
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                {agendaData.descripcion && (
-                  <>
-                    <MDTypography variant="subtitle2" color="text">
-                      📝 Descripción
-                    </MDTypography>
-                    <Typography variant="body1" paragraph>
-                      {agendaData.descripcion}
-                    </Typography>
-                  </>
-                )}
-                {agendaData.notas_adicionales && (
-                  <>
-                    <MDTypography variant="subtitle2" color="text">
-                      📋 Notas Adicionales
-                    </MDTypography>
-                    <Typography variant="body1">
-                      {agendaData.notas_adicionales}
-                    </Typography>
-                  </>
-                )}
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
-    );
   };
 
   if (!open) return null;
@@ -508,8 +282,8 @@ const AgendaModal = ({
     >
       <Box
         sx={{
-          backgroundColor: darkMode ? '#2d2d2d' : '#ffffff',
-          color: darkMode ? '#ffffff' : '#000000',
+          backgroundColor: darkMode ? '#1a2035' : '#ffffff',
+          color: darkMode ? '#ffffff' : '#344767',
           borderRadius: '8px',
           width: '95%',
           maxWidth: '1000px',
@@ -534,9 +308,12 @@ const AgendaModal = ({
             borderBottom: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
           }}
         >
-          <MDTypography variant="h5" fontWeight="bold">
-            {getModalTitle()}
-          </MDTypography>
+          <MDBox display="flex" alignItems="center">
+            <EventIcon sx={{ mr: 1, color: '#ffffff' }} />
+            <MDTypography variant="h5" fontWeight="bold" color="white">
+              {getModalTitle()}
+            </MDTypography>
+          </MDBox>
           <IconButton 
             onClick={onClose}
             sx={{ color: '#ffffff' }}
@@ -547,84 +324,55 @@ const AgendaModal = ({
 
         {/* Content */}
         <Box sx={{ flex: 1, overflow: 'auto', padding: '24px' }}>
-          {errors.general && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {errors.general}
-            </Alert>
-          )}
-
-          {isViewMode ? (
-            renderViewCard()
+          {loadingData ? (
+            <MDBox display="flex" justifyContent="center" alignItems="center" p={3}>
+              <CircularProgress />
+              <MDTypography variant="body2" ml={2}>
+                Cargando datos...
+              </MDTypography>
+            </MDBox>
           ) : (
             <AgendaForm
-              data={formData}
+              formData={formData}
               errors={errors}
-              onChange={handleFieldChange}
-              editing={mode === "edit"}
               pacientes={pacientes}
               doctores={doctores}
               sucursales={sucursales}
-              loadingPacientes={loadingPacientes}
-              loadingDoctores={loadingDoctores}
-              loadingSucursales={loadingSucursales}
+              onInputChange={handleInputChange}
+              mode={mode}
+              agendaData={agendaData}
             />
           )}
         </Box>
 
         {/* Footer */}
-        <Box
-          sx={{
-            backgroundColor: darkMode ? '#1a1a1a' : '#f8f9fa',
-            padding: '16px 24px',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: 2,
-            borderTop: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
-          }}
-        >
-          <MDButton onClick={onClose} color="secondary">
-            Cancelar
-          </MDButton>
-          
-          {mode === "view" && agendaData && (
-            <>
-              <MDButton
-                onClick={() => {
-                  // Cambiar a modo edición
-                  // Esta funcionalidad debe ser manejada por el componente padre
-                }}
-                color="info"
-                startIcon={<EditIcon />}
-              >
-                Editar
-              </MDButton>
-              <MDButton
-                onClick={handleDelete}
-                color="error"
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={20} /> : "Eliminar"}
-              </MDButton>
-            </>
-          )}
-          
-          {(mode === "edit" || mode === "create") && (
-            <MDButton
-              onClick={handleSubmit}
-              color="success"
-              disabled={loading}
-            >
-              {loading ? (
-                <CircularProgress size={20} />
-              ) : (
-                mode === "create" ? "Crear Cita" : "Guardar Cambios"
-              )}
+        {mode !== "view" && (
+          <Box
+            sx={{
+              backgroundColor: darkMode ? '#1a1a1a' : '#f8f9fa',
+              padding: '16px 24px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2,
+              borderTop: `1px solid ${darkMode ? '#555555' : '#e0e0e0'}`
+            }}
+          >
+            <MDButton onClick={onClose} color="secondary">
+              Cancelar
             </MDButton>
-          )}
-        </Box>
+            <MDButton
+              onClick={handleSave}
+              color="info"
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+            >
+              {loading ? "Guardando..." : "Guardar"}
+            </MDButton>
+          </Box>
+        )}
       </Box>
     </Box>
   );
-};
+}
 
 export default AgendaModal;

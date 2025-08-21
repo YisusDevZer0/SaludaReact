@@ -3,18 +3,17 @@
  * Maneja todas las operaciones CRUD para productos
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+import httpService from './http-service';
+
+const BASE_URL = '/productos';
 
 class ProductosService {
-  constructor() {
-    this.baseURL = `${API_BASE_URL}/productos`;
-  }
 
   /**
    * Obtener token de autenticación
    */
   getAuthHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -23,27 +22,45 @@ class ProductosService {
   }
 
   /**
+   * Verificar si el usuario está autenticado
+   */
+  isAuthenticated() {
+    return !!localStorage.getItem('access_token');
+  }
+
+  /**
+   * Manejar errores de respuesta
+   */
+  handleResponseError(error) {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
+      throw new Error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+    }
+    
+    const message = error.response?.data?.message || error.message || 'Error en el servidor';
+    throw new Error(message);
+  }
+
+  /**
    * Obtener todos los productos
    */
   async getProductos(params = {}) {
     try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const queryParams = new URLSearchParams(params).toString();
-      const url = queryParams ? `${this.baseURL}?${queryParams}` : this.baseURL;
+      const url = queryParams ? `${BASE_URL}?${queryParams}` : BASE_URL;
       
-      const response = await fetch(url, {
-        method: 'GET',
+      const response = await httpService.get(url, {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return response;
     } catch (error) {
-      console.error('Error al obtener productos:', error);
-      throw error;
+      this.handleResponseError(error);
     }
   }
 
@@ -52,20 +69,17 @@ class ProductosService {
    */
   async getProducto(id) {
     try {
-      const response = await fetch(`${this.baseURL}/${id}`, {
-        method: 'GET',
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const response = await httpService.get(`${BASE_URL}/${id}`, {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return response;
     } catch (error) {
-      console.error('Error al obtener producto:', error);
-      throw error;
+      this.handleResponseError(error);
     }
   }
 
@@ -74,6 +88,10 @@ class ProductosService {
    */
   async createProducto(productoData) {
     try {
+      if (!this.isAuthenticated()) {
+        throw new Error('Usuario no autenticado');
+      }
+
       // Convertir IDs a números
       const processedData = {
         ...productoData,

@@ -41,6 +41,9 @@ import Encargos from "layouts/admin/Encargos";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
 // import AjustesInventario from "layouts/admin/AjustesInventario";
 import Usuarios from "layouts/admin/Usuarios";
+import ReportesVentas from "layouts/admin/ReportesVentas";
+import ReportesInventario from "layouts/admin/ReportesInventario";
+import ReportesFinancieros from "layouts/admin/ReportesFinancieros";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -86,6 +89,41 @@ const routes = [
     icon: <Icon fontSize="small">point_of_sale</Icon>,
     route: "/pos",
     component: <SellerPOS />,
+  },
+  {
+    type: "collapse",
+    name: "Agendas Médicas",
+    key: "admin-agendas",
+    icon: <Icon fontSize="small">event</Icon>,
+    route: "/admin-agendas",
+    component: <Agendas />,
+  },
+  {
+    type: "collapse",
+    name: "Reportes de Ventas",
+    key: "reportes-ventas",
+    icon: <Icon fontSize="small">trending_up</Icon>,
+    route: "/admin/reportes-ventas",
+    component: <ReportesVentas />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Reportes de Inventario",
+    key: "reportes-inventario",
+    icon: <Icon fontSize="small">inventory_2</Icon>,
+    route: "/admin/reportes-inventario",
+    component: <ReportesInventario />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Reportes Financieros",
+    key: "reportes-financieros",
+    icon: <Icon fontSize="small">account_balance</Icon>,
+    route: "/admin/reportes-financieros",
+    component: <ReportesFinancieros />,
+    adminOnly: true,
   },
   {
     type: "collapse",
@@ -369,15 +407,6 @@ const routes = [
     icon: <Icon fontSize="small">event_available</Icon>,
     route: "/permisos",
     component: <PermisosVacaciones />,
-    adminOnly: true, // Solo administradores pueden acceder
-  },
-  {
-    type: "collapse",
-    name: "Agendas",
-    key: "admin-agendas",
-    icon: <Icon fontSize="small">event</Icon>,
-    route: "/admin-agendas",
-    component: <Agendas />,
     adminOnly: true, // Solo administradores pueden acceder
   },
   {

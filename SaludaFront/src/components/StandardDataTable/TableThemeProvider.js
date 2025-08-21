@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import useTheme from 'hooks/useTheme';
+import { useTheme } from 'hooks/useTheme';
 
 const TableThemeContext = createContext();
 

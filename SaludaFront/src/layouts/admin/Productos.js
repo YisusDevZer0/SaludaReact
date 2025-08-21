@@ -42,7 +42,8 @@ import productosService from "services/productos-service";
 import stockService from "services/stock-service";
 
 // Componentes de tabla
-import DataTable from "react-data-table-component";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Context
 import { useMaterialUIController } from "context";
@@ -101,6 +102,103 @@ export default function Productos() {
   const [proveedores, setProveedores] = useState([]);
   const [almacenes, setAlmacenes] = useState([]);
   const [loadingSelectores, setLoadingSelectores] = useState(true);
+
+  // Configuración del servicio para StandardDataTable
+  const productosTableService = {
+    getAll: async (params = {}) => {
+      try {
+        const response = await productosService.getProductos(params);
+        return {
+          success: response.success || true,
+          data: response.data || response,
+          total: response.total || response.length || 0
+        };
+      } catch (error) {
+        console.error('Error en productosTableService:', error);
+        return {
+          success: false,
+          message: error.message,
+          data: [],
+          total: 0
+        };
+      }
+    }
+  };
+
+  // Configuración de columnas para StandardDataTable
+  const productosColumns = [
+    {
+      name: 'Código',
+      selector: row => row.codigo,
+      sortable: true,
+      width: '100px',
+    },
+    {
+      name: 'Nombre',
+      selector: row => row.nombre,
+      sortable: true,
+      width: '200px',
+    },
+    {
+      name: 'Categoría',
+      selector: row => row.categoria_nombre,
+      sortable: true,
+      width: '150px',
+    },
+    {
+      name: 'Marca',
+      selector: row => row.marca_nombre,
+      sortable: true,
+      width: '120px',
+    },
+    {
+      name: 'Stock',
+      selector: row => row.stock_actual,
+      sortable: true,
+      width: '80px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" 
+                      color={row.stock_actual <= (row.stock_minimo || 0) ? "error" : "success"}>
+          {row.stock_actual || 0}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Precio',
+      selector: row => row.precio_venta,
+      sortable: true,
+      width: '100px',
+      cell: (row) => (
+        <MDTypography variant="button" fontWeight="medium" color="info">
+          ${(row.precio_venta || 0).toFixed(2)}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Estado',
+      selector: row => row.estado,
+      sortable: true,
+      width: '100px',
+      cell: (row) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={row.estado === "activo" ? "success" : "error"}
+          fontWeight="medium"
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: "5px",
+            backgroundColor: row.estado === "activo" ? "success.main" : "error.main",
+            color: "white",
+            fontSize: "0.75rem",
+          }}
+        >
+          {row.estado?.toUpperCase() || 'N/A'}
+        </MDBox>
+      )
+    }
+  ];
 
   // Configuración completa de campos según la tabla productos
   const productoFields = {
@@ -1377,40 +1475,32 @@ export default function Productos() {
             minWidth: '1200px', // Ancho mínimo para asegurar que todas las columnas sean visibles
             overflow: 'auto'
           }}>
-            <DataTable
-              columns={columns}
-              data={productos}
-              pagination
-              paginationPerPage={10}
-              paginationRowsPerPageOptions={[10, 25, 50]}
-              highlightOnHover
-              responsive
-              dense
-              progressPending={loading}
-              customStyles={{
-                headRow: {
-                  style: {
-                    backgroundColor: '#f8f9fa',
-                    borderBottom: '2px solid #dee2e6'
-                  }
-                },
-                headCells: {
-                  style: {
-                    paddingLeft: '8px',
-                    paddingRight: '8px',
-                    minHeight: '50px'
-                  }
-                },
-                cells: {
-                  style: {
-                    paddingLeft: '8px',
-                    paddingRight: '8px',
-                    minHeight: '50px',
-                    verticalAlign: 'middle'
-                  }
-                }
+            <TableThemeProvider>
+              <StandardDataTable
+              service={productosTableService}
+              columns={productosColumns}
+              title="Productos"
+              subtitle="Gestión completa de productos e inventario"
+              enableCreate={false}
+              enableEdit={false}
+              enableDelete={false}
+              enableSearch={true}
+              enableFilters={true}
+              enableStats={false}
+              enableExport={true}
+              serverSide={true}
+              defaultPageSize={10}
+              defaultSortField="nombre"
+              defaultSortDirection="asc"
+              onRowClick={(row) => handleOpenModal("view", row)}
+              permissions={{
+                create: true,
+                edit: true,
+                delete: true,
+                view: true
               }}
-            />
+              />
+            </TableThemeProvider>
           </Box>
         </Box>
 

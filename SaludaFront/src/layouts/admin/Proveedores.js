@@ -21,7 +21,8 @@ import proveedoresService from "services/proveedores-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 export default function Proveedores() {
   const [proveedores, setProveedores] = useState([]);
@@ -220,15 +221,32 @@ export default function Proveedores() {
         </Grid>
 
         {/* Tabla de proveedores */}
-        <DataTable
-          table={{ columns, rows: proveedores }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-          loading={loading}
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={proveedoresService}
+            columns={[]}
+            title="Proveedores"
+            subtitle="Gestión de proveedores y distribuidores"
+            enableCreate={false}
+            enableEdit={false}
+            enableDelete={false}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

@@ -30,6 +30,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Context
 import { useMaterialUIController } from "context";
@@ -939,7 +940,8 @@ function Personal() {
                 )}
 
                 {!loading && !error && (
-                  <StandardDataTable
+                  <TableThemeProvider>
+                    <StandardDataTable
                     service={personalTableService}
                     columns={personalColumns}
                     title="Personal"
@@ -995,6 +997,7 @@ function Personal() {
                       view: true
                     }}
                   />
+                  </TableThemeProvider>
                 )}
           </MDBox>
         </Card>

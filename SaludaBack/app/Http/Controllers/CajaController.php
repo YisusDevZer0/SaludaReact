@@ -20,14 +20,14 @@ class CajaController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Caja::with(['sucursal', 'usuario_responsable']);
+            $query = Caja::with(['sucursal', 'usuarioApertura', 'usuarioCierre']);
 
             // Filtros
             if ($request->has('search') && $request->search) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
-                    $q->where('codigo', 'LIKE', "%{$search}%")
-                      ->orWhere('nombre', 'LIKE', "%{$search}%")
+                    $q->where('nombre', 'LIKE', "%{$search}%")
+                      ->orWhere('descripcion', 'LIKE', "%{$search}%")
                       ->orWhereHas('sucursal', function ($sucursal) use ($search) {
                           $sucursal->where('nombre', 'LIKE', "%{$search}%");
                       });
@@ -43,7 +43,7 @@ class CajaController extends Controller
             }
 
             if ($request->has('usuario_id') && $request->usuario_id) {
-                $query->where('usuario_responsable_id', $request->usuario_id);
+                $query->where('usuario_apertura_id', $request->usuario_id);
             }
 
             // Ordenamiento
@@ -81,20 +81,13 @@ class CajaController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'codigo' => 'required|string|max:50|unique:cajas',
                 'nombre' => 'required|string|max:255',
+                'descripcion' => 'nullable|string|max:255',
                 'sucursal_id' => 'required|exists:sucursales,id',
-                'usuario_responsable_id' => 'required|exists:users,id',
-                'tipo_caja' => 'required|in:principal,secundaria,express',
+                'usuario_apertura_id' => 'required|exists:personal_pos,id',
                 'saldo_inicial' => 'required|numeric|min:0',
-                'saldo_minimo' => 'nullable|numeric|min:0',
-                'saldo_maximo' => 'nullable|numeric|min:0',
-                'moneda_principal' => 'required|string|max:10',
-                'monedas_aceptadas' => 'nullable|json',
-                'metodos_pago' => 'nullable|json',
-                'configuracion_pos' => 'nullable|json',
-                'estado' => 'required|in:activa,inactiva,en_mantenimiento',
-                'observaciones' => 'nullable|string',
+                'estado' => 'required|in:abierta,cerrada,en_uso',
+                'observaciones_apertura' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -106,15 +99,15 @@ class CajaController extends Controller
             }
 
             $data = $validator->validated();
-            $data['creado_por'] = Auth::user()->name ?? 'Sistema';
             $data['saldo_actual'] = $data['saldo_inicial'];
+            $data['activa'] = true;
 
             $caja = Caja::create($data);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Caja creada exitosamente',
-                'data' => $caja->load(['sucursal', 'usuario_responsable'])
+                'data' => $caja->load(['sucursal', 'usuarioApertura'])
             ], 201);
 
         } catch (\Exception $e) {
@@ -131,7 +124,7 @@ class CajaController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $caja = Caja::with(['sucursal', 'usuario_responsable'])->findOrFail($id);
+            $caja = Caja::with(['sucursal', 'usuarioApertura', 'usuarioCierre'])->findOrFail($id);
 
             return response()->json([
                 'success' => true,
@@ -155,20 +148,13 @@ class CajaController extends Controller
             $caja = Caja::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'codigo' => 'sometimes|required|string|max:50|unique:cajas,codigo,' . $id,
                 'nombre' => 'sometimes|required|string|max:255',
+                'descripcion' => 'nullable|string|max:255',
                 'sucursal_id' => 'sometimes|required|exists:sucursales,id',
-                'usuario_responsable_id' => 'sometimes|required|exists:users,id',
-                'tipo_caja' => 'sometimes|required|in:principal,secundaria,express',
+                'usuario_apertura_id' => 'sometimes|required|exists:personal_pos,id',
                 'saldo_inicial' => 'sometimes|required|numeric|min:0',
-                'saldo_minimo' => 'nullable|numeric|min:0',
-                'saldo_maximo' => 'nullable|numeric|min:0',
-                'moneda_principal' => 'sometimes|required|string|max:10',
-                'monedas_aceptadas' => 'nullable|json',
-                'metodos_pago' => 'nullable|json',
-                'configuracion_pos' => 'nullable|json',
-                'estado' => 'sometimes|required|in:activa,inactiva,en_mantenimiento',
-                'observaciones' => 'nullable|string',
+                'estado' => 'sometimes|required|in:abierta,cerrada,en_uso',
+                'observaciones_apertura' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -180,14 +166,13 @@ class CajaController extends Controller
             }
 
             $data = $validator->validated();
-            $data['actualizado_por'] = Auth::user()->name ?? 'Sistema';
 
             $caja->update($data);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Caja actualizada exitosamente',
-                'data' => $caja->load(['sucursal', 'usuario_responsable'])
+                'data' => $caja->load(['sucursal', 'usuarioApertura', 'usuarioCierre'])
             ]);
 
         } catch (\Exception $e) {
@@ -238,10 +223,10 @@ class CajaController extends Controller
         try {
             $caja = Caja::findOrFail($id);
 
-            if ($caja->estado !== 'activa') {
+            if ($caja->estado !== 'abierta') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'La caja debe estar activa para abrirla'
+                    'message' => 'La caja debe estar abierta para operar'
                 ], 400);
             }
 

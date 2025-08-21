@@ -20,7 +20,7 @@ class CompraController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Compra::with(['proveedor', 'comprador', 'detalles.producto']);
+            $query = Compra::with(['proveedor', 'personal', 'detalles.producto']);
 
             // Filtros
             if ($request->has('search') && $request->search) {
@@ -43,16 +43,16 @@ class CompraController extends Controller
                 $query->where('proveedor_id', $request->proveedor_id);
             }
 
-            if ($request->has('comprador_id') && $request->comprador_id) {
-                $query->where('comprador_id', $request->comprador_id);
+            if ($request->has('personal_id') && $request->personal_id) {
+                $query->where('personal_id', $request->personal_id);
             }
 
             if ($request->has('fecha_inicio') && $request->fecha_inicio) {
-                $query->where('fecha_compra', '>=', $request->fecha_inicio);
+                $query->where('fecha_documento', '>=', $request->fecha_inicio);
             }
 
             if ($request->has('fecha_fin') && $request->fecha_fin) {
-                $query->where('fecha_compra', '<=', $request->fecha_fin);
+                $query->where('fecha_documento', '<=', $request->fecha_fin);
             }
 
             if ($request->has('tipo_pago') && $request->tipo_pago) {
@@ -60,7 +60,7 @@ class CompraController extends Controller
             }
 
             // Ordenamiento
-            $sortBy = $request->get('sortBy', 'fecha_compra');
+            $sortBy = $request->get('sortBy', 'fecha_documento');
             $sortOrder = $request->get('sortOrder', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
@@ -97,11 +97,11 @@ class CompraController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'proveedor_id' => 'required|exists:proveedores,id',
-                'comprador_id' => 'required|exists:users,id',
+                'personal_id' => 'required|exists:personal,id',
                 'numero_factura' => 'nullable|string|max:50|unique:compras',
                 'codigo_compra' => 'nullable|string|max:50|unique:compras',
-                'fecha_compra' => 'required|date',
-                'fecha_vencimiento' => 'nullable|date|after_or_equal:fecha_compra',
+                'fecha_documento' => 'required|date',
+                'fecha_vencimiento' => 'nullable|date|after_or_equal:fecha_documento',
                 'tipo_compra' => 'required|in:contado,credito,consignacion',
                 'tipo_pago' => 'required|in:efectivo,tarjeta,transferencia,cheque,otro',
                 'subtotal' => 'required|numeric|min:0',
@@ -623,5 +623,47 @@ class CompraController extends Controller
         }
 
         return $prefix . $year . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get purchase statistics
+     */
+    public function getEstadisticas(): JsonResponse
+    {
+        try {
+            $stats = [
+                'total_compras' => Compra::count(),
+                'compras_pendientes' => Compra::where('estado', 'pendiente')->count(),
+                'compras_aprobadas' => Compra::where('estado', 'aprobada')->count(),
+                'compras_en_proceso' => Compra::where('estado', 'en_proceso')->count(),
+                'compras_recibidas' => Compra::where('estado', 'recibida')->count(),
+                'compras_canceladas' => Compra::where('estado', 'cancelada')->count(),
+                'total_monto' => Compra::where('estado', '!=', 'cancelada')->sum('total'),
+                'monto_pendiente' => Compra::where('estado', 'pendiente')->sum('total'),
+                'monto_aprobado' => Compra::where('estado', 'aprobada')->sum('total'),
+                'compras_por_mes' => Compra::selectRaw('MONTH(fecha_documento) as mes, COUNT(*) as total')
+                    ->whereYear('fecha_documento', now()->year)
+                    ->groupBy('mes')
+                    ->get(),
+                'top_proveedores' => Compra::selectRaw('proveedor_id, COUNT(*) as total_compras, SUM(total) as total_monto')
+                    ->with('proveedor:id,razon_social,nombre_contacto')
+                    ->groupBy('proveedor_id')
+                    ->orderBy('total_monto', 'desc')
+                    ->limit(5)
+                    ->get()
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats,
+                'message' => 'Estadísticas de compras obtenidas exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

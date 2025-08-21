@@ -104,7 +104,7 @@ class AgendaController extends Controller
                 'notas_adicionales' => 'nullable|string',
                 'fk_paciente' => 'required|exists:pacientes,Paciente_ID',
                 'fk_doctor' => 'required|exists:doctores,Doctor_ID',
-                'fk_sucursal' => 'required|exists:Sucursales,ID_SucursalC',
+                'fk_sucursal' => 'required|exists:sucursales,id',
                 'id_h_o_d' => 'required|string'
             ]);
 
@@ -184,7 +184,7 @@ class AgendaController extends Controller
                 'notas_adicionales' => 'nullable|string',
                 'fk_paciente' => 'sometimes|required|exists:pacientes,Paciente_ID',
                 'fk_doctor' => 'sometimes|required|exists:doctores,Doctor_ID',
-                'fk_sucursal' => 'sometimes|required|exists:Sucursales,ID_SucursalC'
+                'fk_sucursal' => 'sometimes|required|exists:sucursales,id'
             ]);
 
             if ($validator->fails()) {

@@ -14,10 +14,11 @@ import { useMaterialUIController } from "context";
 import componenteService from "services/componente-service";
 
 // Modales
-import GenericModal from "components/Modales/GenericModal.js";
+import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable/index";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Estilos
 import "./ComponenteActivo.css";
@@ -150,69 +151,129 @@ export default function ComponenteActivo() {
     loadComponentes(); // Recargar datos
   };
 
-  // Configuración de la tabla
-  const columns = [
-    { Header: "ID", accessor: "id", width: 70 },
-    { Header: "Nombre", accessor: "nombre" },
-    { Header: "Descripción", accessor: "descripcion" },
-    { 
-      Header: "Estado", 
-      accessor: "estado",
-      Cell: ({ value }) => (
-        <MDBox
-          component="span"
-          variant="caption"
-          color={value === "Vigente" ? "success" : "error"}
-          fontWeight="medium"
-        >
-          {value === "Vigente" ? "VIGENTE" : "DESCONTINUADO"}
-        </MDBox>
-      )
-    },
-    { 
-      Header: "Código Estado", 
-      accessor: "codigo_estado",
-      Cell: ({ value }) => (
-        <MDBox
-          component="span"
-          variant="caption"
-          color={value === "V" ? "success" : "error"}
-          fontWeight="medium"
-        >
-          {value}
-        </MDBox>
-      )
-    },
-    { Header: "Sistema", accessor: "sistema" },
-    { Header: "Organización", accessor: "organizacion" },
-    { Header: "Creado", accessor: "creado" },
+  // Configuración de columnas para StandardDataTable
+  const componenteColumns = [
     {
-      Header: "Acciones",
-      accessor: "acciones",
-      Cell: ({ row }) => (
-        <MDBox display="flex" alignItems="center">
-          <Icon 
-            sx={{ cursor: "pointer", color: "info.main", mr: 1 }} 
-            onClick={() => handleOpenModal("view", row.original)}
-          >
-            visibility
-          </Icon>
-          <Icon 
-            sx={{ cursor: "pointer", color: "warning.main", mr: 1 }} 
-            onClick={() => handleOpenModal("edit", row.original)}
-          >
-            edit
-          </Icon>
-          <Icon 
-            sx={{ cursor: "pointer", color: "error.main" }} 
-            onClick={() => handleDelete(row.original)}
-          >
-            delete
-          </Icon>
+      name: 'ID',
+      selector: row => row.id,
+      sortable: true,
+      width: '80px',
+    },
+    {
+      name: 'Nombre',
+      selector: row => row.nombre,
+      sortable: true,
+      width: '200px',
+    },
+    {
+      name: 'Descripción',
+      selector: row => row.descripcion,
+      sortable: true,
+      width: '250px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.descripcion}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Estado',
+      selector: row => row.estado,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={row.estado === "Vigente" ? "success" : "error"}
+          fontWeight="medium"
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: "5px",
+            backgroundColor: row.estado === "Vigente" ? "success.main" : "error.main",
+            color: "white",
+            fontSize: "0.75rem",
+          }}
+        >
+          {row.estado === "Vigente" ? "VIGENTE" : "DESCONTINUADO"}
         </MDBox>
+      )
+    },
+    {
+      name: 'Sistema',
+      selector: row => row.sistema,
+      sortable: true,
+      width: '100px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.sistema}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Organización',
+      selector: row => row.organizacion,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.organizacion}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Creado',
+      selector: row => row.creado,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.creado}
+        </MDTypography>
       )
     }
   ];
+
+  // Configuración del servicio para StandardDataTable
+  const componenteTableService = {
+    getAll: async (params = {}) => {
+      try {
+        const response = await componenteService.getComponentes();
+        const formattedData = (response.data || []).map(componente => ({
+          id: componente.ID_Comp || componente.id,
+          nombre: componente.Nom_Com || 'Sin nombre',
+          descripcion: componente.Descripcion || 'Sin descripción',
+          estado: componente.Estado || 'Vigente',
+          codigo_estado: componente.Cod_Estado || 'V',
+          sistema: componente.Sistema || 'POS',
+          organizacion: componente.Organizacion || 'Saluda',
+          creado: componente.Agregadoel ? new Date(componente.Agregadoel).toLocaleDateString('es-ES') : 'N/A',
+          agregado_por: componente.Agregado_Por || 'Sistema',
+          // Datos originales para el modal
+          Nom_Com: componente.Nom_Com,
+          Descripcion: componente.Descripcion,
+          Estado: componente.Estado,
+          Cod_Estado: componente.Cod_Estado,
+          Sistema: componente.Sistema
+        }));
+
+        return {
+          success: true,
+          data: formattedData,
+          total: formattedData.length
+        };
+      } catch (error) {
+        console.error('Error en componenteTableService:', error);
+        return {
+          success: false,
+          message: error.message,
+          data: [],
+          total: 0
+        };
+      }
+    }
+  };
 
   // Función para eliminar componente
   const handleDelete = async (componente) => {
@@ -258,14 +319,53 @@ export default function ComponenteActivo() {
         </Grid>
 
         {/* Tabla de componentes */}
-        <DataTable
-          table={{ columns, rows: componentes }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={componenteTableService}
+            columns={componenteColumns}
+            title="Componentes Activos"
+            subtitle="Gestión de componentes activos y principios activos"
+            enableCreate={true}
+            enableEdit={true}
+            enableDelete={true}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            availableFilters={[
+              {
+                key: 'estado',
+                label: 'Estado',
+                type: 'select',
+                options: [
+                  { value: 'Vigente', label: 'Vigente' },
+                  { value: 'Descontinuado', label: 'Descontinuado' }
+                ]
+              },
+              {
+                key: 'sistema',
+                label: 'Sistema',
+                type: 'select',
+                options: [
+                  { value: 'POS', label: 'POS' },
+                  { value: 'Hospitalario', label: 'Hospitalario' },
+                  { value: 'Dental', label: 'Dental' }
+                ]
+              }
+            ]}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

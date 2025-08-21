@@ -17,7 +17,8 @@ import tipoService from "services/tipo-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Estilos
 import "./Tipos.css";
@@ -242,14 +243,32 @@ export default function Tipos() {
         </Grid>
 
         {/* Tabla de tipos */}
-        <DataTable
-          table={{ columns, rows: tipos }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={tipoService}
+            columns={[]}
+            title="Tipos de Productos"
+            subtitle="Gestión de tipos y clasificaciones de productos"
+            enableCreate={false}
+            enableEdit={false}
+            enableDelete={false}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

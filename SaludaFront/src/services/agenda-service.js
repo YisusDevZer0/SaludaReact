@@ -354,24 +354,20 @@ class AgendaService {
       notas_adicionales: agenda.Notas_Adicionales,
       paciente: agenda.paciente ? {
         id: agenda.paciente.Paciente_ID,
-        nombre: agenda.paciente.Nombre,
-        apellido: agenda.paciente.Apellido,
-        nombre_completo: `${agenda.paciente.Nombre} ${agenda.paciente.Apellido}`,
+        nombre_completo: agenda.paciente.Nombre_Completo,
         telefono: agenda.paciente.Telefono,
-        email: agenda.paciente.Email
+        email: agenda.paciente.Correo_Electronico
       } : null,
       doctor: agenda.doctor ? {
         id: agenda.doctor.Doctor_ID,
-        nombre: agenda.doctor.Nombre,
-        apellido: agenda.doctor.Apellido,
-        nombre_completo: `${agenda.doctor.Nombre} ${agenda.doctor.Apellido}`,
+        nombre_completo: agenda.doctor.Nombre_Completo,
         especialidad: agenda.doctor.Especialidad,
         telefono: agenda.doctor.Telefono
       } : null,
       sucursal: agenda.sucursal ? {
-        id: agenda.sucursal.ID_SucursalC,
-        nombre: agenda.sucursal.Nombre_Sucursal,
-        direccion: agenda.sucursal.Direccion
+        id: agenda.sucursal.id,
+        nombre: agenda.sucursal.nombre,
+        direccion: agenda.sucursal.direccion
       } : null,
       agregado_por: agenda.Agregado_Por,
       modificado_por: agenda.Modificado_Por,
@@ -394,9 +390,9 @@ class AgendaService {
       case 'cancelada':
         return 'error';
       case 'no asistió':
-        return 'dark';
+        return 'default';
       default:
-        return 'text';
+        return 'default';
     }
   }
 
@@ -414,7 +410,7 @@ class AgendaService {
       case 'cirugía':
         return 'primary';
       default:
-        return 'text';
+        return 'default';
     }
   }
 

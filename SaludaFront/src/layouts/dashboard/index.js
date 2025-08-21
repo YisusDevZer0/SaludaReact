@@ -161,22 +161,92 @@ function Dashboard() {
     loadDashboardStats();
   }, [userData, userRole]);
 
-  // Obtener datos simulados según el rol
-  useEffect(() => {
-    if (userRole) {
-      // Función simplificada - no depende de getMockDataByRole
-      const mockData = {
+  // Cargar estadísticas reales de la base de datos
+  const loadRealDashboardStats = async () => {
+    try {
+      setLoadingStats(true);
+      
+      // Llamar APIs reales en paralelo
+      const [dashboardResponse, productosResponse, stockResponse, fondosResponse, agendaResponse] = await Promise.all([
+        DashboardService.getStats(),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/productos/estadisticas/statistics`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Accept': 'application/json' }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/stock/estadisticas`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Accept': 'application/json' }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/fondos-caja/estadisticas/statistics`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Accept': 'application/json' }
+        }),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/agendas/estadisticas`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Accept': 'application/json' }
+        })
+      ]);
+
+      // Procesar respuestas
+      const productosData = await productosResponse.json();
+      const stockData = await stockResponse.json();
+      const fondosData = await fondosResponse.json();
+      const agendaData = await agendaResponse.json();
+
+      // Crear datos reales del dashboard
+      const realData = {
         userData: userData,
         dashboardData: {
           stats: [
-            { title: "Ventas Hoy", value: "$0", icon: "payment", color: "primary" },
-            { title: "Citas Programadas", value: "0", icon: "event", color: "success" },
-            { title: "Servicios Pendientes", value: "0", icon: "list_alt", color: "warning" },
-            { title: "Personal Activo", value: "0", icon: "group", color: "info" }
-          ]
+            { 
+              title: "Total Productos", 
+              value: productosData.success ? productosData.data.total : "0", 
+              icon: "inventory", 
+              color: "primary" 
+            },
+            { 
+              title: "Citas Programadas", 
+              value: agendaData.success ? agendaData.data.total : "0", 
+              icon: "event", 
+              color: "success" 
+            },
+            { 
+              title: "Stock Bajo", 
+              value: stockData.success ? stockData.data.productos_stock_bajo : "0", 
+              icon: "warning", 
+              color: "warning" 
+            },
+            { 
+              title: "Saldo Fondos", 
+              value: fondosData.success ? `$${(fondosData.data.total_saldo_fondos || 0).toLocaleString()}` : "$0", 
+              icon: "account_balance", 
+              color: "info" 
+            }
+          ],
+          recentTransactions: [], // Se pueden agregar desde VentaController si existe
+          inventoryAlerts: stockData.success ? (stockData.data.alertas || []) : [],
+          appointmentsToday: agendaData.success ? (agendaData.data.hoy || []) : []
         }
       };
-      setMockData(mockData);
+      
+      setMockData(realData); // Reutilizar el estado pero con datos REALES
+      
+    } catch (error) {
+      console.error('Error cargando estadísticas reales:', error);
+      // Fallback con datos mínimos
+      setMockData({
+        userData: userData,
+        dashboardData: {
+          stats: [
+            { title: "Cargando...", value: "0", icon: "hourglass_empty", color: "secondary" }
+          ]
+        }
+      });
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // Cargar datos reales según el rol
+  useEffect(() => {
+    if (userRole && userData) {
+      loadRealDashboardStats(); // Reemplazar mockData con datos reales
     }
   }, [userRole, userData]);
 

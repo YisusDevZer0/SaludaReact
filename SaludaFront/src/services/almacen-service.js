@@ -295,56 +295,7 @@ class AlmacenService {
     ];
   }
 
-      // Obtener datos de ejemplo para desarrollo
-  getMockData() {
-    return [
-      {
-        Almacen_ID: 1,
-        Nom_Almacen: 'Almacén Central',
-        Tipo: 'Servicios',
-        Estado: 'Activo',
-        Responsable: 'Juan Pérez',
-        Ubicacion: 'Planta Baja, Edificio A',
-        Agregadoel: '2024-01-15T10:30:00Z'
-      },
-      {
-        Almacen_ID: 2,
-        Nom_Almacen: 'Almacén de Medicamentos',
-        Tipo: 'Medicamentos',
-        Estado: 'Activo',
-        Responsable: 'María López',
-        Ubicacion: 'Primer Piso, Ala Norte',
-        Agregadoel: '2024-01-16T14:20:00Z'
-      },
-      {
-        Almacen_ID: 3,
-        Nom_Almacen: 'Almacén de Insumos',
-        Tipo: 'Insumos',
-        Estado: 'Activo',
-        Responsable: 'Carlos Ruiz',
-        Ubicacion: 'Sótano, Área de Almacenamiento',
-        Agregadoel: '2024-01-17T09:15:00Z'
-      },
-      {
-        Almacen_ID: 4,
-        Nom_Almacen: 'Almacén de Equipos',
-        Tipo: 'Equipos',
-        Estado: 'Activo',
-        Responsable: 'Ana Díaz',
-        Ubicacion: 'Segundo Piso, Sala de Equipos',
-        Agregadoel: '2024-01-18T16:45:00Z'
-      },
-      {
-        Almacen_ID: 5,
-        Nom_Almacen: 'Almacén Temporal',
-        Tipo: 'Servicios',
-        Estado: 'Inactivo',
-        Responsable: 'Roberto Gómez',
-        Ubicacion: 'Área Temporal',
-        Agregadoel: '2024-01-19T11:30:00Z'
-      }
-    ];
-  }
+
 }
 
 export default new AlmacenService(); 

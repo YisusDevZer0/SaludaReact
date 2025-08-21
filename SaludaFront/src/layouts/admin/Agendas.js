@@ -47,7 +47,9 @@ import useNotifications from "hooks/useNotifications";
 
 // Componentes
 import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 import AgendaModal from "components/Modales/AgendaModal";
+import ConfirmModal from "components/Modales/ConfirmModal";
 
 function Agendas() {
   const [controller] = useMaterialUIController();
@@ -58,6 +60,11 @@ function Agendas() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedAgenda, setSelectedAgenda] = useState(null);
+  
+  // Estados del modal de confirmación
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmModalData, setConfirmModalData] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   // Estado para estadísticas
   const [estadisticas, setEstadisticas] = useState({
@@ -102,6 +109,36 @@ function Agendas() {
     showSuccess('Operación realizada exitosamente');
   };
 
+  // Funciones para manejar modal de confirmación
+  const handleOpenConfirmModal = (agendaData) => {
+    setConfirmModalData(agendaData);
+    setConfirmModalOpen(true);
+  };
+
+  const handleCloseConfirmModal = () => {
+    setConfirmModalOpen(false);
+    setConfirmModalData(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModalData) return;
+    
+    setDeleteLoading(true);
+    try {
+      const result = await agendaService.deleteAgenda(confirmModalData.id);
+      if (result) {
+        showSuccess('Cita eliminada correctamente');
+        loadEstadisticas(); // Recargar estadísticas
+        handleCloseConfirmModal();
+        // StandardDataTable se recarga automáticamente
+      }
+    } catch (error) {
+      showError('Error al eliminar la cita: ' + error.message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // Función para obtener color del estado
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
@@ -116,7 +153,7 @@ function Agendas() {
       case 'cancelada':
         return 'error';
       case 'no asistió':
-        return 'dark';
+        return 'default';
       default:
         return 'default';
     }
@@ -134,7 +171,7 @@ function Agendas() {
       case 'consulta':
         return 'info';
       default:
-        return 'primary';
+        return 'default';
     }
   };
 
@@ -333,6 +370,31 @@ function Agendas() {
       icon: <ViewIcon fontSize="small" />,
       color: 'info.main',
       onClick: (row) => handleOpenModal('view', row)
+    },
+    {
+      title: 'Editar Cita',
+      icon: <EditIcon fontSize="small" />,
+      color: 'warning.main',
+      onClick: (row) => handleOpenModal('edit', row)
+    },
+    {
+      title: 'Eliminar Cita',
+      icon: <DeleteIcon fontSize="small" />,
+      color: 'error.main',
+      onClick: async (row) => {
+        if (window.confirm(`¿Está seguro de eliminar la cita "${row.titulo_cita}"?`)) {
+          try {
+            const result = await agendaService.deleteAgenda(row.id);
+            if (result) {
+              showSuccess('Cita eliminada correctamente');
+              loadEstadisticas(); // Recargar estadísticas
+              // StandardDataTable se recarga automáticamente
+            }
+          } catch (error) {
+            showError('Error al eliminar la cita: ' + error.message);
+          }
+        }
+      }
     }
   ];
 
@@ -466,14 +528,15 @@ function Agendas() {
 
           {/* Tabla de agendas */}
           <Grid item xs={12}>
-            <StandardDataTable
+            <TableThemeProvider>
+              <StandardDataTable
               service={tableService}
               columns={columns}
               title="Agendas"
               subtitle="Gestión completa de citas médicas"
-              enableCreate={true}
-              enableEdit={true}
-              enableDelete={true}
+              enableCreate={false}
+              enableEdit={false}
+              enableDelete={false}
               enableSearch={true}
               enableFilters={true}
               enableStats={true}
@@ -492,7 +555,8 @@ function Agendas() {
                 view: true
               }}
               dense={false}
-            />
+              />
+            </TableThemeProvider>
           </Grid>
         </Grid>
 

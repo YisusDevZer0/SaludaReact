@@ -11,13 +11,14 @@ import { Grid } from "@mui/material";
 import { useMaterialUIController } from "context";
 
 // Servicios
-import serviciosService from "services/servicios-service";
+import * as serviciosServiceFunctions from "services/servicios-service";
 
 // Modales
 import GenericModal from "components/Modales/GenericModal";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
 
 // Estilos
 import "./Servicios.css";
@@ -97,11 +98,134 @@ export default function Servicios() {
     }
   ];
 
+  // Configuración de columnas para StandardDataTable
+  const serviciosColumns = [
+    {
+      name: 'ID',
+      selector: row => row.id,
+      sortable: true,
+      width: '80px',
+    },
+    {
+      name: 'Nombre',
+      selector: row => row.nombre,
+      sortable: true,
+      width: '200px',
+    },
+    {
+      name: 'Descripción',
+      selector: row => row.descripcion,
+      sortable: true,
+      width: '250px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.descripcion}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Estado',
+      selector: row => row.estado,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDBox
+          component="span"
+          variant="caption"
+          color={row.estado === "Vigente" ? "success" : "error"}
+          fontWeight="medium"
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: "5px",
+            backgroundColor: row.estado === "Vigente" ? "success.main" : "error.main",
+            color: "white",
+            fontSize: "0.75rem",
+          }}
+        >
+          {row.estado === "Vigente" ? "VIGENTE" : "DESCONTINUADO"}
+        </MDBox>
+      )
+    },
+    {
+      name: 'Sistema',
+      selector: row => row.sistema,
+      sortable: true,
+      width: '100px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.sistema}
+        </MDTypography>
+      )
+    },
+    {
+      name: 'Organización',
+      selector: row => row.organizacion,
+      sortable: true,
+      width: '120px',
+      cell: (row) => (
+        <MDTypography variant="caption" color="text">
+          {row.organizacion}
+        </MDTypography>
+      )
+    }
+  ];
+
+  // Configuración del servicio para StandardDataTable
+  const serviciosTableService = {
+    getAll: async (params = {}) => {
+      try {
+        const response = await serviciosServiceFunctions.getServicios();
+        const formattedData = (response.data || []).map(servicio => ({
+          id: servicio.Servicio_ID || servicio.id,
+          nombre: servicio.Nom_Serv || 'Sin nombre',
+          descripcion: servicio.Descripcion || 'Sin descripción',
+          estado: servicio.Estado || 'Activo',
+          codigo_estado: servicio.Cod_Estado || 'A',
+          sistema: servicio.Sistema || 'POS',
+          organizacion: servicio.ID_H_O_D || 'Saluda',
+          creado: servicio.Agregadoel ? new Date(servicio.Agregadoel).toLocaleDateString('es-ES') : 'N/A',
+          agregado_por: servicio.Agregado_Por || 'Sistema',
+          // Datos originales para el modal
+          Nom_Serv: servicio.Nom_Serv,
+          Descripcion: servicio.Descripcion,
+          Estado: servicio.Estado,
+          Cod_Estado: servicio.Cod_Estado,
+          Sistema: servicio.Sistema
+        }));
+
+        return {
+          success: true,
+          data: formattedData,
+          total: formattedData.length
+        };
+      } catch (error) {
+        console.error('Error en serviciosTableService:', error);
+        return {
+          success: false,
+          message: error.message,
+          data: [],
+          total: 0
+        };
+      }
+    }
+  };
+
+  // Crear wrapper del servicio para GenericModal
+  const serviciosService = {
+    // Métodos originales
+    getServicios: serviciosServiceFunctions.getServicios,
+    // Métodos genéricos para GenericModal
+    createEntity: serviciosServiceFunctions.createServicio,
+    updateEntity: serviciosServiceFunctions.updateServicio,
+    deleteEntity: serviciosServiceFunctions.deleteServicio
+  };
+
   // Cargar datos de servicios
   const loadServicios = async () => {
     try {
       setLoading(true);
-      const response = await serviciosService.getServicios();
+      const response = await serviciosServiceFunctions.getServicios();
       
       // Mapear los datos del backend al formato esperado por la tabla
       const formattedData = (response.data || []).map(servicio => ({
@@ -258,14 +382,53 @@ export default function Servicios() {
         </Grid>
 
         {/* Tabla de servicios */}
-        <DataTable
-          table={{ columns, rows: servicios }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={serviciosTableService}
+            columns={serviciosColumns}
+            title="Servicios Médicos"
+            subtitle="Gestión de servicios y procedimientos médicos"
+            enableCreate={true}
+            enableEdit={true}
+            enableDelete={true}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            availableFilters={[
+              {
+                key: 'estado',
+                label: 'Estado',
+                type: 'select',
+                options: [
+                  { value: 'Vigente', label: 'Vigente' },
+                  { value: 'Descontinuado', label: 'Descontinuado' }
+                ]
+              },
+              {
+                key: 'sistema',
+                label: 'Sistema',
+                type: 'select',
+                options: [
+                  { value: 'POS', label: 'POS' },
+                  { value: 'Hospitalario', label: 'Hospitalario' },
+                  { value: 'Dental', label: 'Dental' }
+                ]
+              }
+            ]}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

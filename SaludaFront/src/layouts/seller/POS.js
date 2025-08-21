@@ -20,7 +20,7 @@ import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
 
 // React components
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -34,19 +34,11 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
-// Datos simulados
-const products = [
-  { id: 1, name: "Paracetamol 500mg", price: 25.00, stock: 120, image: "P", color: "info" },
-  { id: 2, name: "Omeprazol 20mg", price: 30.00, stock: 85, image: "O", color: "success" },
-  { id: 3, name: "Loratadina 10mg", price: 20.00, stock: 75, image: "L", color: "warning" },
-  { id: 4, name: "Ibuprofeno 400mg", price: 18.00, stock: 90, image: "I", color: "error" },
-  { id: 5, name: "Metformina 850mg", price: 22.00, stock: 65, image: "M", color: "dark" },
-  { id: 6, name: "Aspirina 500mg", price: 15.00, stock: 200, image: "A", color: "primary" },
-  { id: 7, name: "Vitamina C 1000mg", price: 45.00, stock: 40, image: "V", color: "secondary" },
-  { id: 8, name: "Amoxicilina 500mg", price: 42.00, stock: 50, image: "A", color: "info" },
-  { id: 9, name: "Losartán 50mg", price: 35.00, stock: 80, image: "L", color: "success" },
-  { id: 10, name: "Clonazepam 2mg", price: 60.00, stock: 30, image: "C", color: "warning" },
-];
+// Servicios para cargar productos REALES y realizar ventas
+import productosService from "../../services/productos-service";
+import ventaService from "../../services/venta-service";
+
+// ELIMINADOS DATOS MOCK - Ahora se cargan productos REALES de BD
 
 const paymentMethods = [
   { value: "efectivo", label: "Efectivo" },
@@ -57,10 +49,84 @@ const paymentMethods = [
 
 function POS() {
   const [cart, setCart] = useState([]);
+  const [products, setProducts] = useState([]); // Productos REALES de BD
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [cashReceived, setCashReceived] = useState("");
+  const [clientes, setClientes] = useState([]);
+  const [selectedCliente, setSelectedCliente] = useState(null);
+  const [processingVenta, setProcessingVenta] = useState(false);
+  const [ventaCompleted, setVentaCompleted] = useState(false);
+
+  // Cargar productos REALES de la base de datos
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const response = await productosService.getProductos();
+      const productosData = response.data || response || [];
+      
+      // Formatear productos para POS con datos reales
+      const formattedProducts = productosData.map(producto => ({
+        id: producto.id,
+        name: producto.nombre || producto.codigo,
+        price: parseFloat(producto.precio_venta) || 0,
+        stock: parseInt(producto.stock_actual) || 0,
+        image: producto.nombre ? producto.nombre.charAt(0).toUpperCase() : "P",
+        color: "info",
+        codigo: producto.codigo,
+        descripcion: producto.descripcion,
+        categoria: producto.categoria?.nombre,
+        marca: producto.marca?.Nom_Marca
+      }));
+      
+      setProducts(formattedProducts);
+      console.log(`✅ Cargados ${formattedProducts.length} productos REALES de BD`);
+      
+    } catch (error) {
+      console.error("❌ Error cargando productos reales:", error);
+      setError("Error al cargar productos desde la base de datos");
+      setProducts([]); // Sin productos si falla la carga
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar clientes REALES de la base de datos
+  const loadClientes = async () => {
+    try {
+      const response = await ventaService.getClientes();
+      const clientesData = response.data || response || [];
+      
+      // Formatear clientes para el selector
+      const formattedClientes = clientesData.map(cliente => ({
+        id: cliente.id,
+        label: `${cliente.nombre} ${cliente.apellido || ''}`.trim(),
+        nombre: cliente.nombre,
+        apellido: cliente.apellido,
+        documento: cliente.documento,
+        telefono: cliente.telefono,
+        email: cliente.email
+      }));
+      
+      setClientes(formattedClientes);
+      console.log(`✅ Cargados ${formattedClientes.length} clientes REALES de BD`);
+      
+    } catch (error) {
+      console.error("❌ Error cargando clientes:", error);
+      setClientes([]);
+    }
+  };
+
+  // Cargar productos y clientes al montar el componente
+  useEffect(() => {
+    loadProducts();
+    loadClientes();
+  }, []);
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
@@ -102,10 +168,85 @@ function POS() {
     setCart(newCart);
   };
 
-  const handleCompletePayment = () => {
-    alert("Pago procesado correctamente");
-    setCart([]);
-    setCashReceived("");
+  const handleCompletePayment = async () => {
+    if (cart.length === 0) {
+      alert("El carrito está vacío");
+      return;
+    }
+
+    try {
+      setProcessingVenta(true);
+      
+      // Preparar datos de la venta con todos los campos requeridos
+      const ventaData = {
+        cliente_id: selectedCliente?.id || 1, // Cliente general si no se selecciona
+        personal_id: 1, // Usuario actual o ID por defecto
+        sucursal_id: 1, // Sucursal por defecto
+        numero_venta: '', // Se generará automáticamente
+        numero_documento: '', // Se generará automáticamente
+        serie_documento: 'A',
+        tipo_venta: 'contado', // Por defecto contado
+        estado: 'confirmada', // Estado confirmada para ventas completadas
+        tipo_documento: 'ticket',
+        subtotal: subtotal,
+        descuento_total: 0,
+        subtotal_con_descuento: subtotal,
+        iva_total: tax,
+        impuestos_adicionales: 0,
+        total: total,
+        total_pagado: total,
+        saldo_pendiente: 0, // Para ventas de contado
+        metodo_pago: paymentMethod,
+        observaciones: `Venta realizada desde POS - ${cart.length} productos`,
+        detalles: cart.map(item => ({
+            producto_id: item.product.id,
+            codigo_producto: item.product.codigo || 'PROD' + item.product.id,
+            nombre_producto: item.product.nombre || 'Producto ' + item.product.id,
+            descripcion_producto: item.product.descripcion || '',
+            codigo_barras: item.product.codigo_barras || '',
+            cantidad: item.quantity,
+            precio_unitario: item.product.price,
+            precio_total: item.subtotal,
+            costo_unitario: item.product.costo || 0,
+            costo_total: (item.product.costo || 0) * item.quantity,
+            descuento_porcentaje: 0,
+            descuento_monto: 0,
+            subtotal_con_descuento: item.subtotal,
+            iva_porcentaje: 16,
+            iva_monto: item.subtotal * 0.16,
+            impuestos_adicionales: 0,
+            total_linea: item.subtotal * 1.16,
+            estado: 'confirmado'
+          }))
+      };
+
+      console.log("🛒 Procesando venta:", ventaData);
+      
+      const response = await ventaService.createVenta(ventaData);
+      
+      if (response.success) {
+        setVentaCompleted(true);
+        alert(`✅ Venta completada exitosamente!\nTotal: €${total.toFixed(2)}\nMétodo: ${paymentMethod}\nFolio: ${response.data?.id || 'N/A'}`);
+        
+        // Limpiar el carrito y formulario
+        setCart([]);
+        setPaymentMethod("efectivo");
+        setCashReceived("");
+        setSelectedCliente(null);
+        setVentaCompleted(false);
+        
+        // Recargar productos para actualizar stock
+        loadProducts();
+      } else {
+        throw new Error(response.message || "Error al procesar la venta");
+      }
+      
+    } catch (error) {
+      console.error("❌ Error al procesar venta:", error);
+      alert(`❌ Error al procesar la venta: ${error.message}`);
+    } finally {
+      setProcessingVenta(false);
+    }
   };
 
   // Calcular totales
@@ -147,12 +288,38 @@ function POS() {
                   Selección de productos
                 </MDTypography>
                 
+                {/* Estado de carga */}
+                {loading && (
+                  <MDBox textAlign="center" py={2}>
+                    <MDTypography variant="body2" color="info">
+                      Cargando productos desde la base de datos...
+                    </MDTypography>
+                  </MDBox>
+                )}
+                
+                {error && (
+                  <MDBox textAlign="center" py={2}>
+                    <MDTypography variant="body2" color="error">
+                      {error}
+                    </MDTypography>
+                  </MDBox>
+                )}
+                
+                {!loading && !error && products.length === 0 && (
+                  <MDBox textAlign="center" py={2}>
+                    <MDTypography variant="body2" color="warning">
+                      No hay productos disponibles en la base de datos
+                    </MDTypography>
+                  </MDBox>
+                )}
+                
                 {/* Buscador de productos */}
                 <Grid container spacing={2} mb={2}>
                   <Grid item xs={12} md={8}>
                     <Autocomplete
                       options={products}
                       getOptionLabel={(option) => option.name}
+                      disabled={loading || products.length === 0}
                       renderOption={(props, option) => (
                         <li {...props}>
                           <MDBox display="flex" alignItems="center">
@@ -324,14 +491,40 @@ function POS() {
 
                 {/* Cliente */}
                 <MDBox mb={3}>
-                  <MDButton 
-                    variant="outlined" 
-                    color="info" 
-                    startIcon={<Icon>person</Icon>}
-                    fullWidth
-                  >
-                    Seleccionar cliente
-                  </MDButton>
+                  <Autocomplete
+                    options={clientes}
+                    value={selectedCliente}
+                    onChange={(event, newValue) => setSelectedCliente(newValue)}
+                    getOptionLabel={(option) => option.label || ""}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Seleccionar Cliente"
+                        variant="outlined"
+                        placeholder="Cliente general..."
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: <Icon sx={{ mr: 1 }}>person</Icon>
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <MDBox component="li" {...props}>
+                        <MDBox>
+                          <MDTypography variant="button" fontWeight="medium">
+                            {option.label}
+                          </MDTypography>
+                          {option.documento && (
+                            <MDTypography variant="caption" color="text">
+                              Doc: {option.documento}
+                            </MDTypography>
+                          )}
+                        </MDBox>
+                      </MDBox>
+                    )}
+                    noOptionsText="No hay clientes disponibles"
+                    disabled={loading}
+                  />
                 </MDBox>
                 
                 {/* Totales */}
@@ -427,11 +620,11 @@ function POS() {
                     color="success"
                     fullWidth
                     onClick={handleCompletePayment}
-                    disabled={cart.length === 0 || (paymentMethod === "efectivo" && (!cashReceived || parseFloat(cashReceived) < total))}
-                    startIcon={<Icon>payment</Icon>}
+                    disabled={processingVenta || cart.length === 0 || (paymentMethod === "efectivo" && (!cashReceived || parseFloat(cashReceived) < total))}
+                    startIcon={<Icon>{processingVenta ? "hourglass_top" : "payment"}</Icon>}
                     size="large"
                   >
-                    Completar pago
+                    {processingVenta ? "Procesando venta..." : "Completar pago"}
                   </MDButton>
                   <MDButton
                     variant="gradient"

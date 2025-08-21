@@ -21,7 +21,8 @@ import clientesService from "services/clientes-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -227,15 +228,32 @@ export default function Clientes() {
         </Grid>
 
         {/* Tabla de clientes */}
-        <DataTable
-          table={{ columns, rows: clientes }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-          loading={loading}
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={clientesService}
+            columns={[]}
+            title="Clientes"
+            subtitle="Gestión de base de datos de clientes"
+            enableCreate={false}
+            enableEdit={false}
+            enableDelete={false}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

@@ -17,7 +17,8 @@ import presentacionService from "services/presentacion-service";
 import GenericModal from "components/Modales/GenericModal";
 
 // Componentes de tabla
-import DataTable from "examples/Tables/DataTable";
+import StandardDataTable from "components/StandardDataTable";
+import { TableThemeProvider } from "components/StandardDataTable/TableThemeProvider";
 
 // Estilos
 import "./Presentaciones.css";
@@ -261,14 +262,32 @@ export default function Presentaciones() {
         </Grid>
 
         {/* Tabla de presentaciones */}
-        <DataTable
-          table={{ columns, rows: presentaciones }}
-          isSorted={true}
-          entriesPerPage={true}
-          showTotalEntries={true}
-          noEndBorder
-          canSearch
-        />
+        <TableThemeProvider>
+          <StandardDataTable
+            service={presentacionService}
+            columns={[]}
+            title="Presentaciones"
+            subtitle="Formas farmacéuticas y presentaciones de productos"
+            enableCreate={false}
+            enableEdit={false}
+            enableDelete={false}
+            enableSearch={true}
+            enableFilters={true}
+            enableStats={false}
+            enableExport={true}
+            serverSide={false}
+            defaultPageSize={10}
+            defaultSortField="nombre"
+            defaultSortDirection="asc"
+            onRowClick={(row) => handleOpenModal("view", row)}
+            permissions={{
+              create: true,
+              edit: true,
+              delete: true,
+              view: true
+            }}
+          />
+        </TableThemeProvider>
 
         {/* Modal genérico */}
         <GenericModal

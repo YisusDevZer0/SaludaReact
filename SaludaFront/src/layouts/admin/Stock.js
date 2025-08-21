@@ -67,45 +67,47 @@ function Stock() {
 
   const loadSucursales = async () => {
     try {
-      const response = await fetch('/api/sucursales/todas');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000/api'}/sucursales`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Accept': 'application/json'
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
         setSucursales(data.data || []);
       } else {
         console.error('Error al cargar sucursales:', data.message);
-        setError('Error al cargar sucursales');
-        // Datos de ejemplo para desarrollo
-        setSucursales([
-          { id: 1, nombre: 'Sucursal Centro', codigo: 'CENTRO' },
-          { id: 2, nombre: 'Sucursal Norte', codigo: 'NORTE' },
-          { id: 3, nombre: 'Sucursal Sur', codigo: 'SUR' },
-          { id: 4, nombre: 'Sucursal Este', codigo: 'ESTE' },
-          { id: 5, nombre: 'Sucursal Oeste', codigo: 'OESTE' }
-        ]);
+        setError('Error al cargar sucursales desde la base de datos');
+        setSucursales([]); // Sin datos mock - debe conectar BD real
       }
     } catch (error) {
       console.error('Error al cargar sucursales:', error);
-      setError('Error al cargar sucursales');
-      // Datos de ejemplo para desarrollo
-      setSucursales([
-        { id: 1, nombre: 'Sucursal Centro', codigo: 'CENTRO' },
-        { id: 2, nombre: 'Sucursal Norte', codigo: 'NORTE' },
-        { id: 3, nombre: 'Sucursal Sur', codigo: 'SUR' },
-        { id: 4, nombre: 'Sucursal Este', codigo: 'ESTE' },
-        { id: 5, nombre: 'Sucursal Oeste', codigo: 'OESTE' }
-      ]);
+      setError('Error al conectar con la base de datos de sucursales');
+      setSucursales([]); // Sin datos mock - forzar conexión real
     }
   };
 
   const loadStockData = async () => {
     try {
       setLoading(true);
+      setError("");
+      
+      // Cargar datos reales de stock desde BD
       const data = await stockService.getStockPorSucursal(selectedSucursal);
-      setStockData(data.data?.stock || []);
+      
+      if (data.success) {
+        setStockData(data.data?.stock || []);
+        console.log(`✅ Cargados ${data.data?.stock?.length || 0} registros de stock REALES de BD`);
+      } else {
+        setStockData([]);
+        setError('No se pudieron cargar los datos de stock desde la base de datos');
+      }
     } catch (error) {
       console.error('Error al cargar stock:', error);
-      setError('Error al cargar datos de stock');
+      setError('Error al cargar datos de stock desde la base de datos');
+      setStockData([]); // Sin datos mock - forzar conexión real
     } finally {
       setLoading(false);
     }

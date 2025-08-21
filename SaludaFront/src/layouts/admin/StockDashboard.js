@@ -55,7 +55,7 @@ function StockDashboard() {
         stockService.getEstadisticasStock(),
         stockService.getAlertasStockBajo(),
         stockService.getAlertasVencimiento(),
-        fetch('/api/sucursales/todas').then(res => res.json())
+        stockService.getSucursales()
       ]);
 
       setEstadisticas(estadisticasData.data || {});

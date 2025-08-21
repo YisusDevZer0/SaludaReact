@@ -41,6 +41,10 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\MovimientoInventarioController;
 use App\Http\Controllers\AjusteInventarioController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\ReportesVentasController;
+use App\Http\Controllers\ReportesInventarioController;
+use App\Http\Controllers\ReportesFinancierosController;
+use App\Http\Controllers\ConfiguracionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -546,36 +550,7 @@ Route::prefix('dashboard')->middleware(['json.api', 'api.auth'])->group(function
     Route::get('/advanced-stats', [DashboardController::class, 'getAdvancedStats']);
 });
 
-    // Agendas
-Route::prefix('agendas')->group(function () {
-    Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
-    Route::get('/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
-    Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
-    Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
-    Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
-    Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
-    Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
-    Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
-});
 
-    // Pacientes
-Route::prefix('pacientes')->group(function () {
-    Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
-    Route::get('/{id}', [App\Http\Controllers\PacienteController::class, 'show']);
-    Route::post('/', [App\Http\Controllers\PacienteController::class, 'store']);
-    Route::put('/{id}', [App\Http\Controllers\PacienteController::class, 'update']);
-    Route::delete('/{id}', [App\Http\Controllers\PacienteController::class, 'destroy']);
-});
-
-    // Doctores
-Route::prefix('doctores')->group(function () {
-    Route::get('/', [App\Http\Controllers\DoctorController::class, 'index']);
-    Route::get('/{id}', [App\Http\Controllers\DoctorController::class, 'show']);
-    Route::post('/', [App\Http\Controllers\DoctorController::class, 'store']);
-    Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
-    Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
-    Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
-});
 
     // Componentes
 Route::prefix('componentes')->group(function () {
@@ -717,6 +692,37 @@ Route::prefix('componentes')->group(function () {
         Route::put('/{id}/estado', [UsuarioController::class, 'changeStatus']);
         Route::put('/{id}/restablecer-contrasena', [UsuarioController::class, 'resetPassword']);
     });
+
+    // Agendas
+    Route::prefix('agendas')->group(function () {
+        Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
+        Route::get('/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
+        Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
+        Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
+        Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
+        Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
+    });
+
+    // Pacientes
+    Route::prefix('pacientes')->group(function () {
+        Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
+        Route::get('/{id}', [App\Http\Controllers\PacienteController::class, 'show']);
+        Route::post('/', [App\Http\Controllers\PacienteController::class, 'store']);
+        Route::put('/{id}', [App\Http\Controllers\PacienteController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\PacienteController::class, 'destroy']);
+    });
+
+    // Doctores
+    Route::prefix('doctores')->group(function () {
+        Route::get('/', [App\Http\Controllers\DoctorController::class, 'index']);
+        Route::get('/{id}', [App\Http\Controllers\DoctorController::class, 'show']);
+        Route::post('/', [App\Http\Controllers\DoctorController::class, 'store']);
+        Route::put('/{id}', [App\Http\Controllers\DoctorController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
+        Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
+    });
 }); 
 
 // Rutas de Productos
@@ -760,15 +766,15 @@ Route::prefix('ventas')->group(function () {
 Route::prefix('compras')->group(function () {
     Route::get('/', [CompraController::class, 'index']);
     Route::post('/', [CompraController::class, 'store']);
+    Route::get('/estadisticas', [CompraController::class, 'getEstadisticas']);
+    Route::get('/por-rango/getPorRango', [CompraController::class, 'getPorRango']);
+    Route::get('/por-proveedor/getByProveedor', [CompraController::class, 'getByProveedor']);
+    Route::get('/por-comprador/getPorComprador', [CompraController::class, 'getByComprador']);
     Route::get('/{id}', [CompraController::class, 'show']);
     Route::put('/{id}', [CompraController::class, 'update']);
     Route::delete('/{id}', [CompraController::class, 'destroy']);
     Route::put('/{id}/confirmar', [CompraController::class, 'confirmar']);
     Route::put('/{id}/anular', [CompraController::class, 'anular']);
-    Route::get('/estadisticas/statistics', [CompraController::class, 'statistics']);
-    Route::get('/por-rango/getPorRango', [CompraController::class, 'getPorRango']);
-    Route::get('/por-proveedor/getByProveedor', [CompraController::class, 'getByProveedor']);
-    Route::get('/por-comprador/getPorComprador', [CompraController::class, 'getByComprador']);
 });
 
 // Rutas de Cajas
@@ -959,4 +965,48 @@ Route::prefix('usuarios')->group(function () {
     Route::get('/inactivos/getInactivos', [UsuarioController::class, 'getInactivos']);
     Route::get('/roles-disponibles/rolesDisponibles', [UsuarioController::class, 'rolesDisponibles']);
     Route::post('/cambiar-estado-masivo/cambiarEstadoMasivo', [UsuarioController::class, 'cambiarEstadoMasivo']);
-}); 
+});
+
+// Rutas de Reportes de Ventas
+Route::prefix('reportes/ventas')->group(function () {
+    Route::get('/periodo', [ReportesVentasController::class, 'ventasPorPeriodo']);
+    Route::get('/productos-mas-vendidos', [ReportesVentasController::class, 'productosMasVendidos']);
+    Route::get('/rendimiento-vendedor', [ReportesVentasController::class, 'rendimientoPorVendedor']);
+    Route::get('/ventas-por-dia', [ReportesVentasController::class, 'ventasPorDia']);
+    Route::get('/metodos-pago', [ReportesVentasController::class, 'metodosPagoUtilizados']);
+    Route::get('/estadisticas-generales', [ReportesVentasController::class, 'estadisticasGenerales']);
+});
+
+// Rutas de Reportes de Inventario
+Route::prefix('reportes/inventario')->group(function () {
+    Route::get('/movimientos', [ReportesInventarioController::class, 'movimientosStock']);
+    Route::get('/rotacion', [ReportesInventarioController::class, 'rotacionProductos']);
+    Route::get('/vencimientos', [ReportesInventarioController::class, 'alertasVencimiento']);
+    Route::get('/stock-bajo', [ReportesInventarioController::class, 'productosStockBajo']);
+    Route::get('/valor-inventario', [ReportesInventarioController::class, 'valorInventario']);
+    Route::get('/productos-vendidos', [ReportesInventarioController::class, 'productosVendidos']);
+});
+
+// Rutas de Reportes Financieros
+Route::prefix('reportes/financieros')->group(function () {
+    Route::get('/balance-caja', [ReportesFinancierosController::class, 'balanceCaja']);
+    Route::get('/flujo-efectivo', [ReportesFinancierosController::class, 'flujoEfectivo']);
+    Route::get('/gastos', [ReportesFinancierosController::class, 'analisisGastos']);
+    Route::get('/margen-utilidad', [ReportesFinancierosController::class, 'margenUtilidad']);
+    Route::get('/rentabilidad-productos', [ReportesFinancierosController::class, 'rentabilidadProductos']);
+    Route::get('/resumen-financiero', [ReportesFinancierosController::class, 'resumenFinanciero']);
+});
+
+// Rutas de Configuración del Sistema
+Route::prefix('configuracion')->group(function () {
+    Route::get('/', [ConfiguracionController::class, 'index']);
+    Route::get('/{clave}', [ConfiguracionController::class, 'show']);
+    Route::post('/', [ConfiguracionController::class, 'store']);
+    Route::put('/{id}', [ConfiguracionController::class, 'update']);
+    Route::delete('/{id}', [ConfiguracionController::class, 'destroy']);
+    Route::get('/categoria/{categoria}', [ConfiguracionController::class, 'getByCategory']);
+    Route::get('/sistema/info', [ConfiguracionController::class, 'getSystemInfo']);
+    Route::get('/sistema/stats', [ConfiguracionController::class, 'getSystemStats']);
+    Route::post('/sistema/clear-cache', [ConfiguracionController::class, 'clearCache']);
+    Route::get('/sistema/logs', [ConfiguracionController::class, 'getSystemLogs']);
+});

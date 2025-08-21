@@ -84,7 +84,7 @@ class Agenda extends Model
      */
     public function sucursal()
     {
-        return $this->belongsTo(Sucursal::class, 'Fk_Sucursal', 'ID_SucursalC');
+        return $this->belongsTo(Sucursal::class, 'Fk_Sucursal', 'id');
     }
 
     /**
