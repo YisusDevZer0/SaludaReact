@@ -2,36 +2,126 @@ import React from 'react';
 import {
   Grid,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  Typography,
   InputAdornment
 } from '@mui/material';
+import DependentSelect from './DependentSelect';
+import Autocomplete from '@mui/material/Autocomplete';
+import CircularProgress from '@mui/material/CircularProgress';
 import {
   AccessTime as TimeIcon,
   LocalHospital as HospitalIcon,
   Person as PersonIcon,
   AttachMoney as MoneyIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
 import MDBox from 'components/MDBox';
 import MDTypography from 'components/MDTypography';
+import MDButton from 'components/MDButton';
+
+import { useState, useEffect, useMemo } from 'react';
 
 const AgendaForm = ({ 
-  data, 
+  formData, 
   errors, 
-  onChange, 
-  editing = false,
+  onInputChange, 
+  mode = "create",
   pacientes = [],
   doctores = [],
   sucursales = [],
-  loadingPacientes = false,
-  loadingDoctores = false,
-  loadingSucursales = false
+  agendaData = null,
+  onSeleccionarHorario = null
 }) => {
+  // Usar formData como data para compatibilidad
+  const data = formData;
+  const onChange = onInputChange;
+  const editing = mode === "edit";
+  // ========================= PACIENTE AUTOCOMPLETE =========================
+  const [pacienteInput, setPacienteInput] = useState('');
+  const [pacienteOptions, setPacienteOptions] = useState([]);
+  const [loadingPacienteAutocomplete, setLoadingPacienteAutocomplete] = useState(false);
+  const [autocompleteError, setAutocompleteError] = useState('');
+
+  useEffect(() => {
+    if (pacienteInput.length < 2) {
+      setPacienteOptions([]);
+      return;
+    }
+    let active = true;
+    setLoadingPacienteAutocomplete(true);
+    setAutocompleteError('');
+    import('services/agenda-service').then(({ default: AgendaService }) => {
+      AgendaService.getPacientesByNombre(pacienteInput)
+        .then(res => {
+          if (!active) return;
+          if (res && Array.isArray(res.data)) {
+            setPacienteOptions(res.data);
+          } else if (Array.isArray(res)) {
+            setPacienteOptions(res);
+          } else {
+            setPacienteOptions([]);
+          }
+          setLoadingPacienteAutocomplete(false);
+        })
+        .catch(err => {
+          setAutocompleteError('Error al buscar pacientes');
+          setLoadingPacienteAutocomplete(false);
+          setPacienteOptions([]);
+        });
+    });
+    return () => { active = false; };
+  }, [pacienteInput]);
+  // ========================= FIN PACIENTE AUTOCOMPLETE =========================
+  // Dependent select state
+  const [selectedSucursal, setSelectedSucursal] = useState(data.fk_sucursal || '');
+  const [selectedEspecialidad, setSelectedEspecialidad] = useState(data.especialidad || '');
+  const [selectedDoctor, setSelectedDoctor] = useState(data.fk_doctor || '');
+
+  // Loading and error states
+  const [loadingEspecialidades, setLoadingEspecialidades] = useState(false);
+  const [especialidadOptions, setEspecialidadOptions] = useState([]);
+
+  // Memoized filtered doctors by branch
+  const filteredDoctores = useMemo(() => {
+    if (!selectedSucursal) return [];
+    return doctores.filter(doc => String(doc.ID_SucursalC) === String(selectedSucursal));
+  }, [doctores, selectedSucursal]);
+
+  // Extract unique specialties from filtered doctors
+  useEffect(() => {
+    setLoadingEspecialidades(true);
+    const uniqueEspecialidades = Array.from(new Set(filteredDoctores.map(doc => doc.Especialidad).filter(Boolean)))
+      .map(esp => ({ value: esp, label: esp }));
+    setEspecialidadOptions(uniqueEspecialidades);
+    setLoadingEspecialidades(false);
+  }, [filteredDoctores]);
+
+  // Filter doctors by specialty
+  const filteredDoctoresByEspecialidad = useMemo(() => {
+    if (!selectedEspecialidad) return filteredDoctores;
+    return filteredDoctores.filter(doc => doc.Especialidad === selectedEspecialidad);
+  }, [filteredDoctores, selectedEspecialidad]);
+
+  // Handlers for dependent selects
+  const handleSucursalChange = (e) => {
+    setSelectedSucursal(e.target.value);
+    setSelectedEspecialidad('');
+    setSelectedDoctor('');
+    onChange('fk_sucursal', e.target.value);
+    onChange('especialidad', '');
+    onChange('fk_doctor', '');
+  };
+  const handleEspecialidadChange = (e) => {
+    setSelectedEspecialidad(e.target.value);
+    setSelectedDoctor('');
+    onChange('especialidad', e.target.value);
+    onChange('fk_doctor', '');
+  };
+  const handleDoctorChange = (e) => {
+    setSelectedDoctor(e.target.value);
+    onChange('fk_doctor', e.target.value);
+  };
+
   const handleChange = (field) => (event) => {
     onChange(field, event.target.value);
   };
@@ -219,6 +309,26 @@ const AgendaForm = ({
           </FormControl>
         </Grid>
 
+        {/* Botón para seleccionar horario desde programación */}
+        {onSeleccionarHorario && (
+          <Grid item xs={12}>
+            <MDBox display="flex" justifyContent="center" mt={2}>
+              <MDButton
+                variant="outlined"
+                color="info"
+                startIcon={<ScheduleIcon />}
+                onClick={onSeleccionarHorario}
+                disabled={!data.fk_doctor || !data.fk_sucursal}
+              >
+                Seleccionar Horario Disponible
+              </MDButton>
+            </MDBox>
+            <MDTypography variant="caption" color="text" textAlign="center" display="block" mt={1}>
+              Selecciona un horario disponible según la programación del especialista
+            </MDTypography>
+          </Grid>
+        )}
+
         {/* Paciente y Doctor */}
         <Grid item xs={12}>
           <MDTypography variant="subtitle1" color="dark" gutterBottom>
@@ -226,59 +336,47 @@ const AgendaForm = ({
           </MDTypography>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.fk_paciente}>
-            <InputLabel>Paciente *</InputLabel>
-            <Select
-              value={data.fk_paciente || ''}
-              onChange={handleChange('fk_paciente')}
-              label="Paciente *"
-              disabled={loadingPacientes}
-            >
-              {loadingPacientes ? (
-                <MenuItem disabled>Cargando pacientes...</MenuItem>
-              ) : (
-                pacientes.map(paciente => (
-                  <MenuItem key={paciente.Paciente_ID} value={paciente.Paciente_ID}>
-                    {`${paciente.Nombre} ${paciente.Apellido}${paciente.Telefono ? ' - ' + paciente.Telefono : ''}`}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {errors.fk_paciente && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
-                {errors.fk_paciente}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+
 
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.fk_doctor}>
-            <InputLabel>Doctor *</InputLabel>
-            <Select
-              value={data.fk_doctor || ''}
-              onChange={handleChange('fk_doctor')}
-              label="Doctor *"
-              disabled={loadingDoctores}
-            >
-              {loadingDoctores ? (
-                <MenuItem disabled>Cargando doctores...</MenuItem>
-              ) : (
-                doctores.map(doctor => (
-                  <MenuItem key={doctor.Doctor_ID} value={doctor.Doctor_ID}>
-                    {`Dr. ${doctor.Nombre} ${doctor.Apellido}${doctor.Especialidad ? ' - ' + doctor.Especialidad : ''}`}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {errors.fk_doctor && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
-                {errors.fk_doctor}
-              </Typography>
-            )}
-          </FormControl>
+          <TextField
+            fullWidth
+            label="Paciente"
+            value={data.nombre_paciente || ''}
+            onChange={(e) => {
+              onChange('nombre_paciente', e.target.value);
+              // Limpiar el ID del paciente cuando se escribe manualmente
+              if (data.fk_paciente) onChange('fk_paciente', '');
+            }}
+            error={!!errors.nombre_paciente}
+            helperText={errors.nombre_paciente || 'Nombre completo del paciente'}
+            placeholder="Ej: Juan Pérez"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="info" />
+                </InputAdornment>
+              ),
+            }}
+          />
         </Grid>
+        <Grid item xs={12} md={6}>
+  <DependentSelect
+    label="Doctor *"
+    value={selectedDoctor}
+    onChange={handleDoctorChange}
+    options={filteredDoctoresByEspecialidad.map(doc => ({
+      value: doc.Doctor_ID,
+      label: `Dr. ${doc.Nombre} ${doc.Apellido}${doc.Especialidad ? ' - ' + doc.Especialidad : ''}`
+    }))}
+    loading={loadingDoctores}
+    error={errors.fk_doctor}
+    disabled={!selectedEspecialidad || loadingDoctores}
+    required
+    helperText={errors.fk_doctor}
+    name="fk_doctor"
+  />
+</Grid>
 
         {/* Ubicación y Estado */}
         <Grid item xs={12}>
@@ -288,31 +386,21 @@ const AgendaForm = ({
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <FormControl fullWidth error={!!errors.fk_sucursal}>
-            <InputLabel>Sucursal *</InputLabel>
-            <Select
-              value={data.fk_sucursal || ''}
-              onChange={handleChange('fk_sucursal')}
-              label="Sucursal *"
-              disabled={loadingSucursales}
-            >
-              {loadingSucursales ? (
-                <MenuItem disabled>Cargando sucursales...</MenuItem>
-              ) : (
-                sucursales.map(sucursal => (
-                  <MenuItem key={sucursal.ID_SucursalC} value={sucursal.ID_SucursalC}>
-                    {sucursal.Nombre_Sucursal}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {errors.fk_sucursal && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, ml: 2 }}>
-                {errors.fk_sucursal}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+  <DependentSelect
+    label="Sucursal *"
+    value={selectedSucursal}
+    onChange={handleSucursalChange}
+    options={sucursales.map(sucursal => ({
+      value: sucursal.ID_SucursalC,
+      label: sucursal.Nombre_Sucursal
+    }))}
+    loading={loadingSucursales}
+    error={errors.fk_sucursal}
+    required
+    helperText={errors.fk_sucursal}
+    name="fk_sucursal"
+  />
+</Grid>
 
         <Grid item xs={12} md={4}>
           <TextField

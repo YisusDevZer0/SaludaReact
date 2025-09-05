@@ -49,7 +49,7 @@ import MDButton from 'components/MDButton';
 import MDTypography from 'components/MDTypography';
 import MDInput from 'components/MDInput';
 import MDAlert from 'components/MDAlert';
-import useNotifications from 'hooks/useNotifications';
+import useNotifications from '../../hooks/useNotifications';
 import usePantoneColors from 'hooks/usePantoneColors';
 import { useMaterialUIController } from 'context';
 import { useTableTheme } from './TableThemeProvider';

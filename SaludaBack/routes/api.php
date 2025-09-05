@@ -45,6 +45,14 @@ use App\Http\Controllers\ReportesVentasController;
 use App\Http\Controllers\ReportesInventarioController;
 use App\Http\Controllers\ReportesFinancierosController;
 use App\Http\Controllers\ConfiguracionController;
+
+// Global CORS preflight handler for all API routes
+Route::options('{any}', function () {
+    return response('', 200)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-User-ID');
+})->where('any', '.*');
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -90,6 +98,16 @@ Route::get('/test-connection', function () {
         'environment' => config('app.env'),
         'cors_enabled' => true,
         'frontend_url' => config('app.url')
+    ]);
+});
+
+// Endpoint de prueba para CORS
+Route::get('/test-cors', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'CORS funcionando correctamente',
+        'timestamp' => now()->toISOString(),
+        'headers_received' => request()->headers->all()
     ]);
 });
 
@@ -705,6 +723,18 @@ Route::prefix('componentes')->group(function () {
         Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
     });
 
+    // Rutas de Citas como alias para compatibilidad con frontend
+    Route::prefix('citas')->group(function () {
+        Route::get('/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
+        Route::get('/hoy', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
+        Route::post('/verificar-disponibilidad', [App\Http\Controllers\AgendaController::class, 'verificarDisponibilidad']);
+        Route::get('/', [App\Http\Controllers\AgendaController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\AgendaController::class, 'store']);
+        Route::put('/{id}', [App\Http\Controllers\AgendaController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\AgendaController::class, 'destroy']);
+        Route::get('/{id}', [App\Http\Controllers\AgendaController::class, 'show']);
+    });
+
     // Pacientes
     Route::prefix('pacientes')->group(function () {
         Route::get('/', [App\Http\Controllers\PacienteController::class, 'index']);
@@ -1009,4 +1039,127 @@ Route::prefix('configuracion')->group(function () {
     Route::get('/sistema/stats', [ConfiguracionController::class, 'getSystemStats']);
     Route::post('/sistema/clear-cache', [ConfiguracionController::class, 'clearCache']);
     Route::get('/sistema/logs', [ConfiguracionController::class, 'getSystemLogs']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rutas para el Sistema de Agendas Mejorado
+|--------------------------------------------------------------------------
+*/
+
+// Rutas de prueba para verificar funcionamiento
+Route::prefix('test-agenda')->group(function () {
+    Route::get('/test', [App\Http\Controllers\Api\TestAgendaController::class, 'test']);
+    Route::get('/cors', [App\Http\Controllers\Api\TestAgendaController::class, 'testCors']);
+    Route::options('/cors', [App\Http\Controllers\Api\TestAgendaController::class, 'testCors']);
+    
+    // Rutas de prueba para Agenda sin autenticación
+    Route::get('/agendas', [App\Http\Controllers\AgendaController::class, 'index']);
+    Route::get('/agendas/estadisticas', [App\Http\Controllers\AgendaController::class, 'estadisticas']);
+    Route::get('/agendas/hoy/citas', [App\Http\Controllers\AgendaController::class, 'citasHoy']);
+    
+    // Rutas de prueba para Citas sin autenticación
+    Route::get('/citas', [App\Http\Controllers\Api\TestAgendaController::class, 'getCitas']);
+    Route::get('/citas/estadisticas', [App\Http\Controllers\Api\TestAgendaController::class, 'getCitas']);
+    Route::get('/citas/hoy', [App\Http\Controllers\Api\TestAgendaController::class, 'getCitas']);
+});
+
+// Rutas de prueba para Citas usando el controlador específico
+Route::prefix('test-citas')->group(function () {
+    Route::get('/test', [App\Http\Controllers\Api\TestCitasController::class, 'test']);
+    Route::get('/', [App\Http\Controllers\Api\TestCitasController::class, 'index']);
+    Route::get('/estadisticas', [App\Http\Controllers\Api\TestCitasController::class, 'estadisticas']);
+    Route::get('/hoy', [App\Http\Controllers\Api\TestCitasController::class, 'hoy']);
+});
+
+// Rutas de prueba para CORS y modelos sin autenticación
+Route::prefix('test-cors')->group(function () {
+    Route::get('/cors', [App\Http\Controllers\Api\TestCorsController::class, 'testCors']);
+    Route::options('/cors', [App\Http\Controllers\Api\TestCorsController::class, 'testCors']);
+    Route::get('/especialidades', [App\Http\Controllers\Api\TestCorsController::class, 'testEspecialidades']);
+    Route::get('/especialistas', [App\Http\Controllers\Api\TestCorsController::class, 'testEspecialistas']);
+    Route::get('/sucursales', [App\Http\Controllers\Api\TestCorsController::class, 'testSucursales']);
+    Route::get('/pacientes', [App\Http\Controllers\Api\TestCorsController::class, 'testPacientes']);
+    Route::get('/consultorios', [App\Http\Controllers\Api\TestCorsController::class, 'testConsultorios']);
+    Route::get('/citas', [App\Http\Controllers\Api\TestCorsController::class, 'testCitas']);
+});
+
+// Rutas para Especialidades
+Route::prefix('especialidades')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\EspecialidadesController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\EspecialidadesController::class, 'store']);
+    Route::get('/activas', [App\Http\Controllers\Api\EspecialidadesController::class, 'activas']);
+    Route::get('/estadisticas', [App\Http\Controllers\Api\EspecialidadesController::class, 'estadisticas']);
+    Route::get('/{id}', [App\Http\Controllers\Api\EspecialidadesController::class, 'show']);
+    Route::put('/{id}', [App\Http\Controllers\Api\EspecialidadesController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\EspecialidadesController::class, 'destroy']);
+});
+
+// Rutas para Especialistas
+Route::prefix('especialistas')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\EspecialistasController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\EspecialistasController::class, 'store']);
+    Route::get('/activos', [App\Http\Controllers\Api\EspecialistasController::class, 'activos']);
+    Route::get('/por-especialidad/{especialidadId}', [App\Http\Controllers\Api\EspecialistasController::class, 'porEspecialidad']);
+    Route::get('/estadisticas', [App\Http\Controllers\Api\EspecialistasController::class, 'estadisticas']);
+    Route::get('/{id}', [App\Http\Controllers\Api\EspecialistasController::class, 'show']);
+    Route::put('/{id}', [App\Http\Controllers\Api\EspecialistasController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\EspecialistasController::class, 'destroy']);
+});
+
+// Rutas para Sucursales Mejoradas
+Route::prefix('sucursales-mejoradas')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'store']);
+    Route::get('/activas', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'activas']);
+    Route::get('/estadisticas', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'estadisticas']);
+    Route::get('/{id}', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'show']);
+    Route::put('/{id}', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\SucursalesMejoradasController::class, 'destroy']);
+});
+
+// Rutas para Citas Mejoradas
+Route::prefix('citas-mejoradas')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\CitasMejoradasController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\CitasMejoradasController::class, 'store']);
+    Route::get('/buscar-pacientes', [App\Http\Controllers\Api\CitasMejoradasController::class, 'buscarPacientes']);
+    Route::get('/{id}', [App\Http\Controllers\Api\CitasMejoradasController::class, 'show']);
+    Route::put('/{id}', [App\Http\Controllers\Api\CitasMejoradasController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\CitasMejoradasController::class, 'destroy']);
+    Route::patch('/{id}/estado', [App\Http\Controllers\Api\CitasMejoradasController::class, 'cambiarEstado']);
+});
+
+// Rutas para Programación de Especialistas
+Route::prefix('programacion')->middleware(['cors'])->group(function () {
+    // Handle OPTIONS requests for CORS preflight FIRST
+    Route::options('/{any}', function () {
+        return response('', 200)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-User-ID, X-Hospital-ID');
+    })->where('any', '.*');
+    
+    Route::post('/', [App\Http\Controllers\Api\ProgramacionController::class, 'crearProgramacion']);
+    Route::get('/', [App\Http\Controllers\Api\ProgramacionController::class, 'obtenerProgramaciones']);
+    Route::get('/horarios-disponibles', [App\Http\Controllers\Api\ProgramacionController::class, 'obtenerHorariosDisponibles']);
+    Route::post('/{id}/generar-horarios', [App\Http\Controllers\Api\ProgramacionController::class, 'generarHorariosDisponibles']);
+    Route::get('/estadisticas', [App\Http\Controllers\Api\ProgramacionController::class, 'obtenerEstadisticas']);
+    
+    // Gestión de fechas y horarios
+    Route::get('/{id}/horarios-por-fecha', [App\Http\Controllers\Api\ProgramacionController::class, 'obtenerHorariosPorFecha']);
+    Route::post('/{id}/gestionar-fecha', [App\Http\Controllers\Api\ProgramacionController::class, 'gestionarFecha']);
+    Route::post('/{id}/horarios/{horarioId}/gestionar', [App\Http\Controllers\Api\ProgramacionController::class, 'gestionarHorario']);
+    Route::post('/{id}/agregar-fecha', [App\Http\Controllers\Api\ProgramacionController::class, 'agregarFecha']);
+    Route::post('/{id}/aperturar-primera-fecha', [App\Http\Controllers\Api\ProgramacionController::class, 'aperturarPrimeraFecha']);
+    Route::post('/{id}/agregar-horarios', [App\Http\Controllers\Api\ProgramacionController::class, 'agregarHorariosAFecha']);
+    
+    // Rutas para integración con agenda de especialistas
+    Route::post('/horarios-disponibles', [App\Http\Controllers\Api\ProgramacionController::class, 'getHorariosDisponibles']);
+    Route::post('/fechas-disponibles', [App\Http\Controllers\Api\ProgramacionController::class, 'getFechasDisponibles']);
+    Route::post('/verificar-disponibilidad', [App\Http\Controllers\Api\ProgramacionController::class, 'verificarDisponibilidadHorario']);
+    Route::post('/ocupar-horario', [App\Http\Controllers\Api\ProgramacionController::class, 'ocuparHorario']);
+    Route::post('/liberar-horario', [App\Http\Controllers\Api\ProgramacionController::class, 'liberarHorario']);
+    Route::post('/liberar-horario-por-id', [App\Http\Controllers\Api\ProgramacionController::class, 'liberarHorarioPorId']);
+    
+    Route::delete('/{id}', [App\Http\Controllers\Api\ProgramacionController::class, 'eliminarProgramacion']);
 });

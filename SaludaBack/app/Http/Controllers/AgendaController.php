@@ -53,13 +53,17 @@ class AgendaController extends Controller
                 'success' => true,
                 'data' => $citas,
                 'message' => 'Citas obtenidas exitosamente'
-            ]);
+            ])->header('Access-Control-Allow-Origin', '*')
+              ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+              ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener las citas: ' . $e->getMessage()
-            ], 500);
+            ], 500)->header('Access-Control-Allow-Origin', '*')
+                   ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                   ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
         }
     }
 

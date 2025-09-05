@@ -10,6 +10,7 @@ import {
   TextField,
   FormControl,
   InputLabel,
+  InputAdornment,
   Select,
   MenuItem,
   Box,
@@ -308,35 +309,27 @@ function AgendaForm({
         <Grid container spacing={2}>
           {/* Paciente */}
           <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.fk_paciente}>
-              <InputLabel>Paciente</InputLabel>
-              <Select
-                value={formData.fk_paciente}
-                onChange={(e) => handleChange('fk_paciente', e.target.value)}
-                disabled={mode === "view"}
-                label="Paciente"
-              >
-                {pacientes.map((paciente) => (
-                  <MenuItem key={paciente.Paciente_ID} value={paciente.Paciente_ID}>
-                    <Box>
-                      <Typography variant="body2" fontWeight="bold">
-                        {paciente.Nombre_Completo}
-                      </Typography>
-                      {paciente.Telefono && (
-                        <Typography variant="caption" color="text.secondary">
-                          📞 {paciente.Telefono}
-                        </Typography>
-                      )}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.fk_paciente && (
-                <Typography variant="caption" color="error">
-                  {errors.fk_paciente}
-                </Typography>
-              )}
-            </FormControl>
+            <TextField
+              fullWidth
+              label="Paciente"
+              value={formData.nombre_paciente || ''}
+              onChange={(e) => {
+                handleChange('nombre_paciente', e.target.value);
+                // Clear patient ID when typing manually
+                if (formData.fk_paciente) handleChange('fk_paciente', '');
+              }}
+              error={!!errors.nombre_paciente}
+              helperText={errors.nombre_paciente || 'Nombre completo del paciente'}
+              disabled={mode === "view"}
+              placeholder="Ej: Juan Pérez"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon color="info" />
+                  </InputAdornment>
+                ),
+              }}
+            />
           </Grid>
 
           {/* Doctor */}
