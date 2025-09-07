@@ -43,7 +43,7 @@ import { useMaterialUIController } from "context";
 
 // Servicios
 import agendaService from "services/agenda-service";
-import useNotifications from "hooks/useNotifications";
+import useNotifications from "../../hooks/useNotifications";
 
 // Componentes
 import StandardDataTable from "components/StandardDataTable";

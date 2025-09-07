@@ -16,7 +16,9 @@ class Kernel extends HttpKernel
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class,
+        \App\Http\Middleware\CorsMiddleware::class,
+        \App\Http\Middleware\TestMiddleware::class,
+        // \Illuminate\Http\Middleware\HandleCors::class, // Comentado para evitar conflictos con nuestro middleware personalizado
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
@@ -42,6 +44,7 @@ class Kernel extends HttpKernel
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             // 'throttle:api', // Comentado temporalmente
+            \App\Http\Middleware\CorsMiddleware::class, // Agregado para manejar CORS en todas las rutas API
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
@@ -68,5 +71,6 @@ class Kernel extends HttpKernel
         'personalpos.auth' => \App\Http\Middleware\PersonalPOSAuth::class,
         'api.auth' => \App\Http\Middleware\ApiAuth::class,
         'auditoria' => \App\Http\Middleware\AuditoriaMiddleware::class, // Agregado como middleware de ruta
+        'cors' => \App\Http\Middleware\CorsMiddleware::class, // Agregado como middleware de ruta
     ];
 }

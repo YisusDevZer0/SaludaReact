@@ -1,0 +1,41 @@
+/* Estilos para modales */
+.MuiDialog-paper {
+  background-color: white !important;
+  background: white !important;
+}
+
+.MuiDialog-root .MuiDialog-paper {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* Asegurar que el contenido del modal sea visible */
+.MuiDialogContent-root {
+  background-color: white !important;
+}
+
+.MuiDialogTitle-root {
+  background-color: white !important;
+}
+
+/* Overlay del modal */
+.MuiBackdrop-root {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Asegurar que los modales tengan z-index alto */
+.MuiDialog-root {
+  z-index: 1300 !important;
+}
+
+/* Estilos específicos para el modal de edición */
+.editar-programacion-modal .MuiDialog-paper {
+  background-color: white !important;
+  min-height: 80vh !important;
+}
+
+/* Estilos para el modal de programación */
+.programacion-modal .MuiDialog-paper {
+  background-color: white !important;
+  min-height: 60vh !important;
+}

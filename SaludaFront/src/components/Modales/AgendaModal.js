@@ -28,10 +28,11 @@ import { useMaterialUIController } from "context";
 
 // Servicios
 import agendaService from "services/agenda-service";
-import useNotifications from "hooks/useNotifications";
+import useNotifications from "../../hooks/useNotifications";
 
 // Componentes
 import AgendaForm from "./AgendaForm";
+import SeleccionarHorarioModal from "./SeleccionarHorarioModal";
 
 function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSuccess }) {
   const [controller] = useMaterialUIController();
@@ -40,20 +41,20 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
 
   // Estados del formulario
   const [formData, setFormData] = useState({
-    titulo_cita: "",
-    descripcion: "",
-    fecha_cita: "",
-    hora_inicio: "",
-    hora_fin: "",
-    estado_cita: "Pendiente",
-    tipo_cita: "Consulta",
-    consultorio: "",
-    costo: "",
-    notas_adicionales: "",
-    fk_paciente: "",
-    fk_doctor: "",
-    fk_sucursal: "",
-    id_h_o_d: "HOD001"
+    Titulo: "",
+    Descripcion: "",
+    Fecha_Cita: "",
+    Hora_Inicio: "",
+    Hora_Fin: "",
+    Estado_Cita: "Pendiente",
+    Tipo_Cita: "Consulta",
+    Fk_Consultorio: "",
+    Costo: "",
+    Notas_Adicionales: "",
+    Fk_Paciente: "",
+    Fk_Especialista: "",
+    Fk_Sucursal: "",
+    ID_H_O_D: "HOSP001"
   });
 
   // Estados de carga
@@ -65,6 +66,11 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
   const [pacientes, setPacientes] = useState([]);
   const [doctores, setDoctores] = useState([]);
   const [sucursales, setSucursales] = useState([]);
+  
+  // Estados para selección de horario
+  const [horarioModalOpen, setHorarioModalOpen] = useState(false);
+  const [especialistaSeleccionado, setEspecialistaSeleccionado] = useState(null);
+  const [sucursalSeleccionada, setSucursalSeleccionada] = useState(null);
 
   // Cargar datos de referencia al abrir el modal
   useEffect(() => {
@@ -80,14 +86,15 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
   const loadReferenceData = async () => {
     setLoadingData(true);
     try {
-      const [pacientesRes, doctoresRes, sucursalesRes] = await Promise.all([
-        agendaService.getPacientes(),
-        agendaService.getDoctores(),
-        agendaService.getSucursales()
+      const [pacientesRes, especialistasRes, sucursalesRes, especialidadesRes] = await Promise.all([
+        agendaService.getPacientesMejorados(),
+        agendaService.getEspecialistasMejorados(),
+        agendaService.getSucursalesMejoradas(),
+        agendaService.getEspecialidadesMejoradas()
       ]);
 
       if (pacientesRes.success) setPacientes(pacientesRes.data || []);
-      if (doctoresRes.success) setDoctores(doctoresRes.data || []);
+      if (especialistasRes.success) setDoctores(especialistasRes.data || []);
       if (sucursalesRes.success) setSucursales(sucursalesRes.data || []);
     } catch (error) {
       console.error('Error al cargar datos de referencia:', error);
@@ -102,20 +109,20 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
     if (!agendaData) return;
 
     setFormData({
-      titulo_cita: agendaData.Titulo_Cita || "",
-      descripcion: agendaData.Descripcion || "",
-      fecha_cita: agendaData.Fecha_Cita ? new Date(agendaData.Fecha_Cita).toISOString().split('T')[0] : "",
-      hora_inicio: agendaData.Hora_Inicio || "",
-      hora_fin: agendaData.Hora_Fin || "",
-      estado_cita: agendaData.Estado_Cita || "Pendiente",
-      tipo_cita: agendaData.Tipo_Cita || "Consulta",
-      consultorio: agendaData.Consultorio || "",
-      costo: agendaData.Costo || "",
-      notas_adicionales: agendaData.Notas_Adicionales || "",
-      fk_paciente: agendaData.Fk_Paciente || "",
-      fk_doctor: agendaData.Fk_Doctor || "",
-      fk_sucursal: agendaData.Fk_Sucursal || "",
-      id_h_o_d: agendaData.ID_H_O_D || "HOD001"
+      Titulo: agendaData.Titulo || "",
+      Descripcion: agendaData.Descripcion || "",
+      Fecha_Cita: agendaData.Fecha_Cita ? new Date(agendaData.Fecha_Cita).toISOString().split('T')[0] : "",
+      Hora_Inicio: agendaData.Hora_Inicio || "",
+      Hora_Fin: agendaData.Hora_Fin || "",
+      Estado_Cita: agendaData.Estado_Cita || "Pendiente",
+      Tipo_Cita: agendaData.Tipo_Cita || "Consulta",
+      Fk_Consultorio: agendaData.Fk_Consultorio || "",
+      Costo: agendaData.Costo || "",
+      Notas_Adicionales: agendaData.Notas_Adicionales || "",
+      Fk_Paciente: agendaData.Fk_Paciente || "",
+      Fk_Especialista: agendaData.Fk_Especialista || "",
+      Fk_Sucursal: agendaData.Fk_Sucursal || "",
+      ID_H_O_D: agendaData.ID_H_O_D || "HOSP001"
     });
   };
 
@@ -135,51 +142,79 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
     }
   };
 
+  // Manejar selección de especialista y sucursal para abrir modal de horarios
+  const handleSeleccionarHorario = () => {
+    const especialista = doctores.find(d => d.Especialista_ID === parseInt(formData.fk_doctor));
+    const sucursal = sucursales.find(s => s.Sucursal_ID === parseInt(formData.fk_sucursal));
+    
+    if (!especialista || !sucursal) {
+      showError('Debe seleccionar un especialista y una sucursal');
+      return;
+    }
+    
+    setEspecialistaSeleccionado(especialista);
+    setSucursalSeleccionada(sucursal);
+    setHorarioModalOpen(true);
+  };
+
+  // Manejar horario seleccionado
+  const handleHorarioSeleccionado = (horarioData) => {
+    setFormData(prev => ({
+      ...prev,
+      fecha_cita: horarioData.fecha,
+      hora_inicio: horarioData.hora,
+      hora_fin: horarioData.hora // Por ahora, mismo horario de inicio y fin
+    }));
+    
+    setHorarioModalOpen(false);
+    showSuccess('Horario seleccionado correctamente');
+  };
+
   // Validar formulario
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.titulo_cita.trim()) {
-      newErrors.titulo_cita = "El título de la cita es requerido";
+    if (!formData.Titulo.trim()) {
+      newErrors.Titulo = "El título de la cita es requerido";
     }
 
-    if (!formData.fecha_cita) {
-      newErrors.fecha_cita = "La fecha de la cita es requerida";
+    if (!formData.Fecha_Cita) {
+      newErrors.Fecha_Cita = "La fecha de la cita es requerida";
     } else {
-      const selectedDate = new Date(formData.fecha_cita);
+      const selectedDate = new Date(formData.Fecha_Cita);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       if (selectedDate < today) {
-        newErrors.fecha_cita = "La fecha no puede ser anterior a hoy";
+        newErrors.Fecha_Cita = "La fecha no puede ser anterior a hoy";
       }
     }
 
-    if (!formData.hora_inicio) {
-      newErrors.hora_inicio = "La hora de inicio es requerida";
+    if (!formData.Hora_Inicio) {
+      newErrors.Hora_Inicio = "La hora de inicio es requerida";
     }
 
-    if (!formData.hora_fin) {
-      newErrors.hora_fin = "La hora de fin es requerida";
-    } else if (formData.hora_inicio && formData.hora_fin) {
-      const inicio = new Date(`2024-01-01 ${formData.hora_inicio}`);
-      const fin = new Date(`2024-01-01 ${formData.hora_fin}`);
+    if (!formData.Hora_Fin) {
+      newErrors.Hora_Fin = "La hora de fin es requerida";
+    } else if (formData.Hora_Inicio && formData.Hora_Fin) {
+      const inicio = new Date(`2024-01-01 ${formData.Hora_Inicio}`);
+      const fin = new Date(`2024-01-01 ${formData.Hora_Fin}`);
       
       if (fin <= inicio) {
-        newErrors.hora_fin = "La hora de fin debe ser posterior a la hora de inicio";
+        newErrors.Hora_Fin = "La hora de fin debe ser posterior a la hora de inicio";
       }
     }
 
-    if (!formData.fk_paciente) {
-      newErrors.fk_paciente = "El paciente es requerido";
+    if (!formData.Fk_Paciente) {
+      newErrors.Fk_Paciente = "El paciente es requerido";
     }
 
-    if (!formData.fk_doctor) {
-      newErrors.fk_doctor = "El doctor es requerido";
+    if (!formData.Fk_Especialista) {
+      newErrors.Fk_Especialista = "El especialista es requerido";
     }
 
-    if (!formData.fk_sucursal) {
-      newErrors.fk_sucursal = "La sucursal es requerida";
+    if (!formData.Fk_Sucursal) {
+      newErrors.Fk_Sucursal = "La sucursal es requerida";
     }
 
     setErrors(newErrors);
@@ -196,14 +231,29 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
     try {
       const dataToSend = {
         ...formData,
-        costo: formData.costo ? parseFloat(formData.costo) : 0
+        Costo: formData.Costo ? parseFloat(formData.Costo) : 0
       };
 
       let response;
       if (mode === "create") {
-        response = await agendaService.createAgenda(dataToSend);
+        response = await agendaService.createCitaMejorada(dataToSend);
+        
+        // Si la cita se creó exitosamente, ocupar el horario
+        if (response.success && response.data) {
+          const ocuparResponse = await agendaService.ocuparHorario(
+            formData.fk_doctor,
+            formData.fk_sucursal,
+            formData.fecha_cita,
+            formData.hora_inicio,
+            response.data.Cita_ID || response.data.id
+          );
+          
+          if (!ocuparResponse.success) {
+            console.warn('Error al ocupar horario:', ocuparResponse.message);
+          }
+        }
       } else {
-        response = await agendaService.updateAgenda(agendaData.Agenda_ID, dataToSend);
+        response = await agendaService.updateCitaMejorada(agendaData.Cita_ID, dataToSend);
       }
 
       if (response.success) {
@@ -228,20 +278,20 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
   // Cerrar modal
   const handleClose = () => {
     setFormData({
-      titulo_cita: "",
-      descripcion: "",
-      fecha_cita: "",
-      hora_inicio: "",
-      hora_fin: "",
-      estado_cita: "Pendiente",
-      tipo_cita: "Consulta",
-      consultorio: "",
-      costo: "",
-      notas_adicionales: "",
-      fk_paciente: "",
-      fk_doctor: "",
-      fk_sucursal: "",
-      id_h_o_d: "HOD001"
+      Titulo: "",
+      Descripcion: "",
+      Fecha_Cita: "",
+      Hora_Inicio: "",
+      Hora_Fin: "",
+      Estado_Cita: "Pendiente",
+      Tipo_Cita: "Consulta",
+      Fk_Consultorio: "",
+      Costo: "",
+      Notas_Adicionales: "",
+      Fk_Paciente: "",
+      Fk_Especialista: "",
+      Fk_Sucursal: "",
+      ID_H_O_D: "HOSP001"
     });
     setErrors({});
     onClose();
@@ -341,6 +391,7 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
               onInputChange={handleInputChange}
               mode={mode}
               agendaData={agendaData}
+              onSeleccionarHorario={handleSeleccionarHorario}
             />
           )}
         </Box>
@@ -371,6 +422,15 @@ function AgendaModal({ open, onClose, mode = "create", agendaData = null, onSucc
           </Box>
         )}
       </Box>
+
+      {/* Modal de Selección de Horario */}
+      <SeleccionarHorarioModal
+        open={horarioModalOpen}
+        onClose={() => setHorarioModalOpen(false)}
+        especialista={especialistaSeleccionado}
+        sucursal={sucursalSeleccionada}
+        onHorarioSeleccionado={handleHorarioSeleccionado}
+      />
     </Box>
   );
 }

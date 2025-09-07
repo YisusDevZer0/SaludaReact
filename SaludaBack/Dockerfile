@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
-    nodejs \
-    npm \
-    supervisor \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && a2enmod rewrite \
     && a2enmod headers
@@ -21,28 +18,25 @@ RUN apt-get update && apt-get install -y \
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Instalar Node.js y npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Instalar nodemon globalmente
+RUN npm install -g nodemon
+
 # Establecer directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar archivos de configuración
-COPY docker/php.ini /usr/local/etc/php/
-COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Copiar composer.json y composer.lock
-COPY composer*.json ./
-
-# Copiar código fuente (necesario para artisan)
+# Copiar todo el código fuente primero
 COPY . .
 
-# Instalar dependencias de PHP
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Instalar dependencias de PHP (sin optimización para desarrollo)
+RUN composer install --no-interaction --no-scripts --no-autoloader \
+    && composer clear-cache
 
-# Copiar package.json y package-lock.json (si existen)
-COPY package*.json ./
-
-# Instalar dependencias de Node.js (si existen)
-RUN if [ -f package.json ]; then npm install; fi
+# Instalar dependencias de Node.js
+RUN if [ -f "package.json" ]; then npm install; fi
 
 # Crear directorios necesarios y establecer permisos
 RUN mkdir -p storage/framework/{sessions,views,cache} \
@@ -51,30 +45,18 @@ RUN mkdir -p storage/framework/{sessions,views,cache} \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Copiar script de entrada
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copiar archivos de configuración si existen
+RUN if [ -f "docker/php.ini" ]; then cp docker/php.ini /usr/local/etc/php/; fi \
+    && if [ -f "docker/apache.conf" ]; then cp docker/apache.conf /etc/apache2/sites-available/000-default.conf; fi
 
-# Copiar archivo de configuración de entorno si no existe
-RUN if [ ! -f .env ]; then cp env.example .env; fi
-
-# Generar clave de aplicación (con manejo de errores)
-RUN php artisan key:generate --no-interaction || echo "Key generation failed, continuing..."
-
-# Optimizar Laravel (con manejo de errores)
-RUN php artisan config:cache || echo "Config cache failed, continuing..." \
-    && php artisan route:cache || echo "Route cache failed, continuing..." \
-    && php artisan view:cache || echo "View cache failed, continuing..."
-
-# Construir assets (si es necesario)
-RUN if [ -f package.json ]; then npm run build; fi
+# Configurar entorno de desarrollo
+RUN if [ ! -f ".env" ] && [ -f ".env.example" ]; then \
+        cp .env.example .env \
+        && php artisan key:generate --no-interaction || echo "Key generation failed"; \
+    fi
 
 # Exponer puerto
 EXPOSE 8000
 
-# Configurar Apache para usar puerto 8000
-RUN sed -i 's/Listen 80/Listen 8000/' /etc/apache2/ports.conf
-
-# Comando de inicio
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 
+# Comando para desarrollo con hot reload
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8000"]
