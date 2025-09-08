@@ -186,17 +186,58 @@ class SucursalController extends Controller
         }
     }
 
-    public function getAll()
+    public function getAll(Request $request)
     {
         try {
-            $sucursales = Sucursal::select(['id', 'nombre', 'codigo', 'direccion', 'telefono', 'email', 'estado'])
-                ->orderBy('nombre')
-                ->get();
+            $query = Sucursal::select(['id', 'nombre', 'codigo', 'direccion', 'telefono', 'email', 'estado']);
 
-            return response()->json([
-                'success' => true,
-                'data' => $sucursales
-            ]);
+            // Aplicar filtros
+            if ($request->has('estado') && $request->estado) {
+                $query->where('estado', $request->estado);
+            }
+
+            if ($request->has('ciudad') && $request->ciudad) {
+                $query->where('ciudad', 'like', '%' . $request->ciudad . '%');
+            }
+
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('nombre', 'like', '%' . $search . '%')
+                      ->orWhere('codigo', 'like', '%' . $search . '%')
+                      ->orWhere('direccion', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%');
+                });
+            }
+
+            // Aplicar ordenamiento
+            $sortBy = $request->get('sort_by', 'nombre');
+            $sortDirection = $request->get('sort_direction', 'asc');
+            $query->orderBy($sortBy, $sortDirection);
+
+            // Aplicar paginación si se solicita
+            if ($request->has('page') && $request->has('per_page')) {
+                $perPage = $request->get('per_page', 15);
+                $sucursales = $query->paginate($perPage);
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $sucursales->items(),
+                    'total' => $sucursales->total(),
+                    'current_page' => $sucursales->currentPage(),
+                    'per_page' => $sucursales->perPage(),
+                    'last_page' => $sucursales->lastPage()
+                ]);
+            } else {
+                // Sin paginación
+                $sucursales = $query->get();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $sucursales,
+                    'total' => $sucursales->count()
+                ]);
+            }
 
         } catch (\Exception $e) {
             return response()->json([

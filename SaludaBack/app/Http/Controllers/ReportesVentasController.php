@@ -70,19 +70,21 @@ class ReportesVentasController extends Controller
             $fechaFin = $request->fecha_fin ?? Carbon::now()->endOfMonth();
             $limite = $request->limite ?? 10;
 
-            $productosMasVendidos = DB::table('venta_items')
-                ->join('ventas', 'venta_items.venta_id', '=', 'ventas.id')
-                ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
+            $productosMasVendidos = DB::table('detalles_venta')
+                ->join('ventas', 'detalles_venta.venta_id', '=', 'ventas.id')
+                ->join('productos', 'detalles_venta.producto_id', '=', 'productos.id')
                 ->select(
                     'productos.id',
                     'productos.nombre',
                     'productos.codigo',
-                    DB::raw('SUM(venta_items.cantidad) as total_vendido'),
-                    DB::raw('SUM(venta_items.precio_unitario * venta_items.cantidad) as total_ingresos')
+                    'productos.precio_venta',
+                    DB::raw('SUM(detalles_venta.cantidad) as cantidad_vendida'),
+                    DB::raw('SUM(detalles_venta.precio_total) as total_vendido')
                 )
                 ->whereBetween('ventas.created_at', [$fechaInicio, $fechaFin])
-                ->groupBy('productos.id', 'productos.nombre', 'productos.codigo')
-                ->orderBy('total_vendido', 'desc')
+                ->where('ventas.estado', '!=', 'anulada')
+                ->groupBy('productos.id', 'productos.nombre', 'productos.codigo', 'productos.precio_venta')
+                ->orderBy('cantidad_vendida', 'desc')
                 ->limit($limite)
                 ->get();
 

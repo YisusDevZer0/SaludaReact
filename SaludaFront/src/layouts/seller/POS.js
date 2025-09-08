@@ -18,6 +18,9 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import IconButton from "@mui/material/IconButton";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
 
 // React components
 import { useState, useEffect } from "react";
@@ -36,7 +39,10 @@ import Footer from "examples/Footer";
 
 // Servicios para cargar productos REALES y realizar ventas
 import productosService from "../../services/productos-service";
-import ventaService from "../../services/venta-service";
+import salesService from "../../services/sales-service";
+
+// Componentes
+import SalesHistory from "../../components/SalesHistory";
 
 // ELIMINADOS DATOS MOCK - Ahora se cargan productos REALES de BD
 
@@ -46,6 +52,25 @@ const paymentMethods = [
   { value: "transferencia", label: "Transferencia" },
   { value: "credito", label: "Crédito" },
 ];
+
+// Componente TabPanel para las pestañas
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`pos-tabpanel-${index}`}
+      aria-labelledby={`pos-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 function POS() {
   const [cart, setCart] = useState([]);
@@ -60,6 +85,7 @@ function POS() {
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [processingVenta, setProcessingVenta] = useState(false);
   const [ventaCompleted, setVentaCompleted] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
 
   // Cargar productos REALES de la base de datos
   const loadProducts = async () => {
@@ -99,8 +125,12 @@ function POS() {
   // Cargar clientes REALES de la base de datos
   const loadClientes = async () => {
     try {
+      console.log("🔄 Iniciando carga de clientes...");
       const response = await ventaService.getClientes();
+      console.log("📊 Respuesta de clientes:", response);
+      
       const clientesData = response.data || response || [];
+      console.log("📋 Datos de clientes:", clientesData);
       
       // Formatear clientes para el selector
       const formattedClientes = clientesData.map(cliente => ({
@@ -123,6 +153,11 @@ function POS() {
   };
 
   // Cargar productos y clientes al montar el componente
+  // Manejar cambio de pestañas
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
   useEffect(() => {
     loadProducts();
     loadClientes();
@@ -179,7 +214,7 @@ function POS() {
       
       // Preparar datos de la venta con todos los campos requeridos
       const ventaData = {
-        cliente_id: selectedCliente?.id || 1, // Cliente general si no se selecciona
+        cliente_id: selectedCliente?.id || null, // Sin cliente por defecto
         personal_id: 1, // Usuario actual o ID por defecto
         sucursal_id: 1, // Sucursal por defecto
         numero_venta: '', // Se generará automáticamente
@@ -222,7 +257,7 @@ function POS() {
 
       console.log("🛒 Procesando venta:", ventaData);
       
-      const response = await ventaService.createVenta(ventaData);
+      const response = await salesService.createVenta(ventaData);
       
       if (response.success) {
         setVentaCompleted(true);
@@ -249,6 +284,86 @@ function POS() {
     }
   };
 
+  // Función para guardar cotización
+  const handleSaveQuote = async () => {
+    if (cart.length === 0) {
+      alert("El carrito está vacío");
+      return;
+    }
+
+    try {
+      setProcessingVenta(true);
+      
+      // Preparar datos de la cotización
+      const cotizacionData = {
+        cliente_id: selectedCliente?.id || null,
+        personal_id: 1,
+        sucursal_id: 1,
+        numero_venta: '', // Se generará automáticamente
+        numero_documento: '', // Se generará automáticamente
+        serie_documento: 'C', // C para cotización
+        tipo_venta: 'cotizacion',
+        estado: 'pendiente', // Estado pendiente para cotizaciones
+        tipo_documento: 'cotizacion',
+        subtotal: subtotal,
+        descuento_total: 0,
+        subtotal_con_descuento: subtotal,
+        iva_total: tax,
+        impuestos_adicionales: 0,
+        total: total,
+        total_pagado: 0, // Las cotizaciones no tienen pago
+        saldo_pendiente: total,
+        metodo_pago: 'pendiente',
+        observaciones: `Cotización realizada desde POS - ${cart.length} productos`,
+        detalles: cart.map(item => ({
+            producto_id: item.product.id,
+            codigo_producto: item.product.codigo || 'PROD' + item.product.id,
+            nombre_producto: item.product.nombre || 'Producto ' + item.product.id,
+            descripcion_producto: item.product.descripcion || '',
+            codigo_barras: item.product.codigo_barras || '',
+            cantidad: item.quantity,
+            precio_unitario: item.product.price,
+            precio_total: item.subtotal,
+            costo_unitario: item.product.costo || 0,
+            costo_total: (item.product.costo || 0) * item.quantity,
+            descuento_porcentaje: 0,
+            descuento_monto: 0,
+            subtotal_con_descuento: item.subtotal,
+            iva_porcentaje: 16,
+            iva_monto: item.subtotal * 0.16,
+            impuestos_adicionales: 0,
+            total_linea: item.subtotal * 1.16,
+            estado: 'pendiente'
+          }))
+      };
+
+      console.log("📋 Procesando cotización:", cotizacionData);
+      
+      const response = await salesService.createVenta(cotizacionData);
+      
+      if (response.success) {
+        alert(`✅ Cotización guardada exitosamente!\nTotal: €${total.toFixed(2)}\nFolio: ${response.data?.id || 'N/A'}`);
+        
+        // Limpiar el carrito y formulario
+        setCart([]);
+        setPaymentMethod("efectivo");
+        setCashReceived("");
+        setSelectedCliente(null);
+        
+        // Recargar productos para actualizar stock
+        loadProducts();
+      } else {
+        throw new Error(response.message || "Error al procesar la cotización");
+      }
+      
+    } catch (error) {
+      console.error("❌ Error al procesar cotización:", error);
+      alert(`❌ Error al procesar la cotización: ${error.message}`);
+    } finally {
+      setProcessingVenta(false);
+    }
+  };
+
   // Calcular totales
   const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
   const tax = subtotal * 0.16; // IVA 16%
@@ -259,6 +374,25 @@ function POS() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox pt={6} pb={3}>
+        {/* Pestañas del POS */}
+        <Card>
+          <MDBox sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tabValue} onChange={handleTabChange} aria-label="POS tabs">
+              <Tab 
+                label="Punto de Venta" 
+                icon={<Icon>point_of_sale</Icon>} 
+                iconPosition="start"
+              />
+              <Tab 
+                label="Historial de Ventas" 
+                icon={<Icon>history</Icon>} 
+                iconPosition="start"
+              />
+            </Tabs>
+          </MDBox>
+          
+          {/* Contenido de Punto de Venta */}
+          <TabPanel value={tabValue} index={0}>
         {/* Encabezado */}
         <Grid container spacing={2} mb={3}>
           <Grid item xs={12} md={8}>
@@ -473,6 +607,8 @@ function POS() {
                     variant="gradient"
                     color="dark"
                     startIcon={<Icon>receipt</Icon>}
+                    onClick={handleSaveQuote}
+                    disabled={processingVenta}
                   >
                     Guardar cotización
                   </MDButton>
@@ -640,6 +776,13 @@ function POS() {
             </Card>
           </Grid>
         </Grid>
+          </TabPanel>
+          
+          {/* Contenido de Historial de Ventas */}
+          <TabPanel value={tabValue} index={1}>
+            <SalesHistory />
+          </TabPanel>
+        </Card>
       </MDBox>
       <Footer />
     </DashboardLayout>

@@ -1,9 +1,12 @@
-import api from './api';
+import httpService from './http-service';
 
 class CajaService {
+    /**
+     * Obtener todas las cajas con filtros
+     */
     async getCajas(params = {}) {
         try {
-            const response = await api.get('/api/cajas', { params });
+            const response = await httpService.get('/cajas', { params });
             return response.data;
         } catch (error) {
             console.error('Error fetching cajas:', error);
@@ -11,9 +14,12 @@ class CajaService {
         }
     }
 
+    /**
+     * Obtener una caja específica
+     */
     async getCaja(id) {
         try {
-            const response = await api.get(`/api/cajas/${id}`);
+            const response = await httpService.get(`/cajas/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error fetching caja:', error);
@@ -21,9 +27,12 @@ class CajaService {
         }
     }
 
-    async createCaja(data) {
+    /**
+     * Crear una nueva caja
+     */
+    async createCaja(cajaData) {
         try {
-            const response = await api.post('/api/cajas', data);
+            const response = await httpService.post('/cajas', cajaData);
             return response.data;
         } catch (error) {
             console.error('Error creating caja:', error);
@@ -31,9 +40,12 @@ class CajaService {
         }
     }
 
-    async updateCaja(id, data) {
+    /**
+     * Actualizar una caja
+     */
+    async updateCaja(id, cajaData) {
         try {
-            const response = await api.put(`/api/cajas/${id}`, data);
+            const response = await httpService.put(`/cajas/${id}`, cajaData);
             return response.data;
         } catch (error) {
             console.error('Error updating caja:', error);
@@ -41,9 +53,12 @@ class CajaService {
         }
     }
 
+    /**
+     * Eliminar una caja
+     */
     async deleteCaja(id) {
         try {
-            const response = await api.delete(`/api/cajas/${id}`);
+            const response = await httpService.delete(`/cajas/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting caja:', error);
@@ -51,9 +66,12 @@ class CajaService {
         }
     }
 
-    async openCaja(id) {
+    /**
+     * Abrir una caja
+     */
+    async abrirCaja(id, aperturaData) {
         try {
-            const response = await api.put(`/api/cajas/${id}/abrir`);
+            const response = await httpService.post(`/cajas/${id}/abrir`, aperturaData);
             return response.data;
         } catch (error) {
             console.error('Error opening caja:', error);
@@ -61,9 +79,12 @@ class CajaService {
         }
     }
 
-    async closeCaja(id) {
+    /**
+     * Cerrar una caja
+     */
+    async cerrarCaja(id, cierreData) {
         try {
-            const response = await api.put(`/api/cajas/${id}/cerrar`);
+            const response = await httpService.post(`/cajas/${id}/cerrar`, cierreData);
             return response.data;
         } catch (error) {
             console.error('Error closing caja:', error);
@@ -71,57 +92,86 @@ class CajaService {
         }
     }
 
-    async getCajaBalance(id) {
+    /**
+     * Obtener saldo de una caja
+     */
+    async getSaldoCaja(id) {
         try {
-            const response = await api.get(`/api/cajas/${id}/saldo`);
+            const response = await httpService.get(`/cajas/${id}/saldo`);
             return response.data;
         } catch (error) {
-            console.error('Error fetching caja balance:', error);
+            console.error('Error getting caja balance:', error);
             throw error;
         }
     }
 
-    async getCajaStatistics() {
+    /**
+     * Obtener estadísticas de cajas
+     */
+    async getEstadisticas() {
         try {
-            const response = await api.get('/api/cajas/estadisticas');
+            const response = await httpService.get('/cajas/statistics');
             return response.data;
         } catch (error) {
-            console.error('Error fetching caja statistics:', error);
+            console.error('Error getting caja statistics:', error);
             throw error;
         }
     }
 
-    async getCajasByBranch(branchId) {
+    /**
+     * Obtener cajas por sucursal
+     */
+    async getCajasPorSucursal(sucursalId) {
         try {
-            const response = await api.get('/api/cajas/por-sucursal', {
-                params: { sucursal_id: branchId }
+            const response = await httpService.get('/cajas/por-sucursal', {
+                params: { sucursal_id: sucursalId }
             });
             return response.data;
         } catch (error) {
-            console.error('Error fetching cajas by branch:', error);
+            console.error('Error getting cajas by sucursal:', error);
             throw error;
         }
     }
 
-    async getPaymentMethods() {
+    /**
+     * Obtener métodos de pago disponibles
+     */
+    async getMetodosPago() {
         try {
-            const response = await api.get('/api/cajas/metodos-pago-disponibles');
+            const response = await httpService.get('/cajas/metodos-pago');
             return response.data;
         } catch (error) {
-            console.error('Error fetching payment methods:', error);
+            console.error('Error getting payment methods:', error);
             throw error;
         }
     }
 
-    async getCurrencies() {
+    /**
+     * Obtener monedas disponibles
+     */
+    async getMonedas() {
         try {
-            const response = await api.get('/api/cajas/monedas-disponibles');
+            const response = await httpService.get('/cajas/monedas');
             return response.data;
         } catch (error) {
-            console.error('Error fetching currencies:', error);
+            console.error('Error getting currencies:', error);
             throw error;
         }
+    }
+
+    /**
+     * Método para compatibilidad con StandardDataTable
+     */
+    async getAll(params = {}) {
+        return this.getCajas(params);
+    }
+
+    /**
+     * Método para compatibilidad con StandardDataTable
+     */
+    async get(endpoint, options = {}) {
+        return this.getCajas(options.params || {});
     }
 }
 
-export default new CajaService(); 
+export default new CajaService();

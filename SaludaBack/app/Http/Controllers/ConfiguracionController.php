@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Configuracion;
 use App\Models\Sucursal;
 use App\Models\Caja;
-use App\Models\Usuario;
+use App\Models\PersonalPos;
 
 class ConfiguracionController extends Controller
 {
@@ -250,9 +250,9 @@ class ConfiguracionController extends Controller
         try {
             $stats = [
                 'usuarios' => [
-                    'total' => Usuario::count(),
-                    'activos' => Usuario::where('estado', 'activo')->count(),
-                    'inactivos' => Usuario::where('estado', 'inactivo')->count()
+                    'total' => PersonalPos::count(),
+                    'activos' => PersonalPos::where('is_active', true)->count(),
+                    'inactivos' => PersonalPos::where('is_active', false)->count()
                 ],
                 'sucursales' => [
                     'total' => Sucursal::count(),

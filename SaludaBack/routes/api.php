@@ -286,12 +286,14 @@ Route::options('/sucursales', function() {
 });
 Route::get('/sucursales', [SucursalController::class, 'index']);
 Route::post('/sucursales', [SucursalController::class, 'store']);
-Route::get('/sucursales/{id}', [SucursalController::class, 'show']);
-Route::put('/sucursales/{id}', [SucursalController::class, 'update']);
-Route::delete('/sucursales/{id}', [SucursalController::class, 'destroy']);
+// Rutas específicas deben ir ANTES que las rutas con parámetros
 Route::get('/sucursales/estadisticas', [SucursalController::class, 'getStats']);
 Route::get('/sucursales/activas', [SucursalController::class, 'getAllActive']);
 Route::get('/sucursales/todas', [SucursalController::class, 'getAll']);
+// Rutas con parámetros van al final
+Route::get('/sucursales/{id}', [SucursalController::class, 'show']);
+Route::put('/sucursales/{id}', [SucursalController::class, 'update']);
+Route::delete('/sucursales/{id}', [SucursalController::class, 'destroy']);
 
 // Rutas para preferencias de usuario (protegidas con Passport)
 Route::middleware(['auth:api'])->group(function () {
@@ -753,6 +755,17 @@ Route::prefix('componentes')->group(function () {
         Route::delete('/{id}', [App\Http\Controllers\DoctorController::class, 'destroy']);
         Route::get('/activos', [App\Http\Controllers\DoctorController::class, 'getActivos']);
     });
+
+    // Eventos Personales
+    Route::prefix('personal-events')->group(function () {
+        Route::get('/', [App\Http\Controllers\PersonalEventController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\PersonalEventController::class, 'store']);
+        Route::get('/today', [App\Http\Controllers\PersonalEventController::class, 'today']);
+        Route::get('/stats', [App\Http\Controllers\PersonalEventController::class, 'stats']);
+        Route::get('/{id}', [App\Http\Controllers\PersonalEventController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\PersonalEventController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\PersonalEventController::class, 'destroy']);
+    });
 }); 
 
 // Rutas de Productos
@@ -786,6 +799,9 @@ Route::prefix('ventas')->group(function () {
     Route::delete('/{id}', [VentaController::class, 'destroy']);
     Route::put('/{id}/confirmar', [VentaController::class, 'confirmar']);
     Route::put('/{id}/anular', [VentaController::class, 'anular']);
+    Route::get('/{id}/reimprimir', [VentaController::class, 'reimprimir']);
+    Route::get('/{id}/ticket/pdf', [VentaController::class, 'generarTicketPdf']);
+    Route::get('/{id}/cotizacion/pdf', [VentaController::class, 'generarCotizacionPdf']);
     Route::get('/estadisticas/statistics', [VentaController::class, 'statistics']);
     Route::get('/por-rango/getPorRango', [VentaController::class, 'getPorRango']);
     Route::get('/por-cliente/getPorCliente', [VentaController::class, 'getPorCliente']);
@@ -821,6 +837,23 @@ Route::prefix('cajas')->group(function () {
     Route::get('/por-sucursal/getPorSucursal', [CajaController::class, 'getPorSucursal']);
     Route::get('/metodos-pago-disponibles/metodosPagoDisponibles', [CajaController::class, 'metodosPagoDisponibles']);
     Route::get('/monedas-disponibles/monedasDisponibles', [CajaController::class, 'monedasDisponibles']);
+    
+    // Rutas para movimientos de caja
+    Route::get('/{id}/movimientos', [CajaController::class, 'getMovimientos']);
+    Route::post('/{id}/movimientos', [CajaController::class, 'crearMovimiento']);
+    Route::put('/movimientos/{movimientoId}', [CajaController::class, 'actualizarMovimiento']);
+    Route::delete('/movimientos/{movimientoId}', [CajaController::class, 'eliminarMovimiento']);
+    
+    // Rutas para cierres de caja
+    Route::get('/{id}/cierres', [CajaController::class, 'getCierres']);
+    Route::post('/{id}/cierres', [CajaController::class, 'crearCierre']);
+    Route::get('/{id}/ultimo-cierre', [CajaController::class, 'getUltimoCierre']);
+    Route::get('/{id}/resumen-cierre', [CajaController::class, 'getResumenCierre']);
+    
+    // Rutas para reportes de caja
+    Route::get('/{id}/reporte-diario', [CajaController::class, 'getReporteDiario']);
+    Route::get('/{id}/reporte-mensual', [CajaController::class, 'getReporteMensual']);
+    Route::get('/{id}/arqueo', [CajaController::class, 'getArqueo']);
 });
 
 // Rutas de Fondos de Caja

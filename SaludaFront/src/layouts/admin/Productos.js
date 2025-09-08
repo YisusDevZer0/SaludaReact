@@ -103,27 +103,6 @@ export default function Productos() {
   const [almacenes, setAlmacenes] = useState([]);
   const [loadingSelectores, setLoadingSelectores] = useState(true);
 
-  // Configuración del servicio para StandardDataTable
-  const productosTableService = {
-    getAll: async (params = {}) => {
-      try {
-        const response = await productosService.getProductos(params);
-        return {
-          success: response.success || true,
-          data: response.data || response,
-          total: response.total || response.length || 0
-        };
-      } catch (error) {
-        console.error('Error en productosTableService:', error);
-        return {
-          success: false,
-          message: error.message,
-          data: [],
-          total: 0
-        };
-      }
-    }
-  };
 
   // Configuración de columnas para StandardDataTable
   const productosColumns = [
@@ -141,13 +120,13 @@ export default function Productos() {
     },
     {
       name: 'Categoría',
-      selector: row => row.categoria_nombre,
+      selector: row => row.categoria?.nombre || 'Sin categoría',
       sortable: true,
       width: '150px',
     },
     {
       name: 'Marca',
-      selector: row => row.marca_nombre,
+      selector: row => row.marca?.Nom_Marca || 'Sin marca',
       sortable: true,
       width: '120px',
     },
@@ -170,7 +149,7 @@ export default function Productos() {
       width: '100px',
       cell: (row) => (
         <MDTypography variant="button" fontWeight="medium" color="info">
-          ${(row.precio_venta || 0).toFixed(2)}
+          ${(parseFloat(row.precio_venta) || 0).toFixed(2)}
         </MDTypography>
       )
     },
@@ -1477,28 +1456,52 @@ export default function Productos() {
           }}>
             <TableThemeProvider>
               <StandardDataTable
-              service={productosTableService}
-              columns={productosColumns}
-              title="Productos"
-              subtitle="Gestión completa de productos e inventario"
-              enableCreate={false}
-              enableEdit={false}
-              enableDelete={false}
-              enableSearch={true}
-              enableFilters={true}
-              enableStats={false}
-              enableExport={true}
-              serverSide={true}
-              defaultPageSize={10}
-              defaultSortField="nombre"
-              defaultSortDirection="asc"
-              onRowClick={(row) => handleOpenModal("view", row)}
-              permissions={{
-                create: true,
-                edit: true,
-                delete: true,
-                view: true
-              }}
+                service={productosService}
+                endpoint="getAll"
+                columns={productosColumns}
+                title="Productos"
+                subtitle="Gestión completa de productos e inventario"
+                enableCreate={true}
+                enableEdit={true}
+                enableDelete={true}
+                enableSearch={true}
+                enableFilters={true}
+                enableStats={false}
+                enableExport={true}
+                serverSide={true}
+                defaultPageSize={15}
+                defaultSortField="nombre"
+                defaultSortDirection="asc"
+                onRowClick={(row) => handleOpenModal("view", row)}
+                availableFilters={[
+                  {
+                    key: 'estado',
+                    label: 'Estado',
+                    type: 'select',
+                    options: [
+                      { value: 'activo', label: 'Activo' },
+                      { value: 'inactivo', label: 'Inactivo' }
+                    ]
+                  },
+                  {
+                    key: 'categoria_id',
+                    label: 'Categoría',
+                    type: 'select',
+                    options: categorias.map(cat => ({ value: cat.id, label: cat.nombre }))
+                  },
+                  {
+                    key: 'marca_id',
+                    label: 'Marca',
+                    type: 'select',
+                    options: marcas.map(marca => ({ value: marca.Marca_ID, label: marca.Nom_Marca }))
+                  }
+                ]}
+                permissions={{
+                  create: true,
+                  edit: true,
+                  delete: true,
+                  view: true
+                }}
               />
             </TableThemeProvider>
           </Box>

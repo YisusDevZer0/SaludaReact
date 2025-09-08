@@ -39,6 +39,7 @@ class Sucursal extends Model
         'fecha_apertura' => 'date',
         'fecha_cierre' => 'date',
         'configuracion' => 'array',
+        'horarios_semana' => 'array',
     ];
 
     // Relación con personal

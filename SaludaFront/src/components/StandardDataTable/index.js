@@ -574,18 +574,40 @@ const StandardDataTable = ({
           <DialogContent>
             {estadisticas ? (
               <Grid container spacing={2}>
-                {Object.entries(estadisticas).map(([key, value]) => (
-                  <Grid item xs={12} sm={6} md={4} key={key}>
-                    <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
-                      <MDTypography variant="h4" color="info">
-                        {value}
-                      </MDTypography>
-                      <MDTypography variant="body2" color="text">
-                        {key.replace('_', ' ').toUpperCase()}
-                      </MDTypography>
-                    </Paper>
-                  </Grid>
-                ))}
+                {Object.entries(estadisticas).map(([key, value]) => {
+                  // Manejar diferentes tipos de valores
+                  let displayValue = value;
+                  let displayKey = key.replace('_', ' ').toUpperCase();
+                  
+                  if (typeof value === 'object' && value !== null) {
+                    // Si es un objeto, mostrar las propiedades más relevantes
+                    if (value.ciudad && value.total !== undefined) {
+                      displayValue = `${value.total}`;
+                      displayKey = `${value.ciudad} - ${displayKey}`;
+                    } else if (value.nombre && value.cantidad !== undefined) {
+                      displayValue = `${value.cantidad}`;
+                      displayKey = `${value.nombre} - ${displayKey}`;
+                    } else {
+                      // Para otros objetos, mostrar como JSON string
+                      displayValue = JSON.stringify(value);
+                    }
+                  } else if (typeof value === 'number') {
+                    displayValue = value.toLocaleString();
+                  }
+                  
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={key}>
+                      <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
+                        <MDTypography variant="h4" color="info">
+                          {displayValue}
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {displayKey}
+                        </MDTypography>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
               </Grid>
             ) : (
               <Box display="flex" justifyContent="center" p={3}>

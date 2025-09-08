@@ -60,6 +60,7 @@ function Configuracion() {
     loadInitialData();
   }, []);
 
+
   const loadInitialData = async () => {
     try {
       setLoading(true);
@@ -79,8 +80,12 @@ function Configuracion() {
       
       // Cargar estadísticas del sistema
       const statsResponse = await configuracionService.getSystemStats();
-      if (statsResponse.success) {
-        setSystemStatsData(configuracionService.formatSystemStatsForTable(statsResponse.data));
+      
+      // Verificar si la respuesta tiene success o si los datos están directamente
+      if (statsResponse && (statsResponse.success || statsResponse.usuarios)) {
+        const dataToFormat = statsResponse.success ? statsResponse.data : statsResponse;
+        const formattedStats = configuracionService.formatSystemStatsForTable(dataToFormat);
+        setSystemStatsData(formattedStats);
       }
       
     } catch (error) {
@@ -118,8 +123,10 @@ function Configuracion() {
           
         case 2: // Estadísticas del Sistema
           const statsResponse = await configuracionService.getSystemStats();
-          if (statsResponse.success) {
-            setSystemStatsData(configuracionService.formatSystemStatsForTable(statsResponse.data));
+          if (statsResponse && (statsResponse.success || statsResponse.usuarios)) {
+            const dataToFormat = statsResponse.success ? statsResponse.data : statsResponse;
+            const formattedStats = configuracionService.formatSystemStatsForTable(dataToFormat);
+            setSystemStatsData(formattedStats);
           }
           break;
           

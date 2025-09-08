@@ -38,9 +38,46 @@ export const useNotifications = () => {
     setNotifications([]);
   }, []);
 
+  // Funciones específicas para diferentes tipos de notificaciones
+  const showError = useCallback((message, duration = 5000) => {
+    showNotification(message, 'error', duration);
+  }, [showNotification]);
+
+  const showSuccess = useCallback((message, duration = 3000) => {
+    showNotification(message, 'success', duration);
+  }, [showNotification]);
+
+  const showWarning = useCallback((message, duration = 4000) => {
+    showNotification(message, 'warning', duration);
+  }, [showNotification]);
+
+  const showInfo = useCallback((message, duration = 3000) => {
+    showNotification(message, 'info', duration);
+  }, [showNotification]);
+
+  const showLoading = useCallback((message = 'Cargando...', duration = 0) => {
+    showNotification(message, 'loading', duration);
+  }, [showNotification]);
+
+  const showConfirmation = useCallback((message, onConfirm, onCancel) => {
+    const confirmed = window.confirm(message);
+    if (confirmed && onConfirm) {
+      onConfirm();
+    } else if (!confirmed && onCancel) {
+      onCancel();
+    }
+    return confirmed;
+  }, []);
+
   return {
     notifications,
     showNotification,
+    showError,
+    showSuccess,
+    showWarning,
+    showInfo,
+    showLoading,
+    showConfirmation,
     removeNotification,
     clearNotifications
   };

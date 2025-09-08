@@ -3,11 +3,26 @@ import api from './api';
 class SucursalService {
   async getAll(params = {}) {
     try {
-      const response = await api.get('/api/sucursales', { params });
+      const response = await api.get('/api/sucursales/todas', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching sucursales:', error);
-      throw error;
+      
+      // Manejar errores de autenticación específicamente
+      if (error.response?.status === 401) {
+        return {
+          success: false,
+          message: 'Error de autenticación. Por favor, inicia sesión nuevamente.',
+          data: []
+        };
+      }
+      
+      // Manejar otros errores
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Error al cargar las sucursales',
+        data: []
+      };
     }
   }
 
@@ -17,7 +32,18 @@ class SucursalService {
       return response.data;
     } catch (error) {
       console.error('Error fetching sucursal:', error);
-      throw error;
+      
+      if (error.response?.status === 401) {
+        return {
+          success: false,
+          message: 'Error de autenticación. Por favor, inicia sesión nuevamente.'
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Error al obtener la sucursal'
+      };
     }
   }
 

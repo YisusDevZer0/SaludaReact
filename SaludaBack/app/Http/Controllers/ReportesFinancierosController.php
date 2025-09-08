@@ -311,24 +311,25 @@ class ReportesFinancierosController extends Controller
             $fechaInicio = $request->fecha_inicio ?? Carbon::now()->startOfMonth();
             $fechaFin = $request->fecha_fin ?? Carbon::now()->endOfMonth();
 
-            $rentabilidadProductos = DB::table('venta_items')
-                ->join('ventas', 'venta_items.venta_id', '=', 'ventas.id')
-                ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
+            $rentabilidadProductos = DB::table('detalles_venta')
+                ->join('ventas', 'detalles_venta.venta_id', '=', 'ventas.id')
+                ->join('productos', 'detalles_venta.producto_id', '=', 'productos.id')
                 ->select(
                     'productos.id',
                     'productos.nombre',
                     'productos.codigo',
-                    DB::raw('SUM(venta_items.cantidad) as unidades_vendidas'),
-                    DB::raw('SUM(venta_items.cantidad * venta_items.precio_unitario) as ingresos_totales'),
-                    DB::raw('SUM(venta_items.cantidad * productos.precio_compra) as costos_totales'),
-                    DB::raw('SUM(venta_items.cantidad * (venta_items.precio_unitario - productos.precio_compra)) as utilidad_bruta'),
+                    DB::raw('SUM(detalles_venta.cantidad) as unidades_vendidas'),
+                    DB::raw('SUM(detalles_venta.precio_total) as ingresos_totales'),
+                    DB::raw('SUM(detalles_venta.cantidad * productos.precio_compra) as costos_totales'),
+                    DB::raw('SUM(detalles_venta.precio_total - (detalles_venta.cantidad * productos.precio_compra)) as utilidad_bruta'),
                     DB::raw('CASE 
-                        WHEN SUM(venta_items.cantidad * venta_items.precio_unitario) > 0 
-                        THEN (SUM(venta_items.cantidad * (venta_items.precio_unitario - productos.precio_compra)) / SUM(venta_items.cantidad * venta_items.precio_unitario)) * 100
+                        WHEN SUM(detalles_venta.precio_total) > 0 
+                        THEN (SUM(detalles_venta.precio_total - (detalles_venta.cantidad * productos.precio_compra)) / SUM(detalles_venta.precio_total)) * 100
                         ELSE 0 
                     END as margen_porcentaje')
                 )
                 ->whereBetween('ventas.created_at', [$fechaInicio, $fechaFin])
+                ->where('ventas.estado', '!=', 'anulada')
                 ->groupBy('productos.id', 'productos.nombre', 'productos.codigo')
                 ->orderBy('utilidad_bruta', 'desc')
                 ->get();

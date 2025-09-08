@@ -45,6 +45,36 @@ class AgendaController extends Controller
                 $query->porRangoFechas($request->fecha_inicio, $request->fecha_fin);
             }
 
+            // Filtrar por usuario (citas relacionadas con el usuario)
+            if ($request->has('user_id')) {
+                $userId = $request->user_id;
+                
+                // Buscar si el usuario es un doctor
+                $doctor = \App\Models\Doctor::where('Correo_Electronico', function($query) use ($userId) {
+                    $query->select('email')
+                          ->from('personal_pos')
+                          ->where('id', $userId);
+                })->first();
+                
+                // Buscar si el usuario es un paciente
+                $paciente = \App\Models\Paciente::where('Correo_Electronico', function($query) use ($userId) {
+                    $query->select('email')
+                          ->from('personal_pos')
+                          ->where('id', $userId);
+                })->first();
+                
+                if ($doctor) {
+                    // Si es doctor, mostrar sus citas
+                    $query->where('Fk_Doctor', $doctor->Doctor_ID);
+                } elseif ($paciente) {
+                    // Si es paciente, mostrar sus citas
+                    $query->where('Fk_Paciente', $paciente->Paciente_ID);
+                } else {
+                    // Si no es ni doctor ni paciente, no mostrar citas
+                    $query->where('Fk_Doctor', 0);
+                }
+            }
+
             $citas = $query->orderBy('Fecha_Cita', 'desc')
                           ->orderBy('Hora_Inicio', 'asc')
                           ->paginate($request->get('per_page', 15));
