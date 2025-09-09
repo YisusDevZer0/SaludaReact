@@ -818,4 +818,32 @@ class ProductoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtener datos para los selects del formulario de productos
+     */
+    public function getDatosFormulario(): JsonResponse
+    {
+        try {
+            $categorias = CategoriaPos::select('id', 'nombre')->get();
+            $marcas = Marca::select('Marca_ID as id', 'Nombre as nombre')->get();
+            $almacenes = Almacen::select('Almacen_ID as id', 'Nombre as nombre')->get();
+            $proveedores = Proveedor::select('id', 'nombre')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'categorias' => $categorias,
+                    'marcas' => $marcas,
+                    'almacenes' => $almacenes,
+                    'proveedores' => $proveedores
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener datos del formulario: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 } 

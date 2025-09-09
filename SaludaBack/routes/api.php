@@ -628,6 +628,7 @@ Route::prefix('componentes')->group(function () {
     // Productos
     Route::prefix('productos')->group(function () {
         Route::get('/', [ProductoController::class, 'index']);
+        Route::get('/datos-formulario', [ProductoController::class, 'getDatosFormulario']);
         Route::post('/', [ProductoController::class, 'store']);
         Route::post('/bulk-upload', [ProductoController::class, 'bulkUpload']);
         Route::get('/estadisticas', [ProductoController::class, 'estadisticas']);
@@ -771,6 +772,7 @@ Route::prefix('componentes')->group(function () {
 // Rutas de Productos
 Route::prefix('productos')->group(function () {
     Route::get('/', [ProductoController::class, 'index']);
+    Route::get('/datos-formulario', [ProductoController::class, 'getDatosFormulario']);
     Route::post('/', [ProductoController::class, 'store']);
     Route::post('/bulk-upload', [ProductoController::class, 'bulkUpload']);
     Route::get('/{id}', [ProductoController::class, 'show']);

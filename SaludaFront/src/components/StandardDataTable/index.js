@@ -161,8 +161,10 @@ const StandardDataTable = ({
 
       let response;
       if (serverSide) {
+        console.log('🔄 StandardDataTable: Llamando service.getAll con params:', params);
         response = await service.getAll ? service.getAll(params) : service.get(endpoint, { params });
       } else {
+        console.log('🔄 StandardDataTable: Llamando service.getAll sin params');
         response = await service.getAll ? service.getAll() : service.get(endpoint);
       }
       
@@ -177,15 +179,16 @@ const StandardDataTable = ({
       console.log('📊 StandardDataTable: Tipo de respuesta:', typeof response);
       console.log('📊 StandardDataTable: response.success:', response?.success);
       console.log('📊 StandardDataTable: response.data:', response?.data);
+      console.log('📊 StandardDataTable: response.pagination:', response?.pagination);
       
       if (response.success || response.data) {
         if (response.success) {
-          // Formato nuevo: response.data contiene el array, response.total el total
+          // Formato nuevo: response.data contiene el array, response.total o response.pagination.total el total
           setData(response.data || []);
-          setTotalRecords(response.total || response.data?.length || 0);
+          setTotalRecords(response.total || response.pagination?.total || response.data?.length || 0);
           console.log('✅ StandardDataTable: Datos configurados (nuevo formato):', {
             dataLength: response.data?.length,
-            total: response.total
+            total: response.total || response.pagination?.total
           });
         } else {
           // Formato legacy: response.data contiene directamente los datos

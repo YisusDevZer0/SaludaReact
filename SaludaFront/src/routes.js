@@ -39,6 +39,9 @@ import Cajas from "layouts/admin/Cajas";
 import FondosCaja from "layouts/admin/FondosCaja";
 import Gastos from "layouts/admin/Gastos";
 import Encargos from "layouts/admin/Encargos";
+import Tickets from "layouts/admin/Tickets";
+import Asistencia from "layouts/admin/Asistencia";
+import Sugerencias from "layouts/admin/Sugerencias";
 // import Inventarios from "layouts/admin/Inventarios";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
 // import AjustesInventario from "layouts/admin/AjustesInventario";
@@ -338,6 +341,33 @@ const routes = [
     route: "/admin/encargos",
     component: <Encargos />,
     adminOnly: true, // Solo administradores pueden acceder
+  },
+  {
+    type: "collapse",
+    name: "Tickets y Soporte",
+    key: "tickets",
+    icon: <Icon fontSize="small">bug_report</Icon>,
+    route: "/admin/tickets",
+    component: <Tickets />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Control de Asistencia",
+    key: "asistencia",
+    icon: <Icon fontSize="small">access_time</Icon>,
+    route: "/admin/asistencia",
+    component: <Asistencia />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Sugerencias",
+    key: "sugerencias",
+    icon: <Icon fontSize="small">lightbulb</Icon>,
+    route: "/admin/sugerencias",
+    component: <Sugerencias />,
+    adminOnly: true,
   },
   {
     type: "collapse",

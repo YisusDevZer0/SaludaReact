@@ -26,10 +26,12 @@ const axiosInstance = Axios.create({
 // Interceptor global para agregar el token de autenticación
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
     if (token) {
       console.log("HttpService: Enviando Bearer token:", token.substring(0, 20) + "...");
       config.headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.log("HttpService: No se encontró token de autenticación");
     }
     return config;
   },
