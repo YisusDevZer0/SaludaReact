@@ -41,6 +41,13 @@ import Gastos from "layouts/admin/Gastos";
 import Encargos from "layouts/admin/Encargos";
 import Tickets from "layouts/admin/Tickets";
 import Sugerencias from "layouts/admin/Sugerencias";
+import Vacaciones from "layouts/admin/Vacaciones";
+import Enfermeros from "layouts/admin/Enfermeros";
+import MedicosEspecialistas from "layouts/admin/MedicosEspecialistas";
+import PacientesEspera from "layouts/admin/PacientesEspera";
+import MedicosGenerales from "layouts/admin/MedicosGenerales";
+import Gestoria from "layouts/admin/Gestoria";
+import ServiciosEspecializados from "layouts/admin/ServiciosEspecializados";
 // import Inventarios from "layouts/admin/Inventarios";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
 // import AjustesInventario from "layouts/admin/AjustesInventario";
@@ -357,6 +364,69 @@ const routes = [
     icon: <Icon fontSize="small">lightbulb</Icon>,
     route: "/admin/sugerencias",
     component: <Sugerencias />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Control de Vacaciones",
+    key: "vacaciones",
+    icon: <Icon fontSize="small">event</Icon>,
+    route: "/admin/vacaciones",
+    component: <Vacaciones />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Enfermeros",
+    key: "enfermeros",
+    icon: <Icon fontSize="small">local_hospital</Icon>,
+    route: "/admin/enfermeros",
+    component: <Enfermeros />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Médicos Especialistas",
+    key: "medicos-especialistas",
+    icon: <Icon fontSize="small">medical_services</Icon>,
+    route: "/admin/medicos-especialistas",
+    component: <MedicosEspecialistas />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Pacientes en Espera",
+    key: "pacientes-espera",
+    icon: <Icon fontSize="small">people</Icon>,
+    route: "/admin/pacientes-espera",
+    component: <PacientesEspera />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Médicos Generales",
+    key: "medicos-generales",
+    icon: <Icon fontSize="small">healing</Icon>,
+    route: "/admin/medicos-generales",
+    component: <MedicosGenerales />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Gestoría",
+    key: "gestoria",
+    icon: <Icon fontSize="small">account_balance</Icon>,
+    route: "/admin/gestoria",
+    component: <Gestoria />,
+    adminOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "Servicios Especializados",
+    key: "servicios-especializados",
+    icon: <Icon fontSize="small">biotech</Icon>,
+    route: "/admin/servicios-especializados",
+    component: <ServiciosEspecializados />,
     adminOnly: true,
   },
   {

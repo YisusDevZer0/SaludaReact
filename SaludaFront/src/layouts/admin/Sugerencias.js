@@ -77,107 +77,123 @@ function Sugerencias() {
   // Estados de datos auxiliares
   const [estadisticas, setEstadisticas] = useState(null);
 
-  // Datos mock
+  // Datos mock para sugerencias de compras/pedidos
   const sugerenciasMock = [
     {
       id: 1,
-      titulo: "Mejora en el sistema de reportes",
-      descripcion: "Sería muy útil poder generar reportes personalizados con filtros más específicos y la opción de exportar en diferentes formatos",
-      categoria: "Sistema",
+      titulo: "Compra de equipos médicos especializados",
+      descripcion: "Sugiero adquirir un nuevo equipo de ultrasonido portátil para mejorar la atención en consultas externas. El equipo actual tiene más de 5 años y necesita actualización",
+      categoria: "Equipos Médicos",
       estado: "En Revisión",
-      prioridad: "Media",
-      autor: "María García",
-      autor_cargo: "Contadora",
+      prioridad: "Alta",
+      autor: "Dr. María García",
+      autor_cargo: "Especialista en Ginecología",
       fecha_creacion: "2025-01-08T10:30:00Z",
       fecha_actualizacion: "2025-01-08T14:20:00Z",
       votos_positivos: 12,
       votos_negativos: 2,
       calificacion: 4.2,
-      etiquetas: ["Reportes", "Exportación", "Filtros"],
+      etiquetas: ["Ultrasonido", "Equipos", "Ginecología"],
       comentarios: 5,
-      implementada: false
+      implementada: false,
+      proveedor_sugerido: "MedTech Solutions",
+      costo_estimado: 45000,
+      urgencia: "Media"
     },
     {
       id: 2,
-      titulo: "Optimización de la interfaz de usuario",
-      descripcion: "La interfaz actual es funcional pero podría ser más intuitiva. Sugiero reorganizar los menús y mejorar la navegación",
-      categoria: "UI/UX",
+      titulo: "Renovación de medicamentos de emergencia",
+      descripcion: "El stock de medicamentos de emergencia está próximo a vencer. Necesitamos renovar el inventario de epinefrina, atropina y otros medicamentos críticos",
+      categoria: "Medicamentos",
       estado: "Implementada",
-      prioridad: "Alta",
-      autor: "Carlos López",
-      autor_cargo: "Diseñador",
+      prioridad: "Crítica",
+      autor: "Lic. Ana Martínez",
+      autor_cargo: "Jefa de Enfermería",
       fecha_creacion: "2025-01-07T09:15:00Z",
       fecha_actualizacion: "2025-01-08T11:45:00Z",
       votos_positivos: 18,
       votos_negativos: 1,
       calificacion: 4.7,
-      etiquetas: ["Interfaz", "Navegación", "Usabilidad"],
+      etiquetas: ["Medicamentos", "Emergencia", "Stock"],
       comentarios: 8,
-      implementada: true
+      implementada: true,
+      proveedor_sugerido: "Farmacéutica Central",
+      costo_estimado: 8500,
+      urgencia: "Alta"
     },
     {
       id: 3,
-      titulo: "Integración con sistema de inventario",
-      descripcion: "Necesitamos una mejor integración entre el sistema de ventas y el inventario para evitar desfases en el stock",
-      categoria: "Integración",
+      titulo: "Adquisición de material quirúrgico desechable",
+      descripcion: "Necesitamos renovar el stock de material quirúrgico desechable para las cirugías menores. El actual se está agotando rápidamente",
+      categoria: "Material Quirúrgico",
       estado: "Pendiente",
       prioridad: "Alta",
-      autor: "Ana Martínez",
-      autor_cargo: "Gerente de Ventas",
+      autor: "Dr. Carlos López",
+      autor_cargo: "Cirujano General",
       fecha_creacion: "2025-01-06T16:20:00Z",
       fecha_actualizacion: "2025-01-07T09:30:00Z",
       votos_positivos: 15,
       votos_negativos: 0,
       calificacion: 4.8,
-      etiquetas: ["Inventario", "Ventas", "Sincronización"],
+      etiquetas: ["Quirúrgico", "Desechable", "Cirugía"],
       comentarios: 12,
-      implementada: false
+      implementada: false,
+      proveedor_sugerido: "MedSupply Pro",
+      costo_estimado: 12000,
+      urgencia: "Alta"
     },
     {
       id: 4,
-      titulo: "Sistema de notificaciones push",
-      descripcion: "Sería excelente tener notificaciones en tiempo real para alertas importantes y actualizaciones del sistema",
-      categoria: "Funcionalidad",
+      titulo: "Compra de equipos de laboratorio",
+      descripcion: "Sugiero adquirir un analizador automático de química sanguínea para mejorar la eficiencia en los análisis de laboratorio",
+      categoria: "Laboratorio",
       estado: "En Desarrollo",
       prioridad: "Media",
-      autor: "Roberto Silva",
-      autor_cargo: "Desarrollador",
+      autor: "QFB Roberto Silva",
+      autor_cargo: "Jefe de Laboratorio",
       fecha_creacion: "2025-01-05T14:10:00Z",
       fecha_actualizacion: "2025-01-08T13:10:00Z",
       votos_positivos: 8,
       votos_negativos: 1,
       calificacion: 4.1,
-      etiquetas: ["Notificaciones", "Tiempo Real", "Alertas"],
+      etiquetas: ["Laboratorio", "Analizador", "Química"],
       comentarios: 3,
-      implementada: false
+      implementada: false,
+      proveedor_sugerido: "LabTech International",
+      costo_estimado: 75000,
+      urgencia: "Baja"
     },
     {
       id: 5,
-      titulo: "Mejora en la seguridad de datos",
-      descripcion: "Sugiero implementar autenticación de dos factores y encriptación adicional para datos sensibles",
-      categoria: "Seguridad",
+      titulo: "Renovación de mobiliario médico",
+      descripcion: "Las camillas y sillas de consulta necesitan renovación. Sugiero adquirir mobiliario ergonómico para mejorar la comodidad de pacientes y personal",
+      categoria: "Mobiliario",
       estado: "En Revisión",
-      prioridad: "Crítica",
-      autor: "Patricia Ruiz",
-      autor_cargo: "Administradora de Sistemas",
+      prioridad: "Media",
+      autor: "Arq. Patricia Ruiz",
+      autor_cargo: "Administradora de Instalaciones",
       fecha_creacion: "2025-01-04T11:30:00Z",
       fecha_actualizacion: "2025-01-08T15:45:00Z",
       votos_positivos: 22,
       votos_negativos: 0,
       calificacion: 4.9,
-      etiquetas: ["Seguridad", "Autenticación", "Encriptación"],
+      etiquetas: ["Mobiliario", "Ergonomía", "Comodidad"],
       comentarios: 7,
-      implementada: false
+      implementada: false,
+      proveedor_sugerido: "MedFurniture Solutions",
+      costo_estimado: 25000,
+      urgencia: "Media"
     }
   ];
 
   const categorias = [
-    { id: 'Sistema', nombre: 'Sistema', color: 'primary' },
-    { id: 'UI/UX', nombre: 'UI/UX', color: 'info' },
-    { id: 'Funcionalidad', nombre: 'Funcionalidad', color: 'success' },
-    { id: 'Integración', nombre: 'Integración', color: 'warning' },
-    { id: 'Seguridad', nombre: 'Seguridad', color: 'error' },
-    { id: 'Rendimiento', nombre: 'Rendimiento', color: 'default' }
+    { id: 'Equipos Médicos', nombre: 'Equipos Médicos', color: 'primary' },
+    { id: 'Medicamentos', nombre: 'Medicamentos', color: 'info' },
+    { id: 'Material Quirúrgico', nombre: 'Material Quirúrgico', color: 'success' },
+    { id: 'Laboratorio', nombre: 'Laboratorio', color: 'warning' },
+    { id: 'Mobiliario', nombre: 'Mobiliario', color: 'error' },
+    { id: 'Tecnología', nombre: 'Tecnología', color: 'default' },
+    { id: 'Suministros', nombre: 'Suministros', color: 'secondary' }
   ];
 
   const estados = [
@@ -310,10 +326,10 @@ function Sugerencias() {
       <DashboardNavbar />
       <Box py={3}>
         <Typography variant="h4" fontWeight="bold">
-          Sistema de Sugerencias
+          Sugerencias de Compras y Pedidos
         </Typography>
         <Typography variant="body2" color="text" sx={{ mb: 3 }}>
-          Gestión de propuestas y mejoras del sistema
+          Gestión de propuestas de compras médicas, equipos y suministros
         </Typography>
 
         {error && (
