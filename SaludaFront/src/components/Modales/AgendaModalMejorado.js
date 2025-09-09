@@ -46,16 +46,17 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
 
   // Estados del formulario
   const [formData, setFormData] = useState({
-    descripcion: "",
     fecha_cita: "",
     hora_inicio: "",
     hora_fin: "",
     estado_cita: "Pendiente",
     tipo_cita: "Consulta",
+    tipo_consulta_id: "",
     consultorio: "",
     costo: "",
     notas_adicionales: "",
     nombre_paciente: "",
+    telefono_paciente: "",
     fk_paciente: "",
     fk_especialista: "",
     fk_sucursal: "",
@@ -80,16 +81,17 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
       } else if (mode === "create") {
         // Resetear formulario para nueva cita
         setFormData({
-          descripcion: "",
           fecha_cita: "",
           hora_inicio: "",
           hora_fin: "",
           estado_cita: "Pendiente",
           tipo_cita: "Consulta",
+          tipo_consulta_id: "",
           consultorio: "",
           costo: "",
           notas_adicionales: "",
           nombre_paciente: "",
+          telefono_paciente: "",
           fk_paciente: "",
           fk_especialista: "",
           fk_sucursal: "",
@@ -194,17 +196,18 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
       
       // Mapear los datos de la agenda al formulario
       setFormData({
-        descripcion: agendaData.Descripcion || agendaData.Titulo || "",
         fecha_cita: agendaData.Fecha_Cita || "",
         hora_inicio: agendaData.Hora_Inicio || "",
         hora_fin: agendaData.Hora_Fin || "",
         estado_cita: agendaData.Estado_Cita || "Pendiente",
         tipo_cita: agendaData.Tipo_Cita || "Consulta",
+        tipo_consulta_id: agendaData.tipo_consulta_id || "",
         consultorio: agendaData.Fk_Consultorio || "",
         costo: agendaData.Costo || "",
         notas_adicionales: agendaData.Notas_Adicionales || "",
         nombre_paciente: agendaData.paciente ? 
           `${agendaData.paciente.Nombre || ''} ${agendaData.paciente.Apellido || ''}`.trim() : "",
+        telefono_paciente: agendaData.paciente?.Telefono || "",
         fk_paciente: agendaData.Fk_Paciente || "",
         fk_especialista: agendaData.Fk_Especialista || "",
         fk_sucursal: agendaData.Fk_Sucursal || "",
@@ -255,8 +258,8 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
         ...prev,
         fk_paciente: patient.id,
         nombre_paciente: patient.nombre_completo,
+        telefono_paciente: patient.telefono,
         // Aquí puedes agregar más campos si los tienes en el formulario
-        // telefono_paciente: patient.telefono,
         // email_paciente: patient.email,
       }));
     } else {
@@ -274,9 +277,6 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
     const newErrors = {};
 
     // Validaciones básicas
-    if (!formData.descripcion?.trim()) {
-      newErrors.descripcion = "El motivo de consulta es requerido";
-    }
 
     if (!formData.fk_sucursal) {
       newErrors.fk_sucursal = "Debe seleccionar una sucursal";
@@ -350,14 +350,15 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
       const fechaHoraFin = `${fechaCita}T${horaFin}:00`;
       
       const citaData = {
-        titulo: formData.descripcion || 'Consulta médica',
-        descripcion: formData.descripcion || 'Consulta médica',
-        motivo_consulta: formData.descripcion || 'Consulta médica',
+        titulo: 'Consulta médica',
+        descripcion: 'Consulta médica',
+        motivo_consulta: 'Consulta médica',
         fecha_cita: fechaCita, // Solo la fecha YYYY-MM-DD, garantizada >= hoy
         hora_inicio: horaInicio, // Solo la hora en formato H:i
         hora_fin: horaFin, // Solo la hora en formato H:i
         estado_cita: formData.estado_cita || 'Pendiente',
         tipo_cita: formData.tipo_cita || 'Consulta',
+        tipo_consulta_id: formData.tipo_consulta_id || null,
         consultorio: formData.consultorio || '',
         costo: formData.costo || 0,
         notas_adicionales: formData.notas_adicionales || '',
@@ -365,6 +366,7 @@ function AgendaModalMejorado({ open, onClose, mode = "create", agendaData = null
         especialista_id: formData.fk_especialista,
         sucursal_id: formData.fk_sucursal,
         nombre_paciente: formData.nombre_paciente,
+        telefono_paciente: formData.telefono_paciente,
         especialidad_id: formData.especialidad_id,
         ID_H_O_D: formData.ID_H_O_D || 'HOSP001'
       };
