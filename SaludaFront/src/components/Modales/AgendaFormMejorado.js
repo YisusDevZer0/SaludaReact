@@ -31,7 +31,8 @@ import {
   AttachMoney as MoneyIcon,
   LocationOn as LocationIcon,
   Schedule as ScheduleIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  Phone as PhoneIcon
 } from "@mui/icons-material";
 
 // Material Dashboard 2 React components
@@ -68,6 +69,7 @@ function AgendaFormMejorado({
   const [sucursales, setSucursales] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [especialistas, setEspecialistas] = useState([]);
+  const [tiposConsulta, setTiposConsulta] = useState([]);
   const [fechasDisponibles, setFechasDisponibles] = useState([]);
   const [horariosDisponibles, setHorariosDisponibles] = useState([]);
   const [horariosOriginales, setHorariosOriginales] = useState([]); // Para mantener los datos originales
@@ -76,6 +78,7 @@ function AgendaFormMejorado({
   const [loadingSucursales, setLoadingSucursales] = useState(false);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(false);
   const [loadingEspecialistas, setLoadingEspecialistas] = useState(false);
+  const [loadingTiposConsulta, setLoadingTiposConsulta] = useState(false);
   const [loadingFechas, setLoadingFechas] = useState(false);
   const [loadingHorarios, setLoadingHorarios] = useState(false);
 
@@ -116,6 +119,7 @@ function AgendaFormMejorado({
   useEffect(() => {
     if (formData.especialidad_id && mode === "create") {
       cargarEspecialistas();
+      cargarTiposConsulta();
     }
   }, [formData.especialidad_id, mode]);
 
@@ -176,6 +180,23 @@ function AgendaFormMejorado({
       console.error('Error cargando especialistas:', error);
     } finally {
       setLoadingEspecialistas(false);
+    }
+  };
+
+  const cargarTiposConsulta = async () => {
+    try {
+      setLoadingTiposConsulta(true);
+      const response = await AgendaService.getTiposConsultaPorEspecialidad(
+        formData.especialidad_id,
+        'HOSP001'
+      );
+      if (response.success) {
+        setTiposConsulta(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error cargando tipos de consulta:', error);
+    } finally {
+      setLoadingTiposConsulta(false);
     }
   };
 
@@ -441,22 +462,6 @@ function AgendaFormMejorado({
         </MDTypography>
         
         <Grid container spacing={2}>
-          {/* Motivo de Consulta */}
-          <Grid item xs={12} md={8}>
-            <TextField
-              fullWidth
-              label="Motivo de Consulta"
-              value={formData.descripcion || ''}
-              onChange={(e) => handleChange('descripcion', e.target.value)}
-              error={!!errors.descripcion}
-              helperText={errors.descripcion || "Describa el motivo de la consulta médica"}
-              disabled={mode === "view"}
-              multiline
-              rows={3}
-              placeholder="Ej: Dolor de cabeza, Control de presión arterial, Revisión general, etc."
-            />
-          </Grid>
-
           {/* Estado de la cita */}
           <Grid item xs={12} md={4}>
             <FormControl fullWidth error={!!errors.estado_cita}>
@@ -787,6 +792,52 @@ function AgendaFormMejorado({
             </FormControl>
           </Grid>
 
+          {/* Tipo de consulta */}
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.tipo_consulta_id}>
+              <InputLabel>Tipo de Consulta</InputLabel>
+              <Select
+                value={formData.tipo_consulta_id || ''}
+                onChange={(e) => handleChange('tipo_consulta_id', e.target.value)}
+                disabled={mode === "view" || !formData.especialidad_id || loadingTiposConsulta}
+                label="Tipo de Consulta"
+              >
+                {tiposConsulta.length > 0 ? (
+                  tiposConsulta.map((tipo) => (
+                    <MenuItem key={tipo.Tipo_ID} value={tipo.Tipo_ID}>
+                      <Box display="flex" alignItems="center">
+                        <Chip 
+                          label={tipo.Nom_Tipo} 
+                          size="small" 
+                          color="primary"
+                          sx={{ mr: 1 }}
+                        />
+                        {tipo.Nom_Tipo}
+                      </Box>
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>
+                    <Typography variant="body2" color="text.secondary">
+                      {loadingTiposConsulta ? 'Cargando tipos...' : 'Seleccione una especialidad primero'}
+                    </Typography>
+                  </MenuItem>
+                )}
+              </Select>
+              {loadingTiposConsulta && (
+                <Box display="flex" alignItems="center" mt={1}>
+                  <CircularProgress size={16} />
+                  <Typography variant="caption" ml={1}>Cargando tipos de consulta...</Typography>
+                </Box>
+              )}
+              {errors.tipo_consulta_id && (
+                <Typography variant="caption" color="error">
+                  {errors.tipo_consulta_id}
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
+
           {/* Consultorio */}
           <Grid item xs={12} md={6}>
             <TextField
@@ -852,6 +903,27 @@ function AgendaFormMejorado({
                 </Typography>
               </Box>
             )}
+            
+            {/* Campo de teléfono */}
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <TextField
+                fullWidth
+                label="Teléfono del Paciente"
+                value={formData.telefono_paciente || ''}
+                onChange={(e) => handleChange('telefono_paciente', e.target.value)}
+                error={!!errors.telefono_paciente}
+                helperText={errors.telefono_paciente || 'Número de teléfono del paciente'}
+                disabled={mode === "view"}
+                placeholder="Ej: 099-123-4567"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon color="info" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
           </Grid>
         </Grid>
       </MDBox>
