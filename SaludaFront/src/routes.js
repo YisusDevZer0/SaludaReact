@@ -46,6 +46,7 @@ import Usuarios from "layouts/admin/Usuarios";
 import ReportesVentas from "layouts/admin/ReportesVentas";
 import ReportesInventario from "layouts/admin/ReportesInventario";
 import ReportesFinancieros from "layouts/admin/ReportesFinancieros";
+import TiposConsulta from "layouts/admin/TiposConsulta";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -115,6 +116,14 @@ const routes = [
     icon: <Icon fontSize="small">schedule</Icon>,
     route: "/gestion-programaciones",
     component: <GestionProgramaciones />,
+  },
+  {
+    type: "collapse",
+    name: "Tipos de Consulta",
+    key: "tipos-consulta",
+    icon: <Icon fontSize="small">medical_information</Icon>,
+    route: "/tipos-consulta",
+    component: <TiposConsulta />,
   },
   {
     type: "collapse",

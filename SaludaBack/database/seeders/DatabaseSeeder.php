@@ -43,6 +43,8 @@ class DatabaseSeeder extends Seeder
             
             // 5. Datos médicos
             EspecialidadesMedicasSeeder::class,
+            DermatologiaSeeder::class,
+            TiposConsultaSeeder::class,
             ConsultoriosSeeder::class,
             ObrasSocialesSeeder::class,
             PlanesObraSocialSeeder::class,

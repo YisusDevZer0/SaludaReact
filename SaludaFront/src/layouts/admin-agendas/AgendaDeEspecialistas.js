@@ -4,7 +4,7 @@
 =========================================================
 */
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
@@ -22,6 +22,7 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import InputAdornment from "@mui/material/InputAdornment";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useNavigate } from "react-router-dom";
 
 // Material Dashboard 2 React components
@@ -51,14 +52,20 @@ export default function AgendaDeEspecialistas() {
   const [error, setError] = useState(null);
   const [renderError, setRenderError] = useState(null);
   
+  // Estados para paginación simplificados
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [elementosPorPagina] = useState(10);
+  
   // Estados para filtros
   const [filtros, setFiltros] = useState({
-    fecha: new Date().toISOString().split('T')[0],
     especialidad: '',
     especialista: '',
     sucursal: '',
-    estado: ''
   });
+  
+  // Estado para búsqueda
+  const [busqueda, setBusqueda] = useState('');
   
   // Estados para datos de referencia
   const [especialidades, setEspecialidades] = useState([]);
@@ -74,13 +81,6 @@ export default function AgendaDeEspecialistas() {
   const [horarioModalOpen, setHorarioModalOpen] = useState(false);
   const [especialistaSeleccionado, setEspecialistaSeleccionado] = useState(null);
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState(null);
-  
-  // Estados para paginación
-  const [paginacion, setPaginacion] = useState({
-    current_page: 1,
-    per_page: 15,
-    total: 0
-  });
 
   // Error boundary para capturar errores de renderizado
   if (renderError) {
@@ -106,63 +106,52 @@ export default function AgendaDeEspecialistas() {
     );
   }
 
-  useEffect(() => {
-    cargarDatos();
-    cargarDatosReferencia();
-  }, [filtros.fecha]);
-
-  const cargarDatos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('Cargando datos con filtros:', filtros);
-      console.log('Fecha del filtro (tipo):', typeof filtros.fecha, filtros.fecha);
-      console.log('Fecha del filtro (formateada):', filtros.fecha ? new Date(filtros.fecha).toISOString().split('T')[0] : 'No fecha');
-      
-      // Usar el endpoint para citas mejoradas
-      const response = await AgendaService.getCitasMejoradas({
-        fecha: filtros.fecha,
-        especialidad: filtros.especialidad,
-        especialista: filtros.especialista,
-        sucursal: filtros.sucursal,
-        estado: filtros.estado,
-        per_page: paginacion.per_page,
-        page: paginacion.current_page
-      });
-      
-      console.log('Respuesta del servicio:', response);
-      
-      if (response.success) {
-        const citasData = response.data || [];
-        console.log('Citas recibidas:', citasData);
+  // Función optimizada para cargar datos
+  const cargarDatos = useCallback(
+    async (pagina = paginaActual, nuevosFiltros = filtros, nuevaBusqueda = busqueda) => {
+      try {
+        setLoading(true);
+        setError(null);
         
-        // Validar que las citas sean un array válido
-        if (Array.isArray(citasData)) {
-          setCitas(citasData);
-          setPaginacion(prev => ({
-            ...prev,
-            total: response.data.length || 0,
-            current_page: 1
-          }));
+        console.log('Cargando datos:', { pagina, filtros: nuevosFiltros, busqueda: nuevaBusqueda });
+        
+        // Usar el endpoint para citas mejoradas
+        const response = await AgendaService.getCitasMejoradas({
+          especialidad: nuevosFiltros.especialidad,
+          especialista: nuevosFiltros.especialista,
+          sucursal: nuevosFiltros.sucursal,
+          per_page: elementosPorPagina,
+          page: pagina,
+          search: nuevaBusqueda, // 🔹 Filtrar por nombre del paciente
+        });
+        
+        if (response.success) {
+          const citasData = response.data || [];
+          
+          if (Array.isArray(citasData)) {
+            setCitas(citasData);
+            setTotalPaginas(response.last_page || Math.ceil((response.total || citasData.length) / elementosPorPagina));
+            setPaginaActual(pagina);
+          } else {
+            console.error('Las citas no son un array válido:', citasData);
+            setError('Formato de datos inválido');
+            setCitas([]);
+          }
         } else {
-          console.error('Las citas no son un array válido:', citasData);
-          setError('Formato de datos inválido');
+          console.error('Error en la respuesta del servicio:', response.message);
+          setError(response.message || 'Error al cargar las citas');
           setCitas([]);
         }
-      } else {
-        console.error('Error en la respuesta del servicio:', response.message);
-        setError(response.message || 'Error al cargar las citas');
+      } catch (error) {
+        console.error('Error al cargar citas:', error);
+        setError('Error al cargar las citas: ' + error.message);
         setCitas([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error al cargar citas:', error);
-      setError('Error al cargar las citas: ' + error.message);
-      setCitas([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [elementosPorPagina]
+  );
 
   const cargarDatosReferencia = async () => {
     try {
@@ -228,12 +217,66 @@ export default function AgendaDeEspecialistas() {
     }
   };
 
+  // Cargar datos de referencia solo una vez
+  useEffect(() => {
+    cargarDatosReferencia();
+  }, []);
+
+  // Carga inicial
+  useEffect(() => {
+    cargarDatos(1, filtros, busqueda);
+  }, []); // Solo se ejecuta una vez al montar el componente
+
+  // Manejo de filtros optimizado
   const handleFiltroChange = (campo, valor) => {
-    setFiltros(prev => ({
-      ...prev,
-      [campo]: valor
-    }));
+    const nuevosFiltros = { ...filtros, [campo]: valor };
+    setFiltros(nuevosFiltros);
+    setPaginaActual(1); // ✅ Reiniciamos página
+    cargarDatos(1, nuevosFiltros, busqueda);
   };
+
+  // Búsqueda con debounce real
+  const handleBusqueda = useMemo(() => {
+    let timeoutId;
+    return (valor) => {
+      setBusqueda(valor);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setPaginaActual(1); // ✅ Reiniciamos página al buscar
+        cargarDatos(1, filtros, valor);
+      }, 400);
+    };
+  }, [filtros, cargarDatos]);
+
+  // Función para manejar el cambio de página
+  const handlePageChange = (event, newPage) => {
+    cargarDatos(newPage, filtros, busqueda);
+  };
+
+  // Función para manejar el cambio de elementos por página
+  const handleRowsPerPageChange = (event) => {
+    const newPerPage = parseInt(event.target.value, 10);
+    setElementosPorPagina(newPerPage);
+    setPaginaActual(1); // ✅ Reiniciamos página
+    cargarDatos(1, filtros, busqueda);
+  };
+
+  // Procesar citas optimizado
+  const citasProcesadas = useMemo(() => {
+    return citas.map((cita) => ({
+      ...cita,
+      fechaFormateada: new Date(cita.Fecha_Cita).toLocaleDateString("es-MX", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+      }),
+      horaFormateada: new Date(`1970-01-01T${cita.Hora_Inicio}`).toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    }));
+  }, [citas]);
 
   const handleNuevaCita = () => {
     setModalMode('create');
@@ -286,7 +329,7 @@ export default function AgendaDeEspecialistas() {
 
   const handleModalSuccess = () => {
     setModalOpen(false);
-    cargarDatos(); // Recargar la lista
+    cargarDatos(paginacion.current_page); // Recargar la lista manteniendo la página actual
   };
 
   // Manejar selección de especialista y sucursal para abrir modal de horarios
@@ -569,17 +612,7 @@ export default function AgendaDeEspecialistas() {
                   🔍 Filtros de Búsqueda
                 </MDTypography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} md={2}>
-                    <TextField
-                      fullWidth
-                      label="Fecha"
-                      type="date"
-                      value={filtros.fecha}
-                      onChange={(e) => handleFiltroChange('fecha', e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
+                  <Grid item xs={12} md={3}>
                     <FormControl fullWidth>
                       <InputLabel>Especialidad</InputLabel>
                       <Select
@@ -596,7 +629,7 @@ export default function AgendaDeEspecialistas() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={2}>
+                  <Grid item xs={12} md={3}>
                     <FormControl fullWidth>
                       <InputLabel>Especialista</InputLabel>
                       <Select
@@ -613,7 +646,7 @@ export default function AgendaDeEspecialistas() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={2}>
+                  <Grid item xs={12} md={3}>
                     <FormControl fullWidth>
                       <InputLabel>Sucursal</InputLabel>
                       <Select
@@ -630,30 +663,31 @@ export default function AgendaDeEspecialistas() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FormControl fullWidth>
-                      <InputLabel>Estado</InputLabel>
-                      <Select
-                        value={filtros.estado}
-                        onChange={(e) => handleFiltroChange('estado', e.target.value)}
-                        label="Estado"
-                      >
-                        <MenuItem value="">Todos</MenuItem>
-                        <MenuItem value="Pendiente">Pendiente</MenuItem>
-                        <MenuItem value="Confirmada">Confirmada</MenuItem>
-                        <MenuItem value="En Proceso">En Proceso</MenuItem>
-                        <MenuItem value="Completada">Completada</MenuItem>
-                        <MenuItem value="Cancelada">Cancelada</MenuItem>
-                        <MenuItem value="No Asistió">No Asistió</MenuItem>
-                      </Select>
-                    </FormControl>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Buscar por paciente"
+                      variant="outlined"
+                      value={busqueda}
+                      onChange={(e) => handleBusqueda(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Icon>search</Icon>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
                   </Grid>
                   <Grid item xs={12} md={2}>
                     <MDButton
                       variant="contained"
                       color="primary"
                       fullWidth
-                      onClick={cargarDatos}
+                      onClick={() => {
+                        setPaginaActual(1); // ✅ Reiniciamos página
+                        cargarDatos(1, filtros, busqueda);
+                      }}
                       startIcon={<Icon>search</Icon>}
                     >
                       Buscar
@@ -690,20 +724,48 @@ export default function AgendaDeEspecialistas() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  📅 Citas Agendadas ({paginacion.total})
+                  📅 Citas Agendadas ({citas.length})
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable
-                  table={{
-                    columns: columnas,
-                    rows: procesarCitasParaTabla(citas)
-                  }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
+                {loading ? (
+                  <MDBox display="flex" justifyContent="center" alignItems="center" py={4}>
+                    <CircularProgress size={40} />
+                    <MDTypography variant="body2" ml={2}>
+                      Cargando citas...
+                    </MDTypography>
+                  </MDBox>
+                ) : citasProcesadas.length === 0 ? (
+                  <MDBox textAlign="center" py={4}>
+                    <MDTypography variant="body2" color="text.secondary">
+                      No se encontraron citas
+                    </MDTypography>
+                  </MDBox>
+                ) : (
+                  <DataTable
+                    table={{
+                      columns: columnas,
+                      rows: procesarCitasParaTabla(citasProcesadas)
+                    }}
+                    isSorted={false}
+                    entriesPerPage={elementosPorPagina}
+                    showTotalEntries={true}
+                    pagination={{
+                      variant: "contained",
+                      color: "info",
+                      currentPage: paginaActual,
+                      totalPages: totalPaginas,
+                      onPageChange: handlePageChange,
+                      onRowsPerPageChange: handleRowsPerPageChange,
+                      rowsPerPageOptions: [5, 10, 15, 20, 25],
+                      rowsPerPage: elementosPorPagina,
+                      totalEntries: citas.length,
+                      entriesStart: ((paginaActual - 1) * elementosPorPagina) + 1,
+                      entriesEnd: Math.min(paginaActual * elementosPorPagina, citas.length)
+                    }}
+                    noEndBorder
+                  />
+                )}
               </MDBox>
             </Card>
           </MDBox>

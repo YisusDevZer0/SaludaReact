@@ -1129,6 +1129,16 @@ Route::prefix('citas-mejoradas')->group(function () {
     Route::patch('/{id}/estado', [App\Http\Controllers\Api\CitasMejoradasController::class, 'cambiarEstado']);
 });
 
+// Rutas para Tipos de Consulta
+Route::prefix('tipos-consulta')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\TiposConsultaController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\Api\TiposConsultaController::class, 'store']);
+    Route::get('/por-especialidad', [App\Http\Controllers\Api\TiposConsultaController::class, 'getByEspecialidad']);
+    Route::get('/{id}', [App\Http\Controllers\Api\TiposConsultaController::class, 'show']);
+    Route::put('/{id}', [App\Http\Controllers\Api\TiposConsultaController::class, 'update']);
+    Route::delete('/{id}', [App\Http\Controllers\Api\TiposConsultaController::class, 'destroy']);
+});
+
 // Rutas para Programación de Especialistas
 Route::prefix('programacion')->middleware(['cors'])->group(function () {
     // Handle OPTIONS requests for CORS preflight FIRST

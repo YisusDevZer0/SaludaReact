@@ -762,6 +762,35 @@ class AgendaService {
     }
   }
 
+  async getTiposConsultaPorEspecialidad(especialidadId, idHod) {
+    try {
+      const response = await fetch(`${this.baseURL}/api/tipos-consulta/por-especialidad?especialidad_id=${especialidadId}&id_hod=${idHod}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        return this.handleResponseError(response, 'Error al obtener tipos de consulta');
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data: data.data || []
+      };
+    } catch (error) {
+      console.error('Error al obtener tipos de consulta:', error);
+      return {
+        success: false,
+        message: error.message,
+        data: []
+      };
+    }
+  }
+
   async getSucursalesMejoradas() {
     try {
       // Temporalmente sin verificación de autenticación para debugging
@@ -858,11 +887,6 @@ class AgendaService {
 
   async getCitasMejoradas(params = {}) {
     try {
-      // Temporalmente sin verificación de autenticación para debugging
-      // if (!this.isAuthenticated()) {
-      //   throw new Error('Usuario no autenticado');
-      // }
-
       const queryParams = new URLSearchParams();
       if (params.fecha) queryParams.append('fecha', params.fecha);
       if (params.especialidad) queryParams.append('especialidad', params.especialidad);
@@ -871,6 +895,7 @@ class AgendaService {
       if (params.estado) queryParams.append('estado', params.estado);
       if (params.per_page) queryParams.append('per_page', params.per_page);
       if (params.page) queryParams.append('page', params.page);
+      if (params.search) queryParams.append('busqueda', params.search);
 
       const fullUrl = `${this.baseURL}/api/test-agenda/citas?${queryParams}`;
 
@@ -887,14 +912,17 @@ class AgendaService {
       }
 
       const data = await response.json();
-      const citas = data.data || data || [];
-
-      // Enriquecer las citas con datos relacionados
-      const citasEnriquecidas = await this.enriquecerCitas(citas);
+      const citas = data.data || [];
 
       return {
         success: true,
-        data: citasEnriquecidas
+        data: citas,
+        total: data.total || citas.length,
+        current_page: data.current_page || 1,
+        last_page: data.last_page || 1,
+        per_page: data.per_page || 15,
+        from: data.from || 0,
+        to: data.to || citas.length
       };
     } catch (error) {
       console.error('Error al obtener citas mejoradas:', error);

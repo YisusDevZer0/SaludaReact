@@ -153,6 +153,7 @@ class CitasMejoradasController extends Controller
                 'descripcion' => 'nullable|string',
                 'paciente_id' => 'nullable|exists:pacientes_mejorados,Paciente_ID',
                 'nombre_paciente' => 'required_without:paciente_id|string|max:255',
+                'telefono_paciente' => 'nullable|string|max:20',
                 'especialista_id' => 'required|exists:especialistas,Especialista_ID',
                 'sucursal_id' => 'required|exists:sucursales_mejoradas,Sucursal_ID',
                 'consultorio_id' => 'nullable|exists:consultorios_mejorados,Consultorio_ID',
@@ -194,19 +195,19 @@ class CitasMejoradasController extends Controller
                 $nombre = $nombres[0];
                 $apellido = isset($nombres[1]) ? $nombres[1] : '';
                 
-                $paciente = PacienteMejorado::create([
-                    'Nombre' => $nombre,
-                    'Apellido' => $apellido,
-                    'Correo_Electronico' => 'nuevo@paciente.com', // Email temporal
-                    'Telefono' => '000-000-0000', // Teléfono temporal
-                    'Fecha_Nacimiento' => '1990-01-01', // Fecha temporal
-                    'Genero' => 'No especificado',
-                    'Direccion' => 'Dirección por definir',
-                    'Tipo_Sangre' => 'No especificado',
-                    'Estatus' => 'Activo',
-                    'ID_H_O_D' => $request->header('X-Hospital-ID', 'HOSP001'),
-                    'Agregado_Por' => $request->header('X-User-ID', 'system')
-                ]);
+                            $paciente = PacienteMejorado::create([
+                'Nombre' => $nombre,
+                'Apellido' => $apellido,
+                'Correo_Electronico' => 'nuevo@paciente.com', // Email temporal
+                'Telefono' => $request->telefono_paciente ?: '000-000-0000', // Usar teléfono proporcionado o temporal
+                'Fecha_Nacimiento' => '1990-01-01', // Fecha temporal
+                'Genero' => 'Otro', // Usar valor válido del ENUM
+                'Direccion' => 'Dirección por definir',
+                'Tipo_Sangre' => 'No especificado',
+                'Estatus' => 'Activo',
+                'ID_H_O_D' => $request->header('X-Hospital-ID', 'HOSP001'),
+                'Agregado_Por' => $request->header('X-User-ID', 'system')
+            ]);
                 
                 $pacienteId = $paciente->Paciente_ID;
                 
