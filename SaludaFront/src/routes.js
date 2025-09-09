@@ -40,7 +40,6 @@ import FondosCaja from "layouts/admin/FondosCaja";
 import Gastos from "layouts/admin/Gastos";
 import Encargos from "layouts/admin/Encargos";
 import Tickets from "layouts/admin/Tickets";
-import Asistencia from "layouts/admin/Asistencia";
 import Sugerencias from "layouts/admin/Sugerencias";
 // import Inventarios from "layouts/admin/Inventarios";
 // import MovimientosInventario from "layouts/admin/MovimientosInventario";
@@ -349,15 +348,6 @@ const routes = [
     icon: <Icon fontSize="small">bug_report</Icon>,
     route: "/admin/tickets",
     component: <Tickets />,
-    adminOnly: true,
-  },
-  {
-    type: "collapse",
-    name: "Control de Asistencia",
-    key: "asistencia",
-    icon: <Icon fontSize="small">access_time</Icon>,
-    route: "/admin/asistencia",
-    component: <Asistencia />,
     adminOnly: true,
   },
   {
