@@ -4,11 +4,14 @@
 =========================================================
 */
 
+import React, { useState, useEffect } from "react";
+
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Icon from "@mui/material/Icon";
 import Divider from "@mui/material/Divider";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -22,150 +25,131 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 
+// Servicios
+import salesService from "services/sales-service";
+import reportesService from "services/reportes-service";
+
 function Sales() {
-  // Datos simulados para la gráfica de ventas mensuales
+  // Estados para datos reales
+  const [loading, setLoading] = useState(true);
+  const [estadisticas, setEstadisticas] = useState({
+    ventasHoy: 0,
+    ventasSemana: 0,
+    totalVentas: 0,
+    clientesNuevos: 0,
+    crecimientoHoy: 0,
+    crecimientoSemana: 0,
+    crecimientoMes: 0,
+    crecimientoClientes: 0
+  });
+  const [ventasRecientes, setVentasRecientes] = useState([]);
+  const [productosMasVendidos, setProductosMasVendidos] = useState([]);
+  const [ventasPorDia, setVentasPorDia] = useState([]);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Cargar estadísticas generales
+      const statsResponse = await reportesService.estadisticasGeneralesVentas();
+      if (statsResponse.success) {
+        setEstadisticas({
+          ventasHoy: statsResponse.data.ventas_hoy || 0,
+          ventasSemana: statsResponse.data.ventas_semana || 0,
+          totalVentas: statsResponse.data.total_ventas || 0,
+          clientesNuevos: statsResponse.data.clientes_nuevos || 0,
+          crecimientoHoy: statsResponse.data.crecimiento_hoy || 0,
+          crecimientoSemana: statsResponse.data.crecimiento_semana || 0,
+          crecimientoMes: statsResponse.data.crecimiento_mes || 0,
+          crecimientoClientes: statsResponse.data.crecimiento_clientes || 0
+        });
+      }
+
+      // Cargar ventas recientes
+      const ventasResponse = await salesService.getSalesHistory({ limit: 5 });
+      if (ventasResponse.success) {
+        setVentasRecientes(ventasResponse.data || []);
+      }
+
+      // Cargar productos más vendidos
+      const productosResponse = await reportesService.productosMasVendidos();
+      if (productosResponse.success) {
+        setProductosMasVendidos(productosResponse.data || []);
+      }
+
+      // Cargar ventas por día para la gráfica
+      const ventasDiaResponse = await reportesService.ventasPorDia();
+      if (ventasDiaResponse.success) {
+        setVentasPorDia(ventasDiaResponse.data || []);
+      }
+
+    } catch (error) {
+      console.error('Error cargando datos de ventas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Datos para la gráfica de ventas mensuales (basados en datos reales)
   const salesChartData = {
-    labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+    labels: ventasPorDia.map(item => item.fecha) || ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
     datasets: [
       {
         label: "Ventas Mensuales",
         color: "info",
-        data: [50, 60, 70, 65, 75, 90, 80, 85, 95, 100, 110, 120],
+        data: ventasPorDia.map(item => item.total) || [50, 60, 70, 65, 75, 90, 80, 85, 95, 100, 110, 120],
       },
     ],
   };
 
-  // Datos simulados para la tabla de ventas recientes
+  // Datos reales para la tabla de ventas recientes
   const salesTableData = {
     columns: [
-      { Header: "Número", accessor: "id" },
-      { Header: "Fecha", accessor: "date" },
-      { Header: "Cliente", accessor: "customer" },
-      { Header: "Productos", accessor: "products" },
+      { Header: "Número", accessor: "numero_venta" },
+      { Header: "Fecha", accessor: "fecha" },
+      { Header: "Cliente", accessor: "cliente" },
+      { Header: "Productos", accessor: "productos" },
       { Header: "Total", accessor: "total" },
-      { Header: "Estado", accessor: "status" },
+      { Header: "Estado", accessor: "estado" },
       { Header: "Acciones", accessor: "actions" },
     ],
-    rows: [
-      {
-        id: "#0001",
-        date: "23/05/2023",
-        customer: "Juan Pérez",
-        products: "4",
-        total: "$1,250.00",
-        status: "Completada",
-        actions: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        id: "#0002",
-        date: "23/05/2023",
-        customer: "María López",
-        products: "2",
-        total: "$450.00",
-        status: "Completada",
-        actions: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        id: "#0003",
-        date: "22/05/2023",
-        customer: "Carlos Ruiz",
-        products: "6",
-        total: "$890.00",
-        status: "Completada",
-        actions: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        id: "#0004",
-        date: "22/05/2023",
-        customer: "Ana Díaz",
-        products: "3",
-        total: "$620.00",
-        status: "Completada",
-        actions: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      },
-      {
-        id: "#0005",
-        date: "21/05/2023",
-        customer: "Roberto Gómez",
-        products: "5",
-        total: "$780.00",
-        status: "Completada",
-        actions: (
-          <MDBox display="flex" alignItems="center">
-            <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
-            <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
-          </MDBox>
-        ),
-      },
-    ],
+    rows: ventasRecientes.map(venta => ({
+      numero_venta: venta.numero_venta || `#${venta.id}`,
+      fecha: venta.created_at ? new Date(venta.created_at).toLocaleDateString('es-ES') : 'N/A',
+      cliente: venta.cliente?.nombre || 'Cliente General',
+      productos: venta.detalles?.length || 0,
+      total: `$${(parseFloat(venta.total) || 0).toFixed(2)}`,
+      estado: venta.estado || 'Completada',
+      actions: (
+        <MDBox display="flex" alignItems="center">
+          <Icon sx={{ cursor: "pointer", color: "info.main" }}>visibility</Icon>
+          <Icon sx={{ cursor: "pointer", ml: 1, color: "error.main" }}>delete</Icon>
+        </MDBox>
+      ),
+    })),
   };
 
-  // Datos simulados para productos más vendidos
+  // Datos reales para productos más vendidos
   const topProductsData = {
     columns: [
-      { Header: "Producto", accessor: "product" },
-      { Header: "Categoría", accessor: "category" },
-      { Header: "Precio", accessor: "price" },
-      { Header: "Cantidad Vendida", accessor: "quantity" },
+      { Header: "Producto", accessor: "producto" },
+      { Header: "Categoría", accessor: "categoria" },
+      { Header: "Precio", accessor: "precio" },
+      { Header: "Cantidad Vendida", accessor: "cantidad" },
       { Header: "Total", accessor: "total" },
     ],
-    rows: [
-      {
-        product: "Paracetamol 500mg",
-        category: "Analgésicos",
-        price: "$25.00",
-        quantity: "128",
-        total: "$3,200.00",
-      },
-      {
-        product: "Omeprazol 20mg",
-        category: "Gastroenterología",
-        price: "$30.00",
-        quantity: "95",
-        total: "$2,850.00",
-      },
-      {
-        product: "Loratadina 10mg",
-        category: "Antialérgicos",
-        price: "$20.00",
-        quantity: "87",
-        total: "$1,740.00",
-      },
-      {
-        product: "Ibuprofeno 400mg",
-        category: "Analgésicos",
-        price: "$18.00",
-        quantity: "75",
-        total: "$1,350.00",
-      },
-      {
-        product: "Metformina 850mg",
-        category: "Diabetes",
-        price: "$22.00",
-        quantity: "68",
-        total: "$1,496.00",
-      },
-    ],
+    rows: productosMasVendidos.map(producto => ({
+      producto: producto.nombre || 'Producto',
+      categoria: producto.categoria?.nombre || 'Sin categoría',
+      precio: `$${(parseFloat(producto.precio_venta) || 0).toFixed(2)}`,
+      cantidad: producto.cantidad_vendida || 0,
+      total: `$${(parseFloat(producto.total_vendido) || 0).toFixed(2)}`,
+    })),
   };
 
   return (
@@ -220,15 +204,21 @@ function Sales() {
                   <MDTypography variant="h6" fontWeight="medium">
                     Ventas Hoy
                   </MDTypography>
-                  <MDTypography variant="h4">$2,590.00</MDTypography>
+                  <MDTypography variant="h4">
+                    {loading ? <CircularProgress size={24} /> : `$${(estadisticas.ventasHoy || 0).toFixed(2)}`}
+                  </MDTypography>
                 </MDBox>
               </MDBox>
               <Divider />
               <MDBox p={2}>
                 <MDTypography component="p" variant="button" color="text" display="flex" alignItems="center">
-                  <Icon color="success" fontSize="small" sx={{ mr: 0.5 }}>arrow_upward</Icon>
-                  <MDTypography variant="button" color="success" fontWeight="medium">12%</MDTypography>
-                  &nbsp; más que ayer
+                  <Icon color={estadisticas.crecimientoHoy >= 0 ? "success" : "error"} fontSize="small" sx={{ mr: 0.5 }}>
+                    {estadisticas.crecimientoHoy >= 0 ? "arrow_upward" : "arrow_downward"}
+                  </Icon>
+                  <MDTypography variant="button" color={estadisticas.crecimientoHoy >= 0 ? "success" : "error"} fontWeight="medium">
+                    {Math.abs(estadisticas.crecimientoHoy || 0).toFixed(1)}%
+                  </MDTypography>
+                  &nbsp; {estadisticas.crecimientoHoy >= 0 ? "más" : "menos"} que ayer
                 </MDTypography>
               </MDBox>
             </Card>
@@ -255,15 +245,21 @@ function Sales() {
                   <MDTypography variant="h6" fontWeight="medium">
                     Ventas Semana
                   </MDTypography>
-                  <MDTypography variant="h4">$15,480.00</MDTypography>
+                  <MDTypography variant="h4">
+                    {loading ? <CircularProgress size={24} /> : `$${(estadisticas.ventasSemana || 0).toFixed(2)}`}
+                  </MDTypography>
                 </MDBox>
               </MDBox>
               <Divider />
               <MDBox p={2}>
                 <MDTypography component="p" variant="button" color="text" display="flex" alignItems="center">
-                  <Icon color="success" fontSize="small" sx={{ mr: 0.5 }}>arrow_upward</Icon>
-                  <MDTypography variant="button" color="success" fontWeight="medium">8%</MDTypography>
-                  &nbsp; más que la semana anterior
+                  <Icon color={estadisticas.crecimientoSemana >= 0 ? "success" : "error"} fontSize="small" sx={{ mr: 0.5 }}>
+                    {estadisticas.crecimientoSemana >= 0 ? "arrow_upward" : "arrow_downward"}
+                  </Icon>
+                  <MDTypography variant="button" color={estadisticas.crecimientoSemana >= 0 ? "success" : "error"} fontWeight="medium">
+                    {Math.abs(estadisticas.crecimientoSemana || 0).toFixed(1)}%
+                  </MDTypography>
+                  &nbsp; {estadisticas.crecimientoSemana >= 0 ? "más" : "menos"} que la semana anterior
                 </MDTypography>
               </MDBox>
             </Card>
@@ -290,15 +286,21 @@ function Sales() {
                   <MDTypography variant="h6" fontWeight="medium">
                     Total Ventas
                   </MDTypography>
-                  <MDTypography variant="h4">58</MDTypography>
+                  <MDTypography variant="h4">
+                    {loading ? <CircularProgress size={24} /> : estadisticas.totalVentas || 0}
+                  </MDTypography>
                 </MDBox>
               </MDBox>
               <Divider />
               <MDBox p={2}>
                 <MDTypography component="p" variant="button" color="text" display="flex" alignItems="center">
-                  <Icon color="success" fontSize="small" sx={{ mr: 0.5 }}>arrow_upward</Icon>
-                  <MDTypography variant="button" color="success" fontWeight="medium">5%</MDTypography>
-                  &nbsp; más que el mes anterior
+                  <Icon color={estadisticas.crecimientoMes >= 0 ? "success" : "error"} fontSize="small" sx={{ mr: 0.5 }}>
+                    {estadisticas.crecimientoMes >= 0 ? "arrow_upward" : "arrow_downward"}
+                  </Icon>
+                  <MDTypography variant="button" color={estadisticas.crecimientoMes >= 0 ? "success" : "error"} fontWeight="medium">
+                    {Math.abs(estadisticas.crecimientoMes || 0).toFixed(1)}%
+                  </MDTypography>
+                  &nbsp; {estadisticas.crecimientoMes >= 0 ? "más" : "menos"} que el mes anterior
                 </MDTypography>
               </MDBox>
             </Card>
@@ -325,15 +327,21 @@ function Sales() {
                   <MDTypography variant="h6" fontWeight="medium">
                     Clientes Nuevos
                   </MDTypography>
-                  <MDTypography variant="h4">12</MDTypography>
+                  <MDTypography variant="h4">
+                    {loading ? <CircularProgress size={24} /> : estadisticas.clientesNuevos || 0}
+                  </MDTypography>
                 </MDBox>
               </MDBox>
               <Divider />
               <MDBox p={2}>
                 <MDTypography component="p" variant="button" color="text" display="flex" alignItems="center">
-                  <Icon color="error" fontSize="small" sx={{ mr: 0.5 }}>arrow_downward</Icon>
-                  <MDTypography variant="button" color="error" fontWeight="medium">3%</MDTypography>
-                  &nbsp; menos que el mes anterior
+                  <Icon color={estadisticas.crecimientoClientes >= 0 ? "success" : "error"} fontSize="small" sx={{ mr: 0.5 }}>
+                    {estadisticas.crecimientoClientes >= 0 ? "arrow_upward" : "arrow_downward"}
+                  </Icon>
+                  <MDTypography variant="button" color={estadisticas.crecimientoClientes >= 0 ? "success" : "error"} fontWeight="medium">
+                    {Math.abs(estadisticas.crecimientoClientes || 0).toFixed(1)}%
+                  </MDTypography>
+                  &nbsp; {estadisticas.crecimientoClientes >= 0 ? "más" : "menos"} que el mes anterior
                 </MDTypography>
               </MDBox>
             </Card>

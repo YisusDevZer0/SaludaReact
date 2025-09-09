@@ -266,35 +266,37 @@ class ReportesInventarioController extends Controller
             $fechaFin = $request->fecha_fin ?? Carbon::now()->endOfMonth();
             $limite = $request->limite ?? 10;
 
-            $productosVendidos = DB::table('venta_items')
-                ->join('ventas', 'venta_items.venta_id', '=', 'ventas.id')
-                ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
+            $productosVendidos = DB::table('detalles_venta')
+                ->join('ventas', 'detalles_venta.venta_id', '=', 'ventas.id')
+                ->join('productos', 'detalles_venta.producto_id', '=', 'productos.id')
                 ->select(
                     'productos.id',
                     'productos.nombre',
                     'productos.codigo',
-                    DB::raw('SUM(venta_items.cantidad) as total_vendido'),
-                    DB::raw('SUM(venta_items.precio_unitario * venta_items.cantidad) as total_ingresos'),
-                    DB::raw('AVG(venta_items.precio_unitario) as precio_promedio')
+                    DB::raw('SUM(detalles_venta.cantidad) as total_vendido'),
+                    DB::raw('SUM(detalles_venta.precio_total) as total_ingresos'),
+                    DB::raw('AVG(detalles_venta.precio_unitario) as precio_promedio')
                 )
                 ->whereBetween('ventas.created_at', [$fechaInicio, $fechaFin])
+                ->where('ventas.estado', '!=', 'anulada')
                 ->groupBy('productos.id', 'productos.nombre', 'productos.codigo')
                 ->orderBy('total_vendido', 'desc')
                 ->limit($limite)
                 ->get();
 
-            $productosMenosVendidos = DB::table('venta_items')
-                ->join('ventas', 'venta_items.venta_id', '=', 'ventas.id')
-                ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
+            $productosMenosVendidos = DB::table('detalles_venta')
+                ->join('ventas', 'detalles_venta.venta_id', '=', 'ventas.id')
+                ->join('productos', 'detalles_venta.producto_id', '=', 'productos.id')
                 ->select(
                     'productos.id',
                     'productos.nombre',
                     'productos.codigo',
-                    DB::raw('SUM(venta_items.cantidad) as total_vendido'),
-                    DB::raw('SUM(venta_items.precio_unitario * venta_items.cantidad) as total_ingresos'),
-                    DB::raw('AVG(venta_items.precio_unitario) as precio_promedio')
+                    DB::raw('SUM(detalles_venta.cantidad) as total_vendido'),
+                    DB::raw('SUM(detalles_venta.precio_total) as total_ingresos'),
+                    DB::raw('AVG(detalles_venta.precio_unitario) as precio_promedio')
                 )
                 ->whereBetween('ventas.created_at', [$fechaInicio, $fechaFin])
+                ->where('ventas.estado', '!=', 'anulada')
                 ->groupBy('productos.id', 'productos.nombre', 'productos.codigo')
                 ->orderBy('total_vendido', 'asc')
                 ->limit($limite)

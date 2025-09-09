@@ -6,6 +6,7 @@
 import httpService from './http-service';
 
 const BASE_URL = '/productos';
+const API_BASE_URL = '';
 
 class ProductosService {
 
@@ -13,7 +14,7 @@ class ProductosService {
    * Obtener token de autenticación
    */
   getAuthHeaders() {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -25,7 +26,7 @@ class ProductosService {
    * Verificar si el usuario está autenticado
    */
   isAuthenticated() {
-    return !!localStorage.getItem('access_token');
+    return !!(localStorage.getItem('access_token') || localStorage.getItem('token'));
   }
 
   /**
@@ -54,14 +55,58 @@ class ProductosService {
       const queryParams = new URLSearchParams(params).toString();
       const url = queryParams ? `${BASE_URL}?${queryParams}` : BASE_URL;
       
+      console.log('🔄 ProductosService: Solicitando productos desde:', url);
+      console.log('🔄 ProductosService: Parámetros:', params);
+      
       const response = await httpService.get(url, {
         headers: this.getAuthHeaders()
       });
 
-      return response;
+      console.log('✅ ProductosService: Respuesta recibida:', response);
+      console.log('✅ ProductosService: Tipo de respuesta:', typeof response);
+      console.log('✅ ProductosService: response.success:', response?.success);
+      console.log('✅ ProductosService: response.data:', response?.data);
+      console.log('✅ ProductosService: response.pagination:', response?.pagination);
+
+      // Asegurar que devolvemos el formato correcto para StandardDataTable
+      if (response && response.success !== undefined) {
+        console.log('✅ ProductosService: Usando formato directo');
+        return response;
+      } else if (response && response.data) {
+        console.log('✅ ProductosService: Usando formato con data');
+        return {
+          success: true,
+          data: response.data?.data || response.data || [],
+          total: response.data?.pagination?.total || response.data?.length || 0
+        };
+      } else {
+        console.log('❌ ProductosService: Formato no reconocido');
+        return {
+          success: false,
+          data: [],
+          total: 0,
+          message: 'Formato de respuesta no reconocido'
+        };
+      }
     } catch (error) {
+      console.error('❌ ProductosService: Error:', error);
       this.handleResponseError(error);
     }
+  }
+
+  /**
+   * Método getAll para compatibilidad con StandardDataTable
+   */
+  async getAll(params = {}) {
+    return this.getProductos(params);
+  }
+
+  /**
+   * Método get para compatibilidad con StandardDataTable
+   */
+  async get(endpoint, options = {}) {
+    const params = options.params || {};
+    return this.getProductos(params);
   }
 
   /**
@@ -77,7 +122,7 @@ class ProductosService {
         headers: this.getAuthHeaders()
       });
 
-      return response;
+      return response.data;
     } catch (error) {
       this.handleResponseError(error);
     }
@@ -86,18 +131,22 @@ class ProductosService {
   /**
    * Crear un nuevo producto
    */
+  async create(data) {
+    return this.createProducto(data);
+  }
+
   async createProducto(productoData) {
     try {
       if (!this.isAuthenticated()) {
         throw new Error('Usuario no autenticado');
       }
 
-      // Convertir IDs a números
+      // Convertir IDs a números y aplicar valores por defecto
       const processedData = {
         ...productoData,
-        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : null,
-        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : null,
-        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : null,
+        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : 1,
+        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : 1,
+        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : 1,
         presentacion_id: productoData.presentacion_id ? parseInt(productoData.presentacion_id) : null,
         componente_activo_id: productoData.componente_activo_id ? parseInt(productoData.componente_activo_id) : null,
         proveedor_id: productoData.proveedor_id ? parseInt(productoData.proveedor_id) : null,
@@ -123,23 +172,19 @@ class ProductosService {
         tipo_producto: productoData.tipo_producto || 'producto',
         unidad_medida: productoData.unidad_medida || 'unidad',
         precio_costo: productoData.costo_unitario ? parseFloat(productoData.costo_unitario) : (productoData.precio_compra ? parseFloat(productoData.precio_compra) : 0),
-        impuesto_iva: productoData.iva ? parseFloat(productoData.iva) : 21.00
+        impuesto_iva: productoData.iva ? parseFloat(productoData.iva) : 21.00,
+        // Asegurar que los campos requeridos tengan valores por defecto
+        stock_actual: productoData.stock_actual ? parseInt(productoData.stock_actual) : 0,
+        stock_minimo: productoData.stock_minimo ? parseInt(productoData.stock_minimo) : 10
       };
       
-      console.log('Enviando datos del producto procesados:', processedData);
-      const response = await fetch(this.baseURL, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(processedData)
+      console.log('📦 ProductosService: Datos originales:', productoData);
+      console.log('📦 ProductosService: Datos procesados:', processedData);
+      const response = await httpService.post(BASE_URL, processedData, {
+        headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al crear producto');
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error al crear producto:', error);
       throw error;
@@ -149,14 +194,18 @@ class ProductosService {
   /**
    * Actualizar un producto existente
    */
+  async update(id, data) {
+    return this.updateProducto(id, data);
+  }
+
   async updateProducto(id, productoData) {
     try {
       // Convertir IDs a números
       const processedData = {
         ...productoData,
-        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : null,
-        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : null,
-        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : null,
+        categoria_id: productoData.categoria_id ? parseInt(productoData.categoria_id) : 1,
+        marca_id: productoData.marca_id ? parseInt(productoData.marca_id) : 1,
+        almacen_id: productoData.almacen_id ? parseInt(productoData.almacen_id) : 1,
         presentacion_id: productoData.presentacion_id ? parseInt(productoData.presentacion_id) : null,
         componente_activo_id: productoData.componente_activo_id ? parseInt(productoData.componente_activo_id) : null,
         proveedor_id: productoData.proveedor_id ? parseInt(productoData.proveedor_id) : null,
@@ -186,19 +235,11 @@ class ProductosService {
       };
       
       console.log('Actualizando datos del producto procesados:', processedData);
-      const response = await fetch(`${this.baseURL}/${id}`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(processedData)
+      const response = await httpService.put(`${BASE_URL}/${id}`, processedData, {
+        headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al actualizar producto');
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error al actualizar producto:', error);
       throw error;
@@ -208,20 +249,17 @@ class ProductosService {
   /**
    * Eliminar un producto (soft delete)
    */
+  async delete(id) {
+    return this.deleteProducto(id);
+  }
+
   async deleteProducto(id) {
     try {
-      const response = await fetch(`${this.baseURL}/${id}`, {
-        method: 'DELETE',
+      const response = await httpService.delete(`${BASE_URL}/${id}`, {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al eliminar producto');
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error al eliminar producto:', error);
       throw error;
@@ -315,17 +353,11 @@ class ProductosService {
    */
   async getCategorias() {
     try {
-      const response = await fetch(`${API_BASE_URL}/categorias`, {
-        method: 'GET',
+      const response = await httpService.get('/categorias', {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data || data || [];
+      return response.data.data || response.data || [];
     } catch (error) {
       console.error('Error al obtener categorías:', error);
       return [];
@@ -337,17 +369,11 @@ class ProductosService {
    */
   async getMarcas() {
     try {
-      const response = await fetch(`${API_BASE_URL}/marcas`, {
-        method: 'GET',
+      const response = await httpService.get('/marcas', {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data || data || [];
+      return response.data.data || response.data || [];
     } catch (error) {
       console.error('Error al obtener marcas:', error);
       return [];
@@ -359,17 +385,11 @@ class ProductosService {
    */
   async getAlmacenes() {
     try {
-      const response = await fetch(`${API_BASE_URL}/almacenes`, {
-        method: 'GET',
+      const response = await httpService.get('/almacenes', {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data || data || [];
+      return response.data.data || response.data || [];
     } catch (error) {
       console.error('Error al obtener almacenes:', error);
       return [];
@@ -381,17 +401,11 @@ class ProductosService {
    */
   async getProveedores() {
     try {
-      const response = await fetch(`${API_BASE_URL}/proveedores`, {
-        method: 'GET',
+      const response = await httpService.get('/proveedores', {
         headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data || data || [];
+      return response.data.data || response.data || [];
     } catch (error) {
       console.error('Error al obtener proveedores:', error);
       return [];
@@ -403,19 +417,11 @@ class ProductosService {
    */
   async bulkUpload(productos) {
     try {
-      const response = await fetch(`${this.baseURL}/bulk-upload`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({ productos })
+      const response = await httpService.post(`${BASE_URL}/bulk-upload`, { productos }, {
+        headers: this.getAuthHeaders()
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en carga masiva');
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error en carga masiva:', error);
       throw error;

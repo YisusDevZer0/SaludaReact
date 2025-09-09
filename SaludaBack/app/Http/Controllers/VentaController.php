@@ -60,6 +60,10 @@ class VentaController extends Controller
                 $query->where('metodo_pago', $request->metodo_pago);
             }
 
+            if ($request->has('tipo_venta') && $request->tipo_venta) {
+                $query->where('tipo_venta', $request->tipo_venta);
+            }
+
             // Ordenamiento
             $sortBy = $request->get('sortBy', 'created_at');
             $sortOrder = $request->get('sortOrder', 'desc');
@@ -72,6 +76,7 @@ class VentaController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $ventas->items(),
+                'total' => $ventas->total(),
                 'pagination' => [
                     'current_page' => $ventas->currentPage(),
                     'last_page' => $ventas->lastPage(),
@@ -103,9 +108,9 @@ class VentaController extends Controller
                 'numero_documento' => 'nullable|string|max:50|unique:ventas',
                 'numero_venta' => 'nullable|string|max:50|unique:ventas',
                 'serie_documento' => 'nullable|string|max:10',
-                'tipo_venta' => 'required|in:contado,credito,consignacion,mayorista',
+                'tipo_venta' => 'required|in:contado,credito,consignacion,mayorista,cotizacion',
                 'estado' => 'required|in:pendiente,confirmada,anulada,devuelta,parcialmente_devuelta',
-                'tipo_documento' => 'required|in:ticket,factura_a,factura_b,factura_c,remito',
+                'tipo_documento' => 'required|in:ticket,factura_a,factura_b,factura_c,remito,cotizacion',
                 'subtotal' => 'required|numeric|min:0',
                 'descuento_total' => 'nullable|numeric|min:0',
                 'subtotal_con_descuento' => 'nullable|numeric|min:0',
@@ -114,7 +119,7 @@ class VentaController extends Controller
                 'total' => 'required|numeric|min:0',
                 'total_pagado' => 'nullable|numeric|min:0',
                 'saldo_pendiente' => 'nullable|numeric|min:0',
-                'metodo_pago' => 'required|in:efectivo,tarjeta_debito,tarjeta_credito,transferencia,cheque,otro',
+                'metodo_pago' => 'required|in:efectivo,tarjeta_debito,tarjeta_credito,transferencia,cheque,otro,pendiente',
                 'observaciones' => 'nullable|string',
                 'notas_internas' => 'nullable|string',
                 'detalles' => 'required|array|min:1',
@@ -252,8 +257,8 @@ class VentaController extends Controller
                 'personal_id' => 'sometimes|required|exists:personal_pos,id',
                 'numero_documento' => 'nullable|string|max:50|unique:ventas,numero_documento,' . $id,
                 'numero_venta' => 'nullable|string|max:50|unique:ventas,numero_venta,' . $id,
-                'tipo_venta' => 'sometimes|required|in:contado,credito,consignacion,mayorista',
-                'metodo_pago' => 'sometimes|required|in:efectivo,tarjeta_debito,tarjeta_credito,transferencia,cheque,otro',
+                'tipo_venta' => 'sometimes|required|in:contado,credito,consignacion,mayorista,cotizacion',
+                'metodo_pago' => 'sometimes|required|in:efectivo,tarjeta_debito,tarjeta_credito,transferencia,cheque,otro,pendiente',
                 'subtotal' => 'sometimes|required|numeric|min:0',
                 'descuento_total' => 'nullable|numeric|min:0',
                 'iva_total' => 'sometimes|required|numeric|min:0',
@@ -637,4 +642,90 @@ class VentaController extends Controller
 
         return $prefix . $year . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Reimprimir ticket/factura
+     */
+    public function reimprimir(string $id, Request $request): JsonResponse
+    {
+        try {
+            $venta = Venta::with(['cliente', 'personal', 'detalles.producto', 'sucursal'])->findOrFail($id);
+            
+            $tipoDocumento = $request->get('tipo_documento', 'ticket');
+            
+            // Generar datos para la reimpresión
+            $datosReimpresion = [
+                'venta' => $venta,
+                'tipo_documento' => $tipoDocumento,
+                'fecha_reimpresion' => now(),
+                'numero_reimpresion' => ($venta->numero_reimpresiones ?? 0) + 1
+            ];
+            
+            // Actualizar contador de reimpresiones
+            $venta->increment('numero_reimpresiones');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Documento listo para reimpresión',
+                'data' => $datosReimpresion
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al reimprimir: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generar ticket en PDF
+     */
+    public function generarTicketPdf(string $id): \Illuminate\Http\Response
+    {
+        try {
+            $venta = Venta::with(['cliente', 'personal', 'detalles.producto', 'sucursal'])->findOrFail($id);
+            
+            // Generar HTML del ticket
+            $html = view('tickets.venta', compact('venta'))->render();
+            
+            // Generar PDF usando DomPDF
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $pdf->setPaper('A4', 'portrait');
+            
+            return $pdf->stream("ticket_venta_{$venta->numero_venta}.pdf");
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generar cotización en PDF
+     */
+    public function generarCotizacionPdf(string $id): \Illuminate\Http\Response
+    {
+        try {
+            $venta = Venta::with(['cliente', 'personal', 'detalles.producto', 'sucursal'])->findOrFail($id);
+            
+            // Generar HTML de la cotización
+            $html = view('cotizaciones.venta', compact('venta'))->render();
+            
+            // Generar PDF usando DomPDF
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $pdf->setPaper('A4', 'portrait');
+            
+            return $pdf->stream("cotizacion_venta_{$venta->numero_venta}.pdf");
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar cotización: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 } 

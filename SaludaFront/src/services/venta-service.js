@@ -183,7 +183,7 @@ class VentaService {
         throw new Error('Usuario no autenticado');
       }
 
-      const response = await httpService.get('/clientes', {
+      const response = await httpService.get('/api/clientes', {
         headers: this.getAuthHeaders()
       });
 

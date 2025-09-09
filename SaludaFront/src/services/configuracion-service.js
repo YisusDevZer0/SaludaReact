@@ -308,7 +308,7 @@ class ConfiguracionService {
       return [];
     }
 
-    return [
+    const formattedData = [
       {
         id: 1,
         categoria: 'Usuarios',
@@ -337,6 +337,8 @@ class ConfiguracionService {
         tamaño_mb: systemStats.database?.size || 0
       }
     ];
+    
+    return formattedData;
   }
 }
 

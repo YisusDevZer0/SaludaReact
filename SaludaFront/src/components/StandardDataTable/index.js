@@ -161,8 +161,10 @@ const StandardDataTable = ({
 
       let response;
       if (serverSide) {
+        console.log('🔄 StandardDataTable: Llamando service.getAll con params:', params);
         response = await service.getAll ? service.getAll(params) : service.get(endpoint, { params });
       } else {
+        console.log('🔄 StandardDataTable: Llamando service.getAll sin params');
         response = await service.getAll ? service.getAll() : service.get(endpoint);
       }
       
@@ -177,15 +179,16 @@ const StandardDataTable = ({
       console.log('📊 StandardDataTable: Tipo de respuesta:', typeof response);
       console.log('📊 StandardDataTable: response.success:', response?.success);
       console.log('📊 StandardDataTable: response.data:', response?.data);
+      console.log('📊 StandardDataTable: response.pagination:', response?.pagination);
       
       if (response.success || response.data) {
         if (response.success) {
-          // Formato nuevo: response.data contiene el array, response.total el total
+          // Formato nuevo: response.data contiene el array, response.total o response.pagination.total el total
           setData(response.data || []);
-          setTotalRecords(response.total || response.data?.length || 0);
+          setTotalRecords(response.total || response.pagination?.total || response.data?.length || 0);
           console.log('✅ StandardDataTable: Datos configurados (nuevo formato):', {
             dataLength: response.data?.length,
-            total: response.total
+            total: response.total || response.pagination?.total
           });
         } else {
           // Formato legacy: response.data contiene directamente los datos
@@ -574,18 +577,40 @@ const StandardDataTable = ({
           <DialogContent>
             {estadisticas ? (
               <Grid container spacing={2}>
-                {Object.entries(estadisticas).map(([key, value]) => (
-                  <Grid item xs={12} sm={6} md={4} key={key}>
-                    <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
-                      <MDTypography variant="h4" color="info">
-                        {value}
-                      </MDTypography>
-                      <MDTypography variant="body2" color="text">
-                        {key.replace('_', ' ').toUpperCase()}
-                      </MDTypography>
-                    </Paper>
-                  </Grid>
-                ))}
+                {Object.entries(estadisticas).map(([key, value]) => {
+                  // Manejar diferentes tipos de valores
+                  let displayValue = value;
+                  let displayKey = key.replace('_', ' ').toUpperCase();
+                  
+                  if (typeof value === 'object' && value !== null) {
+                    // Si es un objeto, mostrar las propiedades más relevantes
+                    if (value.ciudad && value.total !== undefined) {
+                      displayValue = `${value.total}`;
+                      displayKey = `${value.ciudad} - ${displayKey}`;
+                    } else if (value.nombre && value.cantidad !== undefined) {
+                      displayValue = `${value.cantidad}`;
+                      displayKey = `${value.nombre} - ${displayKey}`;
+                    } else {
+                      // Para otros objetos, mostrar como JSON string
+                      displayValue = JSON.stringify(value);
+                    }
+                  } else if (typeof value === 'number') {
+                    displayValue = value.toLocaleString();
+                  }
+                  
+                  return (
+                    <Grid item xs={12} sm={6} md={4} key={key}>
+                      <Paper elevation={1} sx={{ p: 2, textAlign: 'center' }}>
+                        <MDTypography variant="h4" color="info">
+                          {displayValue}
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {displayKey}
+                        </MDTypography>
+                      </Paper>
+                    </Grid>
+                  );
+                })}
               </Grid>
             ) : (
               <Box display="flex" justifyContent="center" p={3}>
